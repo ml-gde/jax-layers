@@ -1,0 +1,242 @@
+
+
+<!DOCTYPE html>
+<html class="writer-html5" lang="en" data-content_root="../">
+<head>
+  <meta charset="utf-8" /><meta name="viewport" content="width=device-width, initial-scale=1" />
+
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>API Documentation &mdash; JAX Layers 0.1.0 documentation</title>
+      <link rel="stylesheet" type="text/css" href="../_static/pygments.css?v=b86133f3" />
+      <link rel="stylesheet" type="text/css" href="../_static/css/theme.css?v=e59714d7" />
+
+  
+      <script src="../_static/jquery.js?v=5d32c60e"></script>
+      <script src="../_static/_sphinx_javascript_frameworks_compat.js?v=2cd50e6c"></script>
+      <script src="../_static/documentation_options.js?v=01f34227"></script>
+      <script src="../_static/doctools.js?v=9bcbadda"></script>
+      <script src="../_static/sphinx_highlight.js?v=dc90522c"></script>
+    <script src="../_static/js/theme.js"></script>
+    <link rel="index" title="Index" href="../genindex.html" />
+    <link rel="search" title="Search" href="../search.html" />
+    <link rel="prev" title="Welcome to JAX Layers’s documentation!" href="../index.html" /> 
+</head>
+
+<body class="wy-body-for-nav"> 
+  <div class="wy-grid-for-nav">
+    <nav data-toggle="wy-nav-shift" class="wy-nav-side">
+      <div class="wy-side-scroll">
+        <div class="wy-side-nav-search" >
+
+          
+          
+          <a href="../index.html" class="icon icon-home">
+            JAX Layers
+          </a>
+<div role="search">
+  <form id="rtd-search-form" class="wy-form" action="../search.html" method="get">
+    <input type="text" name="q" placeholder="Search docs" aria-label="Search docs" />
+    <input type="hidden" name="check_keywords" value="yes" />
+    <input type="hidden" name="area" value="default" />
+  </form>
+</div>
+        </div><div class="wy-menu wy-menu-vertical" data-spy="affix" role="navigation" aria-label="Navigation menu">
+              <p class="caption" role="heading"><span class="caption-text">Contents:</span></p>
+<ul class="current">
+<li class="toctree-l1 current"><a class="current reference internal" href="#">API Documentation</a><ul>
+<li class="toctree-l2"><a class="reference internal" href="#attention-modules">Attention Modules</a><ul>
+<li class="toctree-l3"><a class="reference internal" href="#jax_layers.attention.MultiHeadAttention"><code class="docutils literal notranslate"><span class="pre">MultiHeadAttention</span></code></a><ul>
+<li class="toctree-l4"><a class="reference internal" href="#jax_layers.attention.MultiHeadAttention.__init__"><code class="docutils literal notranslate"><span class="pre">MultiHeadAttention.__init__()</span></code></a></li>
+</ul>
+</li>
+</ul>
+</li>
+<li class="toctree-l2"><a class="reference internal" href="#functional-interfaces">Functional Interfaces</a><ul>
+<li class="toctree-l3"><a class="reference internal" href="#jax_layers.functional.dot_product_attention"><code class="docutils literal notranslate"><span class="pre">dot_product_attention()</span></code></a></li>
+</ul>
+</li>
+</ul>
+</li>
+</ul>
+
+        </div>
+      </div>
+    </nav>
+
+    <section data-toggle="wy-nav-shift" class="wy-nav-content-wrap"><nav class="wy-nav-top" aria-label="Mobile navigation menu" >
+          <i data-toggle="wy-nav-top" class="fa fa-bars"></i>
+          <a href="../index.html">JAX Layers</a>
+      </nav>
+
+      <div class="wy-nav-content">
+        <div class="rst-content">
+          <div role="navigation" aria-label="Page navigation">
+  <ul class="wy-breadcrumbs">
+      <li><a href="../index.html" class="icon icon-home" aria-label="Home"></a></li>
+      <li class="breadcrumb-item active">API Documentation</li>
+      <li class="wy-breadcrumbs-aside">
+            <a href="../_sources/modules/index.rst.txt" rel="nofollow"> View page source</a>
+      </li>
+  </ul>
+  <hr/>
+</div>
+          <div role="main" class="document" itemscope="itemscope" itemtype="http://schema.org/Article">
+           <div itemprop="articleBody">
+             
+  <section id="api-documentation">
+<h1>API Documentation<a class="headerlink" href="#api-documentation" title="Link to this heading"></a></h1>
+<div class="toctree-wrapper compound">
+</div>
+<section id="attention-modules">
+<h2>Attention Modules<a class="headerlink" href="#attention-modules" title="Link to this heading"></a></h2>
+<p id="module-jax_layers.attention">Attention modules for JAX Layers.</p>
+<dl class="py class">
+<dt class="sig sig-object py" id="jax_layers.attention.MultiHeadAttention">
+<em class="property"><span class="pre">class</span><span class="w"> </span></em><span class="sig-prename descclassname"><span class="pre">jax_layers.attention.</span></span><span class="sig-name descname"><span class="pre">MultiHeadAttention</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="o"><span class="pre">*</span></span><span class="n"><span class="pre">args</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">Any</span></span></em>, <em class="sig-param"><span class="o"><span class="pre">**</span></span><span class="n"><span class="pre">kwargs</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">Any</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/jax_layers/attention/multi_head_attention.html#MultiHeadAttention"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#jax_layers.attention.MultiHeadAttention" title="Link to this definition"></a></dt>
+<dd><p>Bases: <a class="reference external" href="https://flax.readthedocs.io/en/latest/api_reference/flax.nnx/nn/attention.html#flax.nnx.MultiHeadAttention" title="(in Flax)"><code class="xref py py-class docutils literal notranslate"><span class="pre">MultiHeadAttention</span></code></a></p>
+<p>Multi-head attention with support for Flash Attention.</p>
+<p>This class extends Flax NNX’s MultiHeadAttention to support Flash Attention
+through JAX’s dot_product_attention implementation parameter.</p>
+<p>Example usage:</p>
+<p><a href="#id1"><span class="problematic" id="id2">``</span></a><a href="#id3"><span class="problematic" id="id4">`</span></a>python
+import jax
+import jax.numpy as jnp
+import flax.nnx as nnx
+from jax_layers.attention import MultiHeadAttention</p>
+<p># Create a MultiHeadAttention module with Flash Attention support
+attention = MultiHeadAttention(</p>
+<blockquote>
+<div><p>num_heads=8,
+in_features=512,
+implementation=”cudnn”,  # Use cuDNN’s Flash Attention if available
+rngs=nnx.Rngs(0),</p>
+</div></blockquote>
+<p>)</p>
+<p># Initialize parameters
+key = jax.random.PRNGKey(0)
+x = jax.random.normal(key, (2, 128, 512))  # (batch, seq_length, hidden_dim)</p>
+<p># Create a causal attention mask
+mask = jnp.tril(jnp.ones((2, 1, 128, 128)))  # (batch, 1, q_len, kv_len)</p>
+<p># Apply the model
+output = attention(x, mask=mask)
+<a href="#id5"><span class="problematic" id="id6">``</span></a><a href="#id7"><span class="problematic" id="id8">`</span></a></p>
+<dl class="py method">
+<dt class="sig sig-object py" id="jax_layers.attention.MultiHeadAttention.__init__">
+<span class="sig-name descname"><span class="pre">__init__</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">num_heads:</span> <span class="pre">int</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">in_features:</span> <span class="pre">int</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">qkv_features:</span> <span class="pre">int</span> <span class="pre">|</span> <span class="pre">None</span> <span class="pre">=</span> <span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">out_features:</span> <span class="pre">int</span> <span class="pre">|</span> <span class="pre">None</span> <span class="pre">=</span> <span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">*</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">dtype:</span> <span class="pre">~numpy.dtype</span> <span class="pre">|</span> <span class="pre">None</span> <span class="pre">=</span> <span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">param_dtype:</span> <span class="pre">~numpy.dtype</span> <span class="pre">=</span> <span class="pre">&lt;class</span> <span class="pre">'jax.numpy.float32'&gt;</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">broadcast_dropout:</span> <span class="pre">bool</span> <span class="pre">=</span> <span class="pre">True</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">dropout_rate:</span> <span class="pre">float</span> <span class="pre">=</span> <span class="pre">0.0</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">deterministic:</span> <span class="pre">bool</span> <span class="pre">|</span> <span class="pre">None</span> <span class="pre">=</span> <span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">precision:</span> <span class="pre">~jax._src.lax.lax.Precision</span> <span class="pre">|</span> <span class="pre">str</span> <span class="pre">|</span> <span class="pre">None</span> <span class="pre">=</span> <span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">kernel_init:</span> <span class="pre">~collections.abc.Callable</span> <span class="pre">=</span> <span class="pre">&lt;function</span> <span class="pre">variance_scaling.&lt;locals&gt;.init&gt;</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">out_kernel_init:</span> <span class="pre">~collections.abc.Callable</span> <span class="pre">|</span> <span class="pre">None</span> <span class="pre">=</span> <span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">bias_init:</span> <span class="pre">~collections.abc.Callable</span> <span class="pre">=</span> <span class="pre">&lt;function</span> <span class="pre">zeros&gt;</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">out_bias_init:</span> <span class="pre">~collections.abc.Callable</span> <span class="pre">|</span> <span class="pre">None</span> <span class="pre">=</span> <span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">use_bias:</span> <span class="pre">bool</span> <span class="pre">=</span> <span class="pre">True</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">attention_fn:</span> <span class="pre">~collections.abc.Callable</span> <span class="pre">|</span> <span class="pre">None</span> <span class="pre">=</span> <span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">decode:</span> <span class="pre">bool</span> <span class="pre">|</span> <span class="pre">None</span> <span class="pre">=</span> <span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">normalize_qk:</span> <span class="pre">bool</span> <span class="pre">=</span> <span class="pre">False</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">qkv_dot_general:</span> <span class="pre">~collections.abc.Callable</span> <span class="pre">|</span> <span class="pre">None</span> <span class="pre">=</span> <span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">out_dot_general:</span> <span class="pre">~collections.abc.Callable</span> <span class="pre">|</span> <span class="pre">None</span> <span class="pre">=</span> <span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">qkv_dot_general_cls:</span> <span class="pre">type</span> <span class="pre">|</span> <span class="pre">None</span> <span class="pre">=</span> <span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">out_dot_general_cls:</span> <span class="pre">type</span> <span class="pre">|</span> <span class="pre">None</span> <span class="pre">=</span> <span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">implementation:</span> <span class="pre">~typing.Literal['xla'</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">'cudnn'</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">'flash']</span> <span class="pre">|</span> <span class="pre">None</span> <span class="pre">=</span> <span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">rngs:</span> <span class="pre">~flax.nnx.rnglib.Rngs</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/jax_layers/attention/multi_head_attention.html#MultiHeadAttention.__init__"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#jax_layers.attention.MultiHeadAttention.__init__" title="Link to this definition"></a></dt>
+<dd><p>Initialize the MultiHeadAttention module.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>num_heads</strong> – number of attention heads.</p></li>
+<li><p><strong>in_features</strong> – int or tuple with number of input features.</p></li>
+<li><p><strong>qkv_features</strong> – dimension of the key, query, and value.</p></li>
+<li><p><strong>out_features</strong> – dimension of the last projection.</p></li>
+<li><p><strong>dtype</strong> – the dtype of the computation.</p></li>
+<li><p><strong>param_dtype</strong> – the dtype passed to parameter initializers.</p></li>
+<li><p><strong>broadcast_dropout</strong> – bool: use a broadcasted dropout along batch dims.</p></li>
+<li><p><strong>dropout_rate</strong> – dropout rate.</p></li>
+<li><p><strong>deterministic</strong> – if false, the attention weight is masked randomly using dropout.</p></li>
+<li><p><strong>precision</strong> – numerical precision of the computation.</p></li>
+<li><p><strong>kernel_init</strong> – initializer for the kernel of the Dense layers.</p></li>
+<li><p><strong>out_kernel_init</strong> – initializer for the kernel of the output Dense layer.</p></li>
+<li><p><strong>bias_init</strong> – initializer for the bias of the Dense layers.</p></li>
+<li><p><strong>out_bias_init</strong> – initializer for the bias of the output Dense layer.</p></li>
+<li><p><strong>use_bias</strong> – bool: whether pointwise QKVO dense transforms use bias.</p></li>
+<li><p><strong>attention_fn</strong> – dot_product_attention or compatible function.</p></li>
+<li><p><strong>decode</strong> – whether to prepare and use an autoregressive cache.</p></li>
+<li><p><strong>normalize_qk</strong> – should QK normalization be applied.</p></li>
+<li><p><strong>qkv_dot_general</strong> – dot_general function for QKV projection.</p></li>
+<li><p><strong>out_dot_general</strong> – dot_general function for output projection.</p></li>
+<li><p><strong>qkv_dot_general_cls</strong> – dot_general class for QKV projection.</p></li>
+<li><p><strong>out_dot_general_cls</strong> – dot_general class for output projection.</p></li>
+<li><p><strong>implementation</strong> – which implementation to use for attention. Options are:
+- “xla”: Use XLA’s default implementation
+- “cudnn”: Use cuDNN’s Flash Attention implementation (if available)
+- “flash”: Alias for “cudnn”
+- None: Automatically select the best available implementation</p></li>
+<li><p><strong>rngs</strong> – random number generator keys.</p></li>
+</ul>
+</dd>
+</dl>
+</dd></dl>
+
+</dd></dl>
+
+</section>
+<section id="functional-interfaces">
+<h2>Functional Interfaces<a class="headerlink" href="#functional-interfaces" title="Link to this heading"></a></h2>
+<p id="module-jax_layers.functional">Functional implementations for JAX Layers.</p>
+<dl class="py function">
+<dt class="sig sig-object py" id="jax_layers.functional.dot_product_attention">
+<span class="sig-prename descclassname"><span class="pre">jax_layers.functional.</span></span><span class="sig-name descname"><span class="pre">dot_product_attention</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">query</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><a class="reference external" href="https://docs.jax.dev/en/latest/_autosummary/jax.Array.html#jax.Array" title="(in JAX)"><span class="pre">Array</span></a></span></em>, <em class="sig-param"><span class="n"><span class="pre">key</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><a class="reference external" href="https://docs.jax.dev/en/latest/_autosummary/jax.Array.html#jax.Array" title="(in JAX)"><span class="pre">Array</span></a></span></em>, <em class="sig-param"><span class="n"><span class="pre">value</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><a class="reference external" href="https://docs.jax.dev/en/latest/_autosummary/jax.Array.html#jax.Array" title="(in JAX)"><span class="pre">Array</span></a></span></em>, <em class="sig-param"><span class="n"><span class="pre">bias</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><a class="reference external" href="https://docs.jax.dev/en/latest/_autosummary/jax.Array.html#jax.Array" title="(in JAX)"><span class="pre">Array</span></a><span class="w"> </span><span class="p"><span class="pre">|</span></span><span class="w"> </span><a class="reference external" href="https://docs.python.org/3/library/constants.html#None" title="(in Python v3.13)"><span class="pre">None</span></a></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">mask</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><a class="reference external" href="https://docs.jax.dev/en/latest/_autosummary/jax.Array.html#jax.Array" title="(in JAX)"><span class="pre">Array</span></a><span class="w"> </span><span class="p"><span class="pre">|</span></span><span class="w"> </span><a class="reference external" href="https://docs.python.org/3/library/constants.html#None" title="(in Python v3.13)"><span class="pre">None</span></a></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">broadcast_dropout</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><a class="reference external" href="https://docs.python.org/3/library/functions.html#bool" title="(in Python v3.13)"><span class="pre">bool</span></a></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">True</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">dropout_rng</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><a class="reference external" href="https://docs.jax.dev/en/latest/_autosummary/jax.Array.html#jax.Array" title="(in JAX)"><span class="pre">Array</span></a><span class="w"> </span><span class="p"><span class="pre">|</span></span><span class="w"> </span><a class="reference external" href="https://docs.python.org/3/library/constants.html#None" title="(in Python v3.13)"><span class="pre">None</span></a></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">dropout_rate</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><a class="reference external" href="https://docs.python.org/3/library/functions.html#float" title="(in Python v3.13)"><span class="pre">float</span></a></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">0.0</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">deterministic</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><a class="reference external" href="https://docs.python.org/3/library/functions.html#bool" title="(in Python v3.13)"><span class="pre">bool</span></a></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">False</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">dtype</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><a class="reference external" href="https://docs.jax.dev/en/latest/_autosummary/jax.numpy.dtype.html#jax.numpy.dtype" title="(in JAX)"><span class="pre">dtype</span></a><span class="w"> </span><span class="p"><span class="pre">|</span></span><span class="w"> </span><a class="reference external" href="https://docs.python.org/3/library/constants.html#None" title="(in Python v3.13)"><span class="pre">None</span></a></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">precision</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><a class="reference external" href="https://docs.jax.dev/en/latest/jax.lax.html#jax.lax.Precision" title="(in JAX)"><span class="pre">Precision</span></a><span class="w"> </span><span class="p"><span class="pre">|</span></span><span class="w"> </span><a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#str" title="(in Python v3.13)"><span class="pre">str</span></a><span class="w"> </span><span class="p"><span class="pre">|</span></span><span class="w"> </span><a class="reference external" href="https://docs.python.org/3/library/constants.html#None" title="(in Python v3.13)"><span class="pre">None</span></a></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">implementation</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><a class="reference external" href="https://docs.python.org/3/library/typing.html#typing.Literal" title="(in Python v3.13)"><span class="pre">Literal</span></a><span class="p"><span class="pre">[</span></span><span class="s"><span class="pre">'xla'</span></span><span class="p"><span class="pre">,</span></span><span class="w"> </span><span class="s"><span class="pre">'cudnn'</span></span><span class="p"><span class="pre">,</span></span><span class="w"> </span><span class="s"><span class="pre">'flash'</span></span><span class="p"><span class="pre">]</span></span><span class="w"> </span><span class="p"><span class="pre">|</span></span><span class="w"> </span><a class="reference external" href="https://docs.python.org/3/library/constants.html#None" title="(in Python v3.13)"><span class="pre">None</span></a></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">module</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><a class="reference external" href="https://docs.python.org/3/library/functions.html#object" title="(in Python v3.13)"><span class="pre">object</span></a><span class="w"> </span><span class="p"><span class="pre">|</span></span><span class="w"> </span><a class="reference external" href="https://docs.python.org/3/library/constants.html#None" title="(in Python v3.13)"><span class="pre">None</span></a></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">None</span></span></em><span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><a class="reference external" href="https://docs.jax.dev/en/latest/_autosummary/jax.Array.html#jax.Array" title="(in JAX)"><span class="pre">Array</span></a></span></span><a class="reference internal" href="../_modules/jax_layers/functional/attention.html#dot_product_attention"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#jax_layers.functional.dot_product_attention" title="Link to this definition"></a></dt>
+<dd><p>Computes dot-product attention with optional Flash Attention support.</p>
+<p>This function provides a wrapper around JAX’s dot_product_attention with the option
+to use Flash Attention when available. It follows the Flax NNX interface while
+allowing the use of different implementations through the implementation parameter.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>query</strong> – queries for calculating attention with shape of
+<cite>[batch…, q_length, num_heads, qk_depth_per_head]</cite>.</p></li>
+<li><p><strong>key</strong> – keys for calculating attention with shape of
+<cite>[batch…, kv_length, num_heads, qk_depth_per_head]</cite>.</p></li>
+<li><p><strong>value</strong> – values to be used in attention with shape of
+<cite>[batch…, kv_length, num_heads, v_depth_per_head]</cite>.</p></li>
+<li><p><strong>bias</strong> – bias for the attention weights. This should be broadcastable to
+the shape [batch…, num_heads, q_length, kv_length].</p></li>
+<li><p><strong>mask</strong> – mask for the attention weights. This should be broadcastable to
+the shape [batch…, num_heads, q_length, kv_length].</p></li>
+<li><p><strong>broadcast_dropout</strong> – bool: use a broadcasted dropout along batch dims.</p></li>
+<li><p><strong>dropout_rng</strong> – JAX PRNGKey: to be used for dropout.</p></li>
+<li><p><strong>dropout_rate</strong> – dropout rate.</p></li>
+<li><p><strong>deterministic</strong> – bool, deterministic or not (to apply dropout).</p></li>
+<li><p><strong>dtype</strong> – the dtype of the computation (default: infer from inputs).</p></li>
+<li><p><strong>precision</strong> – numerical precision of the computation.</p></li>
+<li><p><strong>implementation</strong> – which implementation to use. Options are:
+- “xla”: Use XLA’s default implementation
+- “cudnn”: Use cuDNN’s Flash Attention implementation (if available)
+- “flash”: Alias for “cudnn”
+- None: Automatically select the best available implementation</p></li>
+<li><p><strong>module</strong> – the Module that will sow the attention weights.</p></li>
+</ul>
+</dd>
+<dt class="field-even">Returns<span class="colon">:</span></dt>
+<dd class="field-even"><p>Output of shape <cite>[batch…, q_length, num_heads, v_depth_per_head]</cite>.</p>
+</dd>
+</dl>
+</dd></dl>
+
+</section>
+</section>
+
+
+           </div>
+          </div>
+          <footer><div class="rst-footer-buttons" role="navigation" aria-label="Footer">
+        <a href="../index.html" class="btn btn-neutral float-left" title="Welcome to JAX Layers’s documentation!" accesskey="p" rel="prev"><span class="fa fa-arrow-circle-left" aria-hidden="true"></span> Previous</a>
+    </div>
+
+  <hr/>
+
+  <div role="contentinfo">
+    <p>&#169; Copyright 2025, JAX Layers Contributors.</p>
+  </div>
+
+  Built with <a href="https://www.sphinx-doc.org/">Sphinx</a> using a
+    <a href="https://github.com/readthedocs/sphinx_rtd_theme">theme</a>
+    provided by <a href="https://readthedocs.org">Read the Docs</a>.
+   
+
+</footer>
+        </div>
+      </div>
+    </section>
+  </div>
+  <script>
+      jQuery(function () {
+          SphinxRtdTheme.Navigation.enable(true);
+      });
+  </script> 
+
+</body>
+</html>
