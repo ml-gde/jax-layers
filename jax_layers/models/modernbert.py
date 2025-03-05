@@ -5,7 +5,6 @@ This module implements the ModernBERT architecture as described in the paper
 improvements such as RoPE, SwiGLU, and global/local attention mechanisms.
 """
 
-
 import flax.nnx as nnx
 import jax
 import jax.numpy as jnp
@@ -341,7 +340,7 @@ class ModernBertAttention(nnx.Module):
 
         outputs = (attention_output,)
         if output_attentions:
-            outputs = outputs + (attention_probs,)
+            outputs = outputs + (attention_probs,)  # noqa: RUF005
 
         return outputs
 

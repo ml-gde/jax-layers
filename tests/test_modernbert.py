@@ -6,6 +6,7 @@ import jax.numpy as jnp
 import numpy as np
 import torch
 import torch.nn as nn
+import torch.nn.functional as F  # noqa: N812
 
 from jax_layers.models.modernbert import (
     ModernBertAttention,
@@ -277,14 +278,68 @@ def rotate_half_torch(x: torch.Tensor) -> torch.Tensor:
     return torch.cat((-x2, x1), dim=-1)
 
 
-def apply_rotary_pos_emb_torch(q, k, cos, sin, position_ids=None, unsqueeze_dim=1):
+def apply_rotary_pos_emb_torch(
+    query: torch.Tensor, key: torch.Tensor, cos: torch.Tensor, sin: torch.Tensor
+) -> tuple[torch.Tensor, torch.Tensor]:
     """PyTorch reference implementation of RoPE."""
-    # Ensure cos and sin have shape [seq_len, 1, head_dim]
-    cos = cos.unsqueeze(unsqueeze_dim)
-    sin = sin.unsqueeze(unsqueeze_dim)
-    q_embed = (q * cos) + (rotate_half_torch(q) * sin)
-    k_embed = (k * cos) + (rotate_half_torch(k) * sin)
-    return q_embed, k_embed
+    # cos/sin: [batch_size, seq_len, head_dim//2]
+    # query/key: [batch_size, num_heads, seq_len, head_dim]
+    cos = cos.unsqueeze(1)  # [batch_size, 1, seq_len, head_dim//2]
+    sin = sin.unsqueeze(1)  # [batch_size, 1, seq_len, head_dim//2]
+
+    # Reshape query and key to split last dimension
+    query_split = query.unflatten(-1, (query.shape[-1] // 2, 2))  # [batch, heads, seq, dim//2, 2]
+    key_split = key.unflatten(-1, (key.shape[-1] // 2, 2))
+
+    # Apply rotation using complex multiplication
+    query_rot = torch.stack(
+        [
+            query_split[..., 0] * cos - query_split[..., 1] * sin,
+            query_split[..., 1] * cos + query_split[..., 0] * sin,
+        ],
+        dim=-1,
+    )
+    key_rot = torch.stack(
+        [
+            key_split[..., 0] * cos - key_split[..., 1] * sin,
+            key_split[..., 1] * cos + key_split[..., 0] * sin,
+        ],
+        dim=-1,
+    )
+
+    # Reshape back
+    return query_rot.flatten(-2), key_rot.flatten(-2)
+
+
+class TorchRotaryEmbedding(nn.Module):
+    """PyTorch reference implementation of RoPE."""
+
+    def __init__(self, dim: int, max_position_embeddings: int = 4096, base: float = 10000.0):
+        super().__init__()
+        self.dim = dim
+        self.max_position_embeddings = max_position_embeddings
+        self.base = base
+
+        # Create position embeddings
+        positions = torch.arange(max_position_embeddings, dtype=torch.float32)
+        dim_indices = torch.arange(0, dim, 2, dtype=torch.float32)
+        theta = 1.0 / (base ** (dim_indices / dim))
+        angles = torch.einsum("i,j->ij", positions, theta)
+        self.register_buffer("cos", torch.cos(angles))  # [max_seq, dim//2]
+        self.register_buffer("sin", torch.sin(angles))  # [max_seq, dim//2]
+
+    def forward(
+        self, qkv: torch.Tensor, position_ids: torch.LongTensor | None = None
+    ) -> tuple[torch.Tensor, torch.Tensor]:
+        """Get cos and sin embeddings based on position IDs."""
+        seq_len = qkv.shape[1]
+        if position_ids is None:
+            position_ids = torch.arange(seq_len, device=qkv.device)
+            position_ids = position_ids.unsqueeze(0).expand(qkv.shape[0], -1)
+
+        cos = F.embedding(position_ids, self.cos)  # [batch, seq, dim//2]
+        sin = F.embedding(position_ids, self.sin)  # [batch, seq, dim//2]
+        return cos, sin
 
 
 def test_rope_numerical_correctness():
@@ -452,3 +507,92 @@ def test_create_sliding_window_mask():
                 assert mask[0, 0, i, j] == 0.0
             else:
                 assert mask[0, 0, i, j] == -jnp.inf
+
+
+def test_attention_numerical_correctness():
+    """Test that our JAX attention implementation matches PyTorch reference."""
+    # Test parameters
+    batch_size = 2
+    seq_len = 16
+    hidden_size = 256
+    num_heads = 4
+    head_dim = hidden_size // num_heads
+    max_position_embeddings = 32
+    base = 10000.0
+
+    # Create random input
+    rng = np.random.RandomState(0)
+    hidden_states = rng.normal(0, 1, (batch_size, seq_len, hidden_size)).astype(np.float32)
+
+    # Create JAX attention module
+    jax_attention = ModernBertAttention(
+        rngs=nnx.Rngs(0),
+        hidden_size=hidden_size,
+        num_attention_heads=num_heads,
+        max_position_embeddings=max_position_embeddings,
+        attention_dropout=0.0,  # Disable dropout for comparison
+    )
+
+    # Create PyTorch attention components
+    torch_qkv = nn.Linear(hidden_size, 3 * hidden_size, bias=True)
+    torch_wo = nn.Linear(hidden_size, hidden_size, bias=True)
+    torch_rope = TorchRotaryEmbedding(head_dim, max_position_embeddings, base)
+
+    # Copy weights from JAX to PyTorch
+    with torch.no_grad():
+        # Copy QKV weights
+        torch_qkv.weight.copy_(torch.tensor(jax_attention.Wqkv.kernel.T))
+        torch_qkv.bias.copy_(torch.tensor(jax_attention.Wqkv.bias))
+        # Copy output weights
+        torch_wo.weight.copy_(torch.tensor(jax_attention.Wo.kernel.T))
+        torch_wo.bias.copy_(torch.tensor(jax_attention.Wo.bias))
+
+    # Convert inputs to tensors
+    hidden_states_torch = torch.tensor(hidden_states)
+    hidden_states_jax = jnp.array(hidden_states)
+
+    # Test both global and local attention
+    for local_attention in [(-1, -1), (8, 8)]:
+        # Create attention masks
+        if local_attention != (-1, -1):
+            sliding_window_mask = create_sliding_window_mask(seq_len, local_attention)
+            sliding_window_mask_torch = torch.tensor(np.array(sliding_window_mask))
+            attention_mask = sliding_window_mask_torch
+        else:
+            sliding_window_mask = None
+            attention_mask = None
+
+        # Forward pass in PyTorch
+        qkv = torch_qkv(hidden_states_torch)
+        qkv = qkv.view(batch_size, -1, 3, num_heads, head_dim)
+        cos, sin = torch_rope(qkv)
+        query, key, value = qkv.transpose(3, 1).unbind(dim=2)
+        query, key = apply_rotary_pos_emb_torch(query, key, cos, sin)
+
+        # Compute attention scores
+        scale = head_dim**-0.5
+        attention_scores = torch.matmul(query, key.transpose(-2, -1)) * scale
+
+        if attention_mask is not None:
+            attention_scores = attention_scores + attention_mask
+
+        attention_probs = F.softmax(attention_scores, dim=-1)
+        attention_output = torch.matmul(attention_probs, value)
+        attention_output = attention_output.transpose(1, 2).contiguous()
+        attention_output = attention_output.view(batch_size, -1, hidden_size)
+        torch_output = torch_wo(attention_output)
+
+        # Forward pass in JAX
+        jax_attention.local_attention = local_attention
+        jax_output = jax_attention(
+            hidden_states_jax, sliding_window_mask=sliding_window_mask, deterministic=True
+        )[0]
+
+        # Compare outputs
+        np.testing.assert_allclose(
+            jax_output,
+            torch_output.detach().numpy(),
+            rtol=1e-4,
+            atol=1e-4,
+            err_msg=f"Outputs don't match for local_attention={local_attention}",
+        )
