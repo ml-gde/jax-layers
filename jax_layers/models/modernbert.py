@@ -269,7 +269,22 @@ class ModernBertAttention(nnx.Module):
         position_ids: jax.Array | None = None,
         deterministic: bool = True,
         output_attentions: bool = False,
-    ) -> tuple[jax.Array, ...]:
+    ) -> tuple[jax.Array] | tuple[jax.Array, jax.Array]:
+        """Apply attention module.
+
+        Args:
+            hidden_states: Input tensor of shape [batch_size, seq_len, hidden_size]
+            attention_mask: Optional attention mask
+            sliding_window_mask: Optional sliding window mask for local attention
+            position_ids: Optional position ids for RoPE
+            deterministic: Whether to apply dropout
+            output_attentions: Whether to return attention probabilities
+
+        Returns:
+            Tuple of:
+                - Output tensor of shape [batch_size, seq_len, hidden_size]
+                - Attention probabilities (optional) of shape [b_size, n_heads, seq_len, seq_len]
+        """
         # Project to Q, K, V
         qkv = self.Wqkv(hidden_states)  # [batch_size, seq_len, 3 * hidden_size]
 
@@ -338,11 +353,9 @@ class ModernBertAttention(nnx.Module):
                 deterministic=deterministic,
             )(attention_output)
 
-        outputs = (attention_output,)
         if output_attentions:
-            outputs = outputs + (attention_probs,)  # noqa: RUF005
-
-        return outputs
+            return (attention_output, attention_probs)
+        return (attention_output,)
 
 
 class ModernBERTLayer(nnx.Module):

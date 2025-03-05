@@ -329,16 +329,19 @@ class TorchRotaryEmbedding(nn.Module):
         self.register_buffer("sin", torch.sin(angles))  # [max_seq, dim//2]
 
     def forward(
-        self, qkv: torch.Tensor, position_ids: torch.LongTensor | None = None
+        self,
+        qkv: torch.Tensor,
+        position_ids: torch.Tensor | None = None,
     ) -> tuple[torch.Tensor, torch.Tensor]:
         """Get cos and sin embeddings based on position IDs."""
         seq_len = qkv.shape[1]
         if position_ids is None:
             position_ids = torch.arange(seq_len, device=qkv.device)
-            position_ids = position_ids.unsqueeze(0).expand(qkv.shape[0], -1)
+            position_ids = position_ids.unsqueeze(0).expand(qkv.shape[0], -1)  # type: ignore
 
-        cos = F.embedding(position_ids, self.cos)  # [batch, seq, dim//2]
-        sin = F.embedding(position_ids, self.sin)  # [batch, seq, dim//2]
+        # Add type ignore since we know these are valid Tensors
+        cos = F.embedding(position_ids, self.cos)  # type: ignore[arg-type]
+        sin = F.embedding(position_ids, self.sin)  # type: ignore[arg-type]
         return cos, sin
 
 
