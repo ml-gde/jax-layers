@@ -1,18 +1,17 @@
 """Tests for ModernBERT components."""
 
+
+import flax.nnx as nnx
 import jax
 import jax.numpy as jnp
 import numpy as np
-from typing import Optional
-import pytest
 import torch
 import torch.nn as nn
-import flax.nnx as nnx
 
 from jax_layers.models.modernbert import (
     RoPEPositionalEmbedding,
-    create_sinusoidal_positions,
     apply_rotary_pos_emb,
+    create_sinusoidal_positions,
 )
 
 
@@ -44,7 +43,7 @@ class RotaryPositionalEmbeddingsTorch(nn.Module):
         cache = torch.stack([torch.cos(idx_theta), torch.sin(idx_theta)], dim=-1)
         self.register_buffer("cache", cache, persistent=False)
 
-    def forward(self, x: torch.Tensor, *, input_pos: Optional[torch.Tensor] = None) -> torch.Tensor:
+    def forward(self, x: torch.Tensor, *, input_pos: torch.Tensor | None = None) -> torch.Tensor:
         seq_len = x.size(1)
         rope_cache = self.cache[:seq_len] if input_pos is None else self.cache[input_pos]
         xshaped = x.float().reshape(*x.shape[:-1], -1, 2)

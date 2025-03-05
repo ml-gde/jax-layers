@@ -5,18 +5,14 @@ This module implements the ModernBERT architecture as described in the paper
 improvements such as RoPE, SwiGLU, and global/local attention mechanisms.
 """
 
-from typing import Optional, Tuple, Dict, Any
 
-import jax
-import jax.numpy as jnp
 import flax.nnx as nnx
-
-from jax_layers.attention import MultiHeadAttention
+import jax.numpy as jnp
 
 
 def create_sinusoidal_positions(
     max_length: int, dim: int, base: float = 10000.0
-) -> Tuple[jnp.ndarray, jnp.ndarray]:
+) -> tuple[jnp.ndarray, jnp.ndarray]:
     """Create sinusoidal position embeddings.
 
     Args:
@@ -45,7 +41,7 @@ def create_sinusoidal_positions(
 
 
 def apply_rotary_pos_emb(
-    x: jnp.ndarray, cache: jnp.ndarray, positions: Optional[jnp.ndarray] = None
+    x: jnp.ndarray, cache: jnp.ndarray, positions: jnp.ndarray | None = None
 ) -> jnp.ndarray:
     """Apply rotary position embeddings to input tensor.
 
@@ -115,7 +111,7 @@ class RoPEPositionalEmbedding(nnx.Module):
     def __call__(
         self,
         x: jnp.ndarray,
-        positions: Optional[jnp.ndarray] = None,
+        positions: jnp.ndarray | None = None,
     ) -> jnp.ndarray:
         """Apply rotary position embeddings to input tensor.
 
@@ -157,9 +153,9 @@ class ModernBERTAttention(nnx.Module):
     def __call__(
         self,
         hidden_states: jnp.ndarray,
-        attention_mask: Optional[jnp.ndarray] = None,
+        attention_mask: jnp.ndarray | None = None,
         deterministic: bool = True,
-    ) -> Tuple[jnp.ndarray, Dict[str, jnp.ndarray]]:
+    ) -> tuple[jnp.ndarray, dict[str, jnp.ndarray]]:
         """Apply attention mechanism.
 
         Args:
@@ -185,9 +181,9 @@ class ModernBERTLayer(nnx.Module):
     def __call__(
         self,
         hidden_states: jnp.ndarray,
-        attention_mask: Optional[jnp.ndarray] = None,
+        attention_mask: jnp.ndarray | None = None,
         deterministic: bool = True,
-    ) -> Tuple[jnp.ndarray, Dict[str, jnp.ndarray]]:
+    ) -> tuple[jnp.ndarray, dict[str, jnp.ndarray]]:
         """Apply transformer layer.
 
         Args:
@@ -214,11 +210,11 @@ class ModernBERTEncoder(nnx.Module):
     def __call__(
         self,
         hidden_states: jnp.ndarray,
-        attention_mask: Optional[jnp.ndarray] = None,
+        attention_mask: jnp.ndarray | None = None,
         deterministic: bool = True,
         output_attentions: bool = False,
         output_hidden_states: bool = False,
-    ) -> Tuple[jnp.ndarray, ...]:
+    ) -> tuple[jnp.ndarray, ...]:
         """Apply transformer encoder.
 
         Args:
@@ -272,13 +268,13 @@ class ModernBERTForMaskedLM(nnx.Module):
     def __call__(
         self,
         input_ids: jnp.ndarray,
-        attention_mask: Optional[jnp.ndarray] = None,
-        token_type_ids: Optional[jnp.ndarray] = None,
-        position_ids: Optional[jnp.ndarray] = None,
+        attention_mask: jnp.ndarray | None = None,
+        token_type_ids: jnp.ndarray | None = None,
+        position_ids: jnp.ndarray | None = None,
         deterministic: bool = True,
         output_attentions: bool = False,
         output_hidden_states: bool = False,
-    ) -> Dict[str, jnp.ndarray]:
+    ) -> dict[str, jnp.ndarray]:
         """Apply ModernBERT model.
 
         Args:
