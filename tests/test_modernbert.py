@@ -1,6 +1,5 @@
 """Tests for ModernBERT components."""
 
-
 import flax.nnx as nnx
 import jax
 import jax.numpy as jnp
@@ -9,11 +8,13 @@ import torch
 import torch.nn as nn
 
 from jax_layers.models.modernbert import (
+    ModernBertAttention,
     ModernBertEmbeddings,
     ModernBertMLP,
     RoPEPositionalEmbedding,
     apply_rotary_pos_emb,
     create_sinusoidal_positions,
+    create_sliding_window_mask,
 )
 
 
@@ -331,3 +332,123 @@ def test_rope_numerical_correctness():
     # Compare results
     np.testing.assert_allclose(q_rotated_jax, q_rotated_torch, rtol=1e-5, atol=1e-5)
     np.testing.assert_allclose(k_rotated_jax, k_rotated_torch, rtol=1e-5, atol=1e-5)
+
+
+def test_attention_global():
+    """Test global attention mechanism."""
+    batch_size = 2
+    seq_len = 16
+    hidden_size = 64
+    num_heads = 4
+
+    # Create random input
+    key = jax.random.PRNGKey(0)
+    hidden_states = jax.random.normal(key, (batch_size, seq_len, hidden_size))
+
+    # Initialize attention
+    attention = ModernBertAttention(
+        rngs=nnx.Rngs(0),
+        hidden_size=hidden_size,
+        num_attention_heads=num_heads,
+        attention_dropout=0.1,
+    )
+
+    # Test forward pass
+    output = attention(hidden_states, deterministic=True)[0]
+    assert output.shape == (batch_size, seq_len, hidden_size)
+
+    # Test dropout is applied in training
+    output_train = attention(hidden_states, deterministic=False)[0]
+    assert not jnp.array_equal(output, output_train)
+
+    # Test attention mask
+    attention_mask = jnp.zeros((batch_size, 1, seq_len, seq_len))
+    attention_mask = attention_mask.at[:, :, :, seq_len // 2 :].set(-10000.0)
+    output_masked = attention(hidden_states, attention_mask=attention_mask)[0]
+
+    # Check that masked positions have less influence
+    influence_unmasked = jnp.mean(jnp.abs(output[:, :, :] - output_masked[:, :, :]))
+    assert influence_unmasked > 0.0
+
+
+def test_attention_local():
+    """Test local attention with sliding window."""
+    batch_size = 2
+    seq_len = 16
+    hidden_size = 64
+    num_heads = 4
+    window_size = (4, 4)  # 4 tokens left and right
+
+    # Create random input
+    key = jax.random.PRNGKey(0)
+    hidden_states = jax.random.normal(key, (batch_size, seq_len, hidden_size))
+
+    # Initialize attention with local window
+    attention = ModernBertAttention(
+        rngs=nnx.Rngs(0),
+        hidden_size=hidden_size,
+        num_attention_heads=num_heads,
+        attention_dropout=0.1,
+        local_attention=window_size,
+    )
+
+    # Test forward pass
+    output = attention(hidden_states, deterministic=True)[0]
+    assert output.shape == (batch_size, seq_len, hidden_size)
+
+    # Create attention mask that allows full attention
+    full_mask = jnp.zeros((1, 1, seq_len, seq_len))
+    output_full = attention(hidden_states, sliding_window_mask=full_mask)[0]
+
+    # The outputs should be different due to windowing
+    assert not jnp.allclose(output, output_full, atol=1e-5)
+
+    # Test with custom position IDs
+    position_ids = jnp.array([[3, 7, 1, 4] + [0] * (seq_len - 4)] * batch_size)
+    output_pos = attention(hidden_states, position_ids=position_ids)[0]
+    assert not jnp.array_equal(output, output_pos)
+
+
+def test_attention_output_attentions():
+    """Test attention with output_attentions=True."""
+    batch_size = 2
+    seq_len = 16
+    hidden_size = 64
+    num_heads = 4
+
+    # Create random input
+    key = jax.random.PRNGKey(0)
+    hidden_states = jax.random.normal(key, (batch_size, seq_len, hidden_size))
+
+    # Initialize attention
+    attention = ModernBertAttention(
+        rngs=nnx.Rngs(0),
+        hidden_size=hidden_size,
+        num_attention_heads=num_heads,
+    )
+
+    # Test with output_attentions=True
+    output, attention_probs = attention(hidden_states, output_attentions=True)
+    assert output.shape == (batch_size, seq_len, hidden_size)
+    assert attention_probs.shape == (batch_size, num_heads, seq_len, seq_len)
+
+    # Verify attention probabilities sum to 1
+    assert jnp.allclose(jnp.sum(attention_probs, axis=-1), 1.0, atol=1e-6)
+
+
+def test_create_sliding_window_mask():
+    """Test creation of sliding window attention mask."""
+    seq_len = 8
+    window_size = (2, 2)  # 2 tokens left and right
+
+    # Create mask
+    mask = create_sliding_window_mask(seq_len, window_size)
+    assert mask.shape == (1, 1, seq_len, seq_len)
+
+    # Check mask values
+    for i in range(seq_len):
+        for j in range(seq_len):
+            if abs(i - j) <= window_size[0]:
+                assert mask[0, 0, i, j] == 0.0
+            else:
+                assert mask[0, 0, i, j] == -jnp.inf
