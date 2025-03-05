@@ -493,14 +493,18 @@ class ModernBertLayer(nnx.Module):
             deterministic=deterministic,
             output_attentions=output_attentions,
         )
-        hidden_states = hidden_states + attn_outputs[0]
+        attention_output = attn_outputs[0]
+        attention_weights = attn_outputs[1] if output_attentions else None  # type: ignore
+
+        # Residual connection
+        hidden_states = hidden_states + attention_output
 
         # Apply MLP with pre-norm and residual
         mlp_output = self.mlp(self.mlp_norm(hidden_states), deterministic=deterministic)
         hidden_states = hidden_states + mlp_output
 
         if output_attentions:
-            return (hidden_states, attn_outputs[1])
+            return (hidden_states, attention_weights)  # type: ignore
         return (hidden_states,)
 
 
@@ -520,7 +524,11 @@ class ModernBERTEncoder(nnx.Module):
         deterministic: bool = True,
         output_attentions: bool = False,
         output_hidden_states: bool = False,
-    ) -> tuple[jnp.ndarray, ...]:
+    ) -> (
+        tuple[jnp.ndarray]
+        | tuple[jnp.ndarray, list[jnp.ndarray]]
+        | tuple[jnp.ndarray, list[jnp.ndarray], list[jnp.ndarray]]
+    ):
         """Apply transformer encoder.
 
         Args:
@@ -533,8 +541,8 @@ class ModernBERTEncoder(nnx.Module):
         Returns:
             Tuple of:
                 - Output tensor
-                - All hidden states (optional)
-                - All attention weights (optional)
+                - All hidden states (optional, if output_hidden_states=True)
+                - All attention weights (optional, if output_attentions=True)
         """
         # TODO: Implement ModernBERT encoder
         return (hidden_states,)

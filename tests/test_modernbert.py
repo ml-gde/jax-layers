@@ -627,9 +627,11 @@ def test_layer_shapes():
     assert output.shape == (batch_size, seq_len, hidden_size)
 
     # Test with attention outputs
-    output, attention = layer(hidden_states, output_attentions=True)
-    assert output.shape == (batch_size, seq_len, hidden_size)
-    assert attention.shape == (batch_size, num_heads, seq_len, seq_len)
+    outputs = layer(hidden_states, output_attentions=True)
+    assert len(outputs) == 2  # (hidden_states, attention)
+    hidden_states_out, attention_weights = outputs  # type: ignore
+    assert hidden_states_out.shape == (batch_size, seq_len, hidden_size)
+    assert attention_weights.shape == (batch_size, num_heads, seq_len, seq_len)
 
 
 def test_layer_first_layer_identity():
@@ -952,7 +954,7 @@ class TorchModernBertLayer(nn.Module):
         sliding_window_mask: torch.Tensor | None = None,
         position_ids: torch.Tensor | None = None,
         output_attentions: bool = False,
-    ) -> tuple[torch.Tensor, ...]:
+    ) -> tuple[torch.Tensor] | tuple[torch.Tensor, torch.Tensor]:
         # Pre-norm for attention
         attn_input = self.attn_norm(hidden_states)
         attn_outputs = self.attn(
@@ -963,7 +965,7 @@ class TorchModernBertLayer(nn.Module):
             output_attentions=output_attentions,
         )
         attention_output = attn_outputs[0]
-        outputs = attn_outputs[1:]
+        attention_weights = attn_outputs[1] if len(attn_outputs) > 1 else None
 
         # Residual connection
         hidden_states = hidden_states + attention_output
@@ -975,8 +977,8 @@ class TorchModernBertLayer(nn.Module):
         # Residual connection
         hidden_states = hidden_states + mlp_output
 
-        if output_attentions:
-            return (hidden_states,) + outputs  # noqa:RUF005
+        if output_attentions and attention_weights is not None:
+            return (hidden_states, attention_weights)
         return (hidden_states,)
 
 
@@ -1051,7 +1053,7 @@ class TorchModernBertAttention(nn.Module):
         # Apply hidden dropout
         attention_output = self.hidden_dropout(attention_output)
 
-        outputs = (attention_output,)
+        outputs: tuple = (attention_output,)
         if output_attentions:
             outputs = outputs + (attention_probs,)  # noqa: RUF005
         return outputs
