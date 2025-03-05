@@ -12,7 +12,10 @@ from jax_layers.models.modernbert import (
     Identity,
     ModernBertAttention,
     ModernBertEmbeddings,
+    ModernBERTEncoder,
+    ModernBERTForMaskedLM,
     ModernBertLayer,
+    ModernBERTMLMHead,
     ModernBertMLP,
     RoPEPositionalEmbedding,
     apply_rotary_pos_emb,
@@ -1074,3 +1077,189 @@ class TorchModernBertMLP(nn.Module):
         hidden_states = self.wo(hidden_states[:, :, ::2] * hidden_states[:, :, 1::2])
         hidden_states = self.dropout(hidden_states)
         return hidden_states
+
+
+def test_mlm_head():
+    """Test the masked language modeling head."""
+    batch_size = 2
+    seq_len = 16
+    hidden_size = 64
+    vocab_size = 1000
+
+    # Create random input
+    key = jax.random.PRNGKey(0)
+    hidden_states = jax.random.normal(key, (batch_size, seq_len, hidden_size))
+
+    # Initialize MLM head
+    mlm_head = ModernBERTMLMHead(
+        rngs=nnx.Rngs(0),
+        hidden_size=hidden_size,
+        vocab_size=vocab_size,
+    )
+
+    # Test forward pass
+    logits = mlm_head(hidden_states)
+    assert logits.shape == (batch_size, seq_len, vocab_size)
+
+    # Test layer norm is working
+    normalized = mlm_head.norm(hidden_states)
+    assert jnp.allclose(jnp.mean(normalized, axis=-1), 0.0, atol=1e-6)
+    assert jnp.allclose(jnp.std(normalized, axis=-1), 1.0, atol=1e-1)
+
+    # Test activation
+    dense_output = mlm_head.dense(normalized)
+    activated = jax.nn.gelu(dense_output)
+    assert not jnp.array_equal(dense_output, activated)  # GELU should change values
+
+
+def test_encoder():
+    """Test the transformer encoder."""
+    batch_size = 2
+    seq_len = 16
+    hidden_size = 64
+    num_attention_heads = 4
+    intermediate_size = 256
+    num_hidden_layers = 3
+
+    # Create random input
+    key = jax.random.PRNGKey(0)
+    hidden_states = jax.random.normal(key, (batch_size, seq_len, hidden_size))
+
+    # Initialize encoder
+    encoder = ModernBERTEncoder(
+        rngs=nnx.Rngs(0),
+        hidden_size=hidden_size,
+        num_attention_heads=num_attention_heads,
+        intermediate_size=intermediate_size,
+        num_hidden_layers=num_hidden_layers,
+    )
+
+    # Test basic forward pass
+    output = encoder(hidden_states, deterministic=True)
+    assert len(output) == 1
+    assert output[0].shape == (batch_size, seq_len, hidden_size)
+
+    # Test with hidden states output
+    output = encoder(hidden_states, deterministic=True, output_hidden_states=True)
+    assert len(output) == 2
+    assert len(output[1]) == num_hidden_layers + 1  # Initial + each layer
+    assert all(h.shape == (batch_size, seq_len, hidden_size) for h in output[1])
+
+    # Test with attention output
+    output = encoder(hidden_states, deterministic=True, output_attentions=True)
+    assert len(output) == 2
+    assert len(output[1]) == num_hidden_layers
+    assert all(a.shape == (batch_size, num_attention_heads, seq_len, seq_len) for a in output[1])
+
+    # Test with both hidden states and attention output
+    output = encoder(
+        hidden_states, deterministic=True, output_hidden_states=True, output_attentions=True
+    )
+    assert len(output) == 3
+    assert len(output[1]) == num_hidden_layers + 1  # Initial + each layer
+    assert len(output[2]) == num_hidden_layers
+
+
+def test_full_model():
+    """Test the complete ModernBERT model."""
+    batch_size = 2
+    seq_len = 16
+    hidden_size = 64
+    num_attention_heads = 4
+    intermediate_size = 256
+    num_hidden_layers = 3
+    vocab_size = 1000
+
+    # Create random input
+    key = jax.random.PRNGKey(0)
+    input_ids = jax.random.randint(key, (batch_size, seq_len), 0, vocab_size)
+
+    # Create attention mask with correct broadcasting shape for attention
+    attention_mask = jnp.ones((batch_size, 1, 1, seq_len))
+
+    # Initialize model
+    model = ModernBERTForMaskedLM(
+        rngs=nnx.Rngs(0),
+        vocab_size=vocab_size,
+        hidden_size=hidden_size,
+        num_hidden_layers=num_hidden_layers,
+        num_attention_heads=num_attention_heads,
+        intermediate_size=intermediate_size,
+    )
+
+    # Test basic forward pass
+    outputs = model(input_ids, attention_mask=attention_mask, deterministic=True)
+    assert "logits" in outputs
+    assert outputs["logits"].shape == (batch_size, seq_len, vocab_size)
+
+    # Test with all optional outputs
+    outputs = model(
+        input_ids,
+        attention_mask=attention_mask,
+        deterministic=True,
+        output_hidden_states=True,
+        output_attentions=True,
+    )
+    assert "logits" in outputs
+    assert "hidden_states" in outputs
+    assert "attentions" in outputs
+    assert len(outputs["hidden_states"]) == num_hidden_layers + 1
+    assert len(outputs["attentions"]) == num_hidden_layers
+
+    # Test with pre-computed embeddings
+    inputs_embeds = jax.random.normal(key, (batch_size, seq_len, hidden_size))
+    outputs = model(
+        input_ids,
+        attention_mask=attention_mask,
+        inputs_embeds=inputs_embeds,
+        deterministic=True,
+    )
+    assert "logits" in outputs
+    assert outputs["logits"].shape == (batch_size, seq_len, vocab_size)
+
+
+def test_model_with_sliding_window():
+    """Test sliding window attention in the model."""
+    # Initialize model with sliding window attention
+    batch_size = 2
+    seq_len = 32
+    hidden_size = 64
+    num_attention_heads = 4
+    window_size = (8, 8)  # 8 tokens left and right
+
+    model = ModernBERTForMaskedLM(
+        rngs=nnx.Rngs(0),
+        vocab_size=100,
+        hidden_size=hidden_size,
+        num_hidden_layers=2,
+        num_attention_heads=num_attention_heads,
+        intermediate_size=hidden_size * 4,
+        local_attention=window_size,
+    )
+
+    # Create random input
+    input_ids = jax.random.randint(jax.random.PRNGKey(1), (batch_size, seq_len), 0, 100)
+
+    # Get model outputs with attention weights
+    outputs = model(input_ids, output_attentions=True)
+    assert "attentions" in outputs
+    attentions = outputs["attentions"]
+
+    for layer_attn in attentions:
+        # Convert very small attention weights (< 1e-6) to 0 and others to 1
+        attn_binary = jnp.where(layer_attn > 1e-6, 1.0, 0.0)
+
+        # Check that attention outside the window is zero
+        for i in range(seq_len):
+            left_idx = max(0, i - window_size[0])
+            right_idx = min(seq_len, i + window_size[1] + 1)
+            mask = jnp.zeros((seq_len,))
+            mask = mask.at[left_idx:right_idx].set(1.0)
+
+            # Check each head's attention pattern
+            for head in range(num_attention_heads):
+                attn_weights = attn_binary[0, head, i]  # Take first batch
+                # Check that attention weights outside the window are close to 0
+                assert jnp.allclose(attn_weights * (1 - mask), 0.0, atol=1e-6), (
+                    f"Non-zero attention weight found outside window for position {i}, head {head}"
+                )

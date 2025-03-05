@@ -330,13 +330,34 @@ class ModernBertAttention(nnx.Module):
                 sliding_window_mask = create_sliding_window_mask(
                     query.shape[2], self.local_attention, query.dtype
                 )
-            attention_mask = sliding_window_mask
+            # Ensure the mask is properly broadcasted to [batch_size, num_heads, seq_len, seq_len]
+            if len(sliding_window_mask.shape) == 4 and sliding_window_mask.shape[:2] == (1, 1):
+                sliding_window_mask = jnp.broadcast_to(
+                    sliding_window_mask,
+                    (batch_size, self.num_attention_heads, query.shape[2], query.shape[2]),
+                )
+            # Apply sliding window mask first
+            attention_scores = attention_scores + sliding_window_mask
 
-        if attention_mask is not None:
+        # Apply additional attention mask if provided
+        if attention_mask is not None and attention_mask is not sliding_window_mask:
+            # Ensure proper broadcasting for attention mask
+            if len(attention_mask.shape) == 4 and attention_mask.shape[:2] == (1, 1):
+                attention_mask = jnp.broadcast_to(
+                    attention_mask,
+                    (batch_size, self.num_attention_heads, query.shape[2], query.shape[2]),
+                )
             attention_scores = attention_scores + attention_mask
 
         # Apply softmax and dropout
         attention_probs = jax.nn.softmax(attention_scores, axis=-1)
+
+        # Explicitly zero out probabilities where sliding window mask was -inf
+        if self.local_attention != (-1, -1):
+            # Create a binary mask from the sliding window mask
+            binary_mask = jnp.where(sliding_window_mask == -jnp.inf, 0.0, 1.0)
+            attention_probs = attention_probs * binary_mask
+
         if not deterministic and self.attention_dropout > 0:
             attention_probs = nnx.Dropout(
                 self.attention_dropout,
@@ -511,16 +532,83 @@ class ModernBertLayer(nnx.Module):
 class ModernBERTEncoder(nnx.Module):
     """ModernBERT encoder consisting of multiple transformer layers."""
 
-    num_layers: int
-    num_heads: int
-    head_dim: int
-    intermediate_size: int
-    dropout_rate: float = 0.0
+    def __init__(
+        self,
+        rngs: nnx.Rngs,
+        hidden_size: int,
+        num_attention_heads: int,
+        intermediate_size: int,
+        num_hidden_layers: int,
+        attention_dropout: float = 0.0,
+        hidden_dropout: float = 0.0,
+        attention_bias: bool = True,
+        norm_eps: float = 1e-12,
+        norm_bias: bool = True,
+        global_rope_theta: float = 10000.0,
+        max_position_embeddings: int = 4096,
+        local_attention: tuple[int, int] = (-1, -1),
+        local_rope_theta: float | None = None,
+        global_attn_every_n_layers: int = 4,
+    ):
+        """Initialize encoder.
+
+        Args:
+            rngs: PRNG key collection
+            hidden_size: Size of hidden states
+            num_attention_heads: Number of attention heads
+            intermediate_size: Size of MLP intermediate layer
+            num_hidden_layers: Number of transformer layers
+            attention_dropout: Dropout probability for attention
+            hidden_dropout: Dropout probability for hidden states
+            attention_bias: Whether to use bias in attention
+            norm_eps: Epsilon for layer normalization
+            norm_bias: Whether to use bias in layer normalization
+            global_rope_theta: Base for global RoPE
+            max_position_embeddings: Maximum sequence length
+            local_attention: Tuple of (left, right) window sizes
+            local_rope_theta: Base for local RoPE (optional)
+            global_attn_every_n_layers: Apply global attention every N layers
+        """
+        super().__init__()
+
+        # Initialize transformer layers
+        self.layers = [
+            ModernBertLayer(
+                rngs=rngs,
+                hidden_size=hidden_size,
+                num_attention_heads=num_attention_heads,
+                intermediate_size=intermediate_size,
+                layer_id=layer_id,
+                attention_dropout=attention_dropout,
+                hidden_dropout=hidden_dropout,
+                attention_bias=attention_bias,
+                norm_eps=norm_eps,
+                norm_bias=norm_bias,
+                global_rope_theta=global_rope_theta,
+                max_position_embeddings=max_position_embeddings,
+                local_attention=local_attention,
+                local_rope_theta=local_rope_theta,
+                global_attn_every_n_layers=global_attn_every_n_layers,
+            )
+            for layer_id in range(num_hidden_layers)
+        ]
+
+        # Initialize final layer normalization
+        self.final_norm = nnx.LayerNorm(
+            rngs=rngs,
+            num_features=hidden_size,
+            epsilon=norm_eps,
+            use_bias=norm_bias,
+            reduction_axes=(-1,),
+            feature_axes=(-1,),
+        )
 
     def __call__(
         self,
         hidden_states: jnp.ndarray,
         attention_mask: jnp.ndarray | None = None,
+        sliding_window_mask: jnp.ndarray | None = None,
+        position_ids: jnp.ndarray | None = None,
         deterministic: bool = True,
         output_attentions: bool = False,
         output_hidden_states: bool = False,
@@ -534,6 +622,8 @@ class ModernBERTEncoder(nnx.Module):
         Args:
             hidden_states: Input tensor
             attention_mask: Optional attention mask
+            sliding_window_mask: Optional sliding window mask
+            position_ids: Optional position ids
             deterministic: Whether to apply dropout
             output_attentions: Whether to return attention weights
             output_hidden_states: Whether to return all hidden states
@@ -544,47 +634,200 @@ class ModernBERTEncoder(nnx.Module):
                 - All hidden states (optional, if output_hidden_states=True)
                 - All attention weights (optional, if output_attentions=True)
         """
-        # TODO: Implement ModernBERT encoder
-        return (hidden_states,)
+        all_hidden_states = () if output_hidden_states else None
+        all_self_attentions = () if output_attentions else None
+
+        # Process through each layer
+        for layer in self.layers:
+            if output_hidden_states:
+                all_hidden_states = all_hidden_states + (hidden_states,)  # type: ignore
+
+            layer_outputs = layer(
+                hidden_states,
+                attention_mask=attention_mask,
+                sliding_window_mask=sliding_window_mask,
+                position_ids=position_ids,
+                deterministic=deterministic,
+                output_attentions=output_attentions,
+            )
+
+            hidden_states = layer_outputs[0]
+            if output_attentions and len(layer_outputs) > 1:
+                all_self_attentions = all_self_attentions + (layer_outputs[1],)  # type: ignore
+
+        # Add final hidden state if requested
+        if output_hidden_states:
+            all_hidden_states = all_hidden_states + (hidden_states,)  # type: ignore
+
+        # Apply final layer normalization
+        hidden_states = self.final_norm(hidden_states)
+
+        if not output_hidden_states and not output_attentions:
+            return (hidden_states,)
+        elif output_hidden_states and not output_attentions:
+            return (hidden_states, all_hidden_states)  # type: ignore
+        elif output_attentions and not output_hidden_states:
+            return (hidden_states, all_self_attentions)  # type: ignore
+        else:  # both output_hidden_states and output_attentions
+            return (hidden_states, all_hidden_states, all_self_attentions)  # type: ignore
 
 
 class ModernBERTMLMHead(nnx.Module):
     """ModernBERT masked language modeling head."""
 
-    vocab_size: int
-    hidden_size: int
+    def __init__(
+        self,
+        rngs: nnx.Rngs,
+        hidden_size: int,
+        vocab_size: int,
+        norm_eps: float = 1e-12,
+        norm_bias: bool = True,
+    ):
+        """Initialize MLM head.
+
+        Args:
+            rngs: PRNG key collection
+            hidden_size: Size of hidden states
+            vocab_size: Size of vocabulary
+            norm_eps: Epsilon for layer normalization
+            norm_bias: Whether to use bias in layer normalization
+        """
+        super().__init__()
+
+        # Layer norm
+        self.norm = nnx.LayerNorm(
+            rngs=rngs,
+            num_features=hidden_size,
+            epsilon=norm_eps,
+            use_bias=norm_bias,
+            reduction_axes=(-1,),
+            feature_axes=(-1,),
+        )
+
+        # Dense projection
+        self.dense = nnx.Linear(
+            rngs=rngs,
+            in_features=hidden_size,
+            out_features=hidden_size,
+            use_bias=True,
+        )
+
+        # Output projection (tied with embeddings)
+        self.decoder = nnx.Linear(
+            rngs=rngs,
+            in_features=hidden_size,
+            out_features=vocab_size,
+            use_bias=True,
+        )
 
     def __call__(self, hidden_states: jnp.ndarray) -> jnp.ndarray:
         """Apply MLM head.
 
         Args:
-            hidden_states: Input tensor
+            hidden_states: Input tensor of shape [batch_size, seq_len, hidden_size]
 
         Returns:
-            Logits for vocabulary
+            Logits of shape [batch_size, seq_len, vocab_size]
         """
-        # TODO: Implement MLM head
+        hidden_states = self.norm(hidden_states)
+        hidden_states = self.dense(hidden_states)
+        hidden_states = jax.nn.gelu(hidden_states)
+        hidden_states = self.decoder(hidden_states)
         return hidden_states
 
 
 class ModernBERTForMaskedLM(nnx.Module):
     """ModernBERT model with masked language modeling head."""
 
-    vocab_size: int
-    hidden_size: int
-    num_layers: int
-    num_heads: int
-    head_dim: int
-    intermediate_size: int
-    max_position_embeddings: int = 2048
-    dropout_rate: float = 0.0
+    def __init__(
+        self,
+        rngs: nnx.Rngs,
+        vocab_size: int,
+        hidden_size: int,
+        num_hidden_layers: int,
+        num_attention_heads: int,
+        intermediate_size: int,
+        max_position_embeddings: int = 2048,
+        attention_dropout: float = 0.0,
+        hidden_dropout: float = 0.0,
+        attention_bias: bool = True,
+        norm_eps: float = 1e-12,
+        norm_bias: bool = True,
+        global_rope_theta: float = 10000.0,
+        local_attention: tuple[int, int] = (-1, -1),
+        local_rope_theta: float | None = None,
+        global_attn_every_n_layers: int = 4,
+        pad_token_id: int = 0,
+    ):
+        """Initialize ModernBERT model.
+
+        Args:
+            rngs: PRNG key collection
+            vocab_size: Size of vocabulary
+            hidden_size: Size of hidden states
+            num_hidden_layers: Number of transformer layers
+            num_attention_heads: Number of attention heads
+            intermediate_size: Size of MLP intermediate layer
+            max_position_embeddings: Maximum sequence length
+            attention_dropout: Dropout probability for attention
+            hidden_dropout: Dropout probability for hidden states
+            attention_bias: Whether to use bias in attention
+            norm_eps: Epsilon for layer normalization
+            norm_bias: Whether to use bias in layer normalization
+            global_rope_theta: Base for global RoPE
+            local_attention: Tuple of (left, right) window sizes
+            local_rope_theta: Base for local RoPE (optional)
+            global_attn_every_n_layers: Apply global attention every N layers
+            pad_token_id: Token ID to use for padding
+        """
+        super().__init__()
+
+        # Initialize embeddings
+        self.embeddings = ModernBertEmbeddings(
+            rngs=rngs,
+            vocab_size=vocab_size,
+            hidden_size=hidden_size,
+            pad_token_id=pad_token_id,
+            norm_eps=norm_eps,
+            norm_bias=norm_bias,
+            embedding_dropout=hidden_dropout,
+        )
+
+        # Initialize encoder
+        self.encoder = ModernBERTEncoder(
+            rngs=rngs,
+            hidden_size=hidden_size,
+            num_attention_heads=num_attention_heads,
+            intermediate_size=intermediate_size,
+            num_hidden_layers=num_hidden_layers,
+            attention_dropout=attention_dropout,
+            hidden_dropout=hidden_dropout,
+            attention_bias=attention_bias,
+            norm_eps=norm_eps,
+            norm_bias=norm_bias,
+            global_rope_theta=global_rope_theta,
+            max_position_embeddings=max_position_embeddings,
+            local_attention=local_attention,
+            local_rope_theta=local_rope_theta,
+            global_attn_every_n_layers=global_attn_every_n_layers,
+        )
+
+        # Initialize MLM head
+        self.mlm_head = ModernBERTMLMHead(
+            rngs=rngs,
+            hidden_size=hidden_size,
+            vocab_size=vocab_size,
+            norm_eps=norm_eps,
+            norm_bias=norm_bias,
+        )
 
     def __call__(
         self,
         input_ids: jnp.ndarray,
         attention_mask: jnp.ndarray | None = None,
-        token_type_ids: jnp.ndarray | None = None,
+        sliding_window_mask: jnp.ndarray | None = None,
         position_ids: jnp.ndarray | None = None,
+        inputs_embeds: jnp.ndarray | None = None,
         deterministic: bool = True,
         output_attentions: bool = False,
         output_hidden_states: bool = False,
@@ -592,22 +835,61 @@ class ModernBERTForMaskedLM(nnx.Module):
         """Apply ModernBERT model.
 
         Args:
-            input_ids: Input token ids
+            input_ids: Input token ids of shape [batch_size, seq_len]
             attention_mask: Optional attention mask
-            token_type_ids: Optional token type ids
+            sliding_window_mask: Optional sliding window mask
             position_ids: Optional position ids
+            inputs_embeds: Optional pre-computed embeddings
             deterministic: Whether to apply dropout
             output_attentions: Whether to return attention weights
             output_hidden_states: Whether to return all hidden states
 
         Returns:
             Dictionary containing:
-                - logits
-                - hidden states (optional)
-                - attentions (optional)
+                - logits: Output logits of shape [batch_size, seq_len, vocab_size]
+                - hidden_states: All hidden states (optional)
+                - attentions: All attention weights (optional)
         """
-        # TODO: Implement full ModernBERT model
-        return {"logits": jnp.zeros((1,))}
+        # Get embeddings
+        hidden_states = self.embeddings(
+            input_ids=input_ids,
+            deterministic=deterministic,
+            inputs_embeds=inputs_embeds,
+        )
+
+        # Apply encoder
+        encoder_outputs = self.encoder(
+            hidden_states,
+            attention_mask=attention_mask,
+            sliding_window_mask=sliding_window_mask,
+            position_ids=position_ids,
+            deterministic=deterministic,
+            output_attentions=output_attentions,
+            output_hidden_states=output_hidden_states,
+        )
+
+        # Get sequence output and optional states
+        sequence_output = encoder_outputs[0]
+        hidden_states = None
+        attentions = None
+
+        if len(encoder_outputs) > 1:
+            if output_hidden_states:
+                hidden_states = encoder_outputs[1]
+            if output_attentions:
+                attentions = encoder_outputs[1] if not output_hidden_states else encoder_outputs[2]
+
+        # Apply MLM head
+        logits = self.mlm_head(sequence_output)
+
+        # Build output dictionary
+        outputs = {"logits": logits}
+        if output_hidden_states:
+            outputs["hidden_states"] = hidden_states  # type: ignore
+        if output_attentions:
+            outputs["attentions"] = attentions  # type: ignore
+
+        return outputs
 
 
 class ModernBertEmbeddings(nnx.Module):
