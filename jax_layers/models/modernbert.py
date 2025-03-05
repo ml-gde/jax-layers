@@ -7,6 +7,7 @@ improvements such as RoPE, SwiGLU, and global/local attention mechanisms.
 
 
 import flax.nnx as nnx
+import jax
 import jax.numpy as jnp
 
 
@@ -292,3 +293,169 @@ class ModernBERTForMaskedLM(nnx.Module):
         """
         # TODO: Implement full ModernBERT model
         return {"logits": jnp.zeros((1,))}
+
+
+class ModernBertEmbeddings(nnx.Module):
+    """Token embeddings with normalization and dropout.
+
+    Similar to BERT embeddings but without position embeddings since we use RoPE.
+    """
+
+    def __init__(
+        self,
+        rngs: nnx.Rngs,
+        vocab_size: int,
+        hidden_size: int,
+        pad_token_id: int = 0,
+        norm_eps: float = 1e-12,
+        norm_bias: bool = True,
+        embedding_dropout: float = 0.0,
+    ):
+        """Initialize embeddings module.
+
+        Args:
+            rngs: PRNG key collection
+            vocab_size: Size of the vocabulary
+            hidden_size: Size of the embeddings
+            pad_token_id: Token ID to use for padding
+            norm_eps: Epsilon for layer normalization
+            norm_bias: Whether to use bias in layer normalization
+            embedding_dropout: Dropout probability for embeddings
+        """
+        super().__init__()
+
+        # Create embeddings table with non-zero initialization
+        self.token_embeddings = nnx.Embed(
+            rngs=rngs,
+            num_embeddings=vocab_size,
+            features=hidden_size,
+            embedding_init=nnx.initializers.normal(stddev=1.0),  # Increased stddev
+        )
+
+        # Layer norm with explicit feature axes
+        self.norm = nnx.LayerNorm(
+            rngs=rngs,
+            num_features=hidden_size,
+            epsilon=norm_eps,
+            use_bias=norm_bias,
+            use_scale=True,
+            scale_init=nnx.initializers.ones,
+            bias_init=nnx.initializers.zeros,
+            reduction_axes=(-1,),  # Explicit tuple
+            feature_axes=(-1,),  # Explicit tuple
+        )
+
+        self.dropout = embedding_dropout
+        self.deterministic = True  # Will be overridden in __call__
+        self._rngs = rngs  # Store rngs for dropout
+
+    def __call__(
+        self,
+        input_ids: jnp.ndarray,
+        deterministic: bool = True,
+        inputs_embeds: jnp.ndarray | None = None,
+    ) -> jnp.ndarray:
+        """Apply embeddings module.
+
+        Args:
+            input_ids: Integer tokens of shape [batch_size, seq_len]
+            deterministic: Whether to apply dropout
+            inputs_embeds: Optional pre-computed embeddings
+
+        Returns:
+            Embedded tokens with shape [batch_size, seq_len, hidden_size]
+        """
+        if inputs_embeds is not None:
+            hidden_states = inputs_embeds
+        else:
+            hidden_states = self.token_embeddings(input_ids)
+
+            # Scale embeddings
+            hidden_states = hidden_states * (hidden_states.shape[-1] ** 0.5)
+
+        # Apply layer norm
+        hidden_states = self.norm(hidden_states)
+
+        # Apply dropout if in training
+        if not deterministic and self.dropout > 0.0:
+            hidden_states = nnx.Dropout(
+                rngs=self._rngs,
+                rate=self.dropout,
+            )(hidden_states, deterministic=deterministic)
+
+        return hidden_states
+
+
+class ModernBertMLP(nnx.Module):
+    """MLP with gated linear units.
+
+    Replaces the traditional intermediate + output layers with a single gated MLP.
+    """
+
+    def __init__(
+        self,
+        rngs: nnx.Rngs,
+        hidden_size: int,
+        intermediate_size: int,
+        mlp_bias: bool = True,
+        mlp_dropout: float = 0.0,
+    ):
+        """Initialize MLP module.
+
+        Args:
+            rngs: PRNG key collection
+            hidden_size: Size of input and output
+            intermediate_size: Size of intermediate layer
+            mlp_bias: Whether to use bias in linear layers
+            mlp_dropout: Dropout probability
+        """
+        super().__init__()
+
+        # Input projection (creates both input and gate values)
+        self.Wi = nnx.Linear(
+            rngs=rngs,
+            in_features=hidden_size,
+            out_features=intermediate_size * 2,
+            use_bias=mlp_bias,
+            kernel_init=nnx.initializers.normal(stddev=0.02),
+        )
+
+        # Output projection
+        self.Wo = nnx.Linear(
+            rngs=rngs,
+            in_features=intermediate_size,
+            out_features=hidden_size,
+            use_bias=mlp_bias,
+            kernel_init=nnx.initializers.normal(stddev=0.02),
+        )
+
+        self.dropout = mlp_dropout
+        self.deterministic = True  # Will be overridden in __call__
+        self._rngs = rngs  # Store rngs for dropout
+
+    def __call__(self, hidden_states: jnp.ndarray, deterministic: bool = True) -> jnp.ndarray:
+        """Apply MLP module.
+
+        Args:
+            hidden_states: Input tensor of shape [batch_size, seq_len, hidden_size]
+            deterministic: Whether to apply dropout
+
+        Returns:
+            Output tensor of shape [batch_size, seq_len, hidden_size]
+        """
+        # Project and split into input and gate
+        combined = self.Wi(hidden_states)
+        input_tensor, gate = jnp.split(combined, 2, axis=-1)
+
+        # Apply GELU activation to input and multiply with gate
+        hidden_states = jax.nn.gelu(input_tensor) * gate
+
+        # Apply dropout if in training
+        if not deterministic and self.dropout > 0.0:
+            hidden_states = nnx.Dropout(
+                rngs=self._rngs,
+                rate=self.dropout,
+            )(hidden_states, deterministic=deterministic)
+
+        # Project back to hidden size
+        return self.Wo(hidden_states)
