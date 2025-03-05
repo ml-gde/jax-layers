@@ -32,7 +32,7 @@ class RotaryPositionalEmbeddingsTorch(nn.Module):
         self.max_seq_len = max_seq_len
         self.rope_init()
 
-    def rope_init(self):
+    def rope_init(self) -> None:
         theta = 1.0 / (
             self.base ** (torch.arange(0, self.dim, 2)[: (self.dim // 2)].float() / self.dim)
         )
@@ -47,7 +47,7 @@ class RotaryPositionalEmbeddingsTorch(nn.Module):
 
     def forward(self, x: torch.Tensor, *, input_pos: torch.Tensor | None = None) -> torch.Tensor:
         seq_len = x.size(1)
-        rope_cache = self.cache[:seq_len] if input_pos is None else self.cache[input_pos]
+        rope_cache = self.cache[:seq_len] if input_pos is None else self.cache[input_pos]  # type: ignore
         xshaped = x.float().reshape(*x.shape[:-1], -1, 2)
         rope_cache = rope_cache.view(-1, xshaped.size(1), 1, xshaped.size(3), 2)
         x_out = torch.stack(

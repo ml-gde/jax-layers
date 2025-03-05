@@ -10,9 +10,7 @@ import flax.nnx as nnx
 import jax.numpy as jnp
 
 
-def create_sinusoidal_positions(
-    max_length: int, dim: int, base: float = 10000.0
-) -> tuple[jnp.ndarray, jnp.ndarray]:
+def create_sinusoidal_positions(max_length: int, dim: int, base: float = 10000.0) -> jnp.ndarray:
     """Create sinusoidal position embeddings.
 
     Args:
@@ -21,7 +19,7 @@ def create_sinusoidal_positions(
         base: Base for the sinusoidal functions
 
     Returns:
-        Tuple of (cos, sin) arrays of shape (max_length, dim//2, 2)
+        Array of shape (max_length, dim//2, 2) containing (cos, sin) values
     """
     # Create position indices [0, 1, ..., max_length-1]
     positions = jnp.arange(max_length, dtype=jnp.float32)
