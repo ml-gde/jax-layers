@@ -1,6 +1,5 @@
 """Tests for ModernBERT components."""
 
-
 import flax.nnx as nnx
 import jax
 import jax.numpy as jnp
@@ -16,7 +15,10 @@ from jax_layers.models.modernbert import (
 
 
 class RotaryPositionalEmbeddingsTorch(nn.Module):
-    """PyTorch reference implementation from torchtun."""
+    """PyTorch reference implementation from torchtun.
+
+    See https://pytorch.org/torchtune/0.4/_modules/torchtune/modules/position_embeddings.html#RotaryPositionalEmbeddings
+    """
 
     def __init__(
         self,
