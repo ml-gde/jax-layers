@@ -414,10 +414,10 @@ class ModernBertLayer(nnx.Module):
         super().__init__()
 
         # Initialize attention normalization
-        if layer_id == 0:
-            self.attn_norm = Identity()
-        else:
-            self.attn_norm = nnx.LayerNorm(
+        self.attn_norm = (
+            Identity()
+            if layer_id == 0
+            else nnx.LayerNorm(
                 rngs=rngs,
                 num_features=hidden_size,
                 epsilon=norm_eps,
@@ -425,6 +425,7 @@ class ModernBertLayer(nnx.Module):
                 reduction_axes=(-1,),
                 feature_axes=(-1,),
             )
+        )  # type: ignore
 
         # Initialize attention
         self.attn = ModernBertAttention(

@@ -931,12 +931,12 @@ class TorchModernBertLayer(nn.Module):
         self.intermediate_size = config.intermediate_size
 
         # Pre-norm architecture
-        self.attn_norm = nn.LayerNorm(
-            config.hidden_size, eps=config.norm_eps, elementwise_affine=True
-        )
-        if layer_id == 0:
-            # First layer uses identity for attention norm
-            self.attn_norm = nn.Identity()
+        # First layer uses identity for attention norm
+        self.attn_norm = (
+            nn.Identity
+            if layer_id == 0
+            else nn.LayerNorm(config.hidden_size, eps=config.norm_eps, elementwise_affine=True)
+        )  # type: ignore
 
         # Attention
         self.attn = TorchModernBertAttention(config)
