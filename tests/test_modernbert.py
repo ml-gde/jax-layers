@@ -9,8 +9,10 @@ import torch.nn as nn
 import torch.nn.functional as F  # noqa: N812
 
 from jax_layers.models.modernbert import (
+    Identity,
     ModernBertAttention,
     ModernBertEmbeddings,
+    ModernBertLayer,
     ModernBertMLP,
     RoPEPositionalEmbedding,
     apply_rotary_pos_emb,
@@ -543,10 +545,9 @@ def test_attention_numerical_correctness():
 
     # Copy weights from JAX to PyTorch
     with torch.no_grad():
-        # Copy QKV weights
+        # Copy attention weights
         torch_qkv.weight.copy_(torch.tensor(jax_attention.Wqkv.kernel.T))
         torch_qkv.bias.copy_(torch.tensor(jax_attention.Wqkv.bias))
-        # Copy output weights
         torch_wo.weight.copy_(torch.tensor(jax_attention.Wo.kernel.T))
         torch_wo.bias.copy_(torch.tensor(jax_attention.Wo.bias))
 
@@ -599,3 +600,475 @@ def test_attention_numerical_correctness():
             atol=1e-4,
             err_msg=f"Outputs don't match for local_attention={local_attention}",
         )
+
+
+def test_layer_shapes():
+    """Test that ModernBertLayer preserves expected shapes."""
+    batch_size = 2
+    seq_len = 16
+    hidden_size = 64
+    num_heads = 4
+    intermediate_size = 256
+
+    # Create random input
+    key = jax.random.PRNGKey(0)
+    hidden_states = jax.random.normal(key, (batch_size, seq_len, hidden_size))
+
+    # Initialize layer
+    layer = ModernBertLayer(
+        rngs=nnx.Rngs(0),
+        hidden_size=hidden_size,
+        num_attention_heads=num_heads,
+        intermediate_size=intermediate_size,
+    )
+
+    # Test forward pass
+    output = layer(hidden_states, deterministic=True)[0]
+    assert output.shape == (batch_size, seq_len, hidden_size)
+
+    # Test with attention outputs
+    output, attention = layer(hidden_states, output_attentions=True)
+    assert output.shape == (batch_size, seq_len, hidden_size)
+    assert attention.shape == (batch_size, num_heads, seq_len, seq_len)
+
+
+def test_layer_first_layer_identity():
+    """Test that first layer uses identity for attention norm."""
+    batch_size = 2
+    seq_len = 16
+    hidden_size = 64
+    num_heads = 4
+    intermediate_size = 256
+
+    # Create random input
+    key = jax.random.PRNGKey(0)
+    hidden_states = jax.random.normal(key, (batch_size, seq_len, hidden_size))
+
+    # Initialize first layer (layer_id=0)
+    first_layer = ModernBertLayer(
+        rngs=nnx.Rngs(0),
+        hidden_size=hidden_size,
+        num_attention_heads=num_heads,
+        intermediate_size=intermediate_size,
+        layer_id=0,
+    )
+
+    # Initialize non-first layer
+    other_layer = ModernBertLayer(
+        rngs=nnx.Rngs(1),
+        hidden_size=hidden_size,
+        num_attention_heads=num_heads,
+        intermediate_size=intermediate_size,
+        layer_id=1,
+    )
+
+    # First layer should use identity for attention norm
+    assert isinstance(first_layer.attn_norm, Identity), "First layer should use Identity"
+    # Other layer should use LayerNorm
+    assert isinstance(other_layer.attn_norm, nnx.LayerNorm), "Other layers should use LayerNorm"
+
+    # Verify first layer's identity behavior
+    normed_states = first_layer.attn_norm(hidden_states)
+    np.testing.assert_array_equal(hidden_states, normed_states)
+
+
+def test_layer_residual_connections():
+    """Test that residual connections are properly applied."""
+    batch_size = 2
+    seq_len = 16
+    hidden_size = 64
+    num_heads = 4
+    intermediate_size = 256
+
+    # Create random input with small values
+    key = jax.random.PRNGKey(0)
+    hidden_states = jax.random.normal(key, (batch_size, seq_len, hidden_size)) * 0.1
+
+    # Initialize layer with zero weights to test residual
+    def zeros_init(key, shape, dtype=jnp.float32):
+        return jnp.zeros(shape, dtype)
+
+    class ZeroLayer(ModernBertLayer):
+        """Layer that initializes all weights to zero."""
+
+        def __init__(self, *args, **kwargs):
+            super().__init__(*args, **kwargs)
+            # Override weight initializations with zeros
+            self.attn.Wqkv = nnx.Linear(
+                rngs=nnx.Rngs(0),
+                in_features=self.attn.Wqkv.in_features,
+                out_features=self.attn.Wqkv.out_features,
+                kernel_init=lambda *_: jnp.zeros_like(self.attn.Wqkv.kernel),
+                bias_init=lambda *_: jnp.zeros_like(self.attn.Wqkv.bias),
+            )
+            self.attn.Wo = nnx.Linear(
+                rngs=nnx.Rngs(0),
+                in_features=self.attn.Wo.in_features,
+                out_features=self.attn.Wo.out_features,
+                kernel_init=lambda *_: jnp.zeros_like(self.attn.Wo.kernel),
+                bias_init=lambda *_: jnp.zeros_like(self.attn.Wo.bias),
+            )
+            self.mlp.Wi = nnx.Linear(
+                rngs=nnx.Rngs(0),
+                in_features=self.mlp.Wi.in_features,
+                out_features=self.mlp.Wi.out_features,
+                kernel_init=lambda *_: jnp.zeros_like(self.mlp.Wi.kernel),
+                bias_init=lambda *_: jnp.zeros_like(self.mlp.Wi.bias),
+            )
+            self.mlp.Wo = nnx.Linear(
+                rngs=nnx.Rngs(0),
+                in_features=self.mlp.Wo.in_features,
+                out_features=self.mlp.Wo.out_features,
+                kernel_init=lambda *_: jnp.zeros_like(self.mlp.Wo.kernel),
+                bias_init=lambda *_: jnp.zeros_like(self.mlp.Wo.bias),
+            )
+
+    layer = ZeroLayer(
+        rngs=nnx.Rngs(0),
+        hidden_size=hidden_size,
+        num_attention_heads=num_heads,
+        intermediate_size=intermediate_size,
+    )
+
+    # With zero weights and no residual, output would be zero
+    output = layer(hidden_states, deterministic=True)[0]
+
+    # Due to residual connections, output should equal input
+    np.testing.assert_allclose(hidden_states, output, rtol=1e-5)
+
+
+def test_layer_dropout():
+    """Test that dropout is properly applied in training mode."""
+    batch_size = 2
+    seq_len = 16
+    hidden_size = 64
+    num_heads = 4
+    intermediate_size = 256
+    dropout_rate = 0.5
+
+    # Create random input
+    key = jax.random.PRNGKey(0)
+    hidden_states = jax.random.normal(key, (batch_size, seq_len, hidden_size))
+
+    # Initialize layer with high dropout
+    layer = ModernBertLayer(
+        rngs=nnx.Rngs(0),
+        hidden_size=hidden_size,
+        num_attention_heads=num_heads,
+        intermediate_size=intermediate_size,
+        attention_dropout=dropout_rate,
+        hidden_dropout=dropout_rate,
+    )
+
+    # Test in eval mode (deterministic=True)
+    eval_output = layer(hidden_states, deterministic=True)[0]
+
+    # Test in training mode (deterministic=False)
+    train_output = layer(hidden_states, deterministic=False)[0]
+
+    # Outputs should be different due to dropout
+    assert not jnp.allclose(eval_output, train_output)
+
+
+def test_layer_sliding_window():
+    """Test layer with sliding window attention."""
+    batch_size = 2
+    seq_len = 16
+    hidden_size = 64
+    num_heads = 4
+    intermediate_size = 256
+    window_size = (4, 4)
+
+    # Create random input
+    key = jax.random.PRNGKey(0)
+    hidden_states = jax.random.normal(key, (batch_size, seq_len, hidden_size))
+
+    # Initialize layer with local attention
+    layer = ModernBertLayer(
+        rngs=nnx.Rngs(0),
+        hidden_size=hidden_size,
+        num_attention_heads=num_heads,
+        intermediate_size=intermediate_size,
+        local_attention=window_size,
+    )
+
+    # Get attention outputs
+    output, attention = layer(hidden_states, output_attentions=True)
+
+    # Check that attention outside window is zero
+    mask = create_sliding_window_mask(seq_len, window_size)
+    masked_positions = mask[0, 0] == -jnp.inf
+    assert jnp.allclose(attention[..., masked_positions], 0.0)
+
+
+def test_layer_numerical_correctness():
+    """Test layer against PyTorch reference implementation."""
+    # Test parameters
+    batch_size = 2
+    seq_len = 16
+    hidden_size = 256
+    num_heads = 4
+    intermediate_size = 1024
+    layer_id = 1
+
+    # Create random input with fixed seed for reproducibility
+    key = jax.random.PRNGKey(0)
+    hidden_states = jax.random.normal(key, (batch_size, seq_len, hidden_size))
+    hidden_states = hidden_states.astype(jnp.float32)  # Ensure float32
+
+    # Create JAX layer with fixed seed
+    jax_layer = ModernBertLayer(
+        rngs=nnx.Rngs(0),
+        hidden_size=hidden_size,
+        num_attention_heads=num_heads,
+        intermediate_size=intermediate_size,
+        layer_id=layer_id,
+        attention_dropout=0.0,  # Disable dropout for comparison
+        hidden_dropout=0.0,
+        norm_eps=1e-12,  # Match PyTorch default
+    )
+
+    # Create PyTorch layer
+    config = type(
+        "ModernBertConfig",
+        (),
+        {
+            "hidden_size": hidden_size,
+            "num_attention_heads": num_heads,
+            "intermediate_size": intermediate_size,
+            "attention_dropout": 0.0,
+            "hidden_dropout": 0.0,
+            "attention_bias": True,
+            "norm_eps": 1e-12,
+            "norm_bias": True,
+            "global_rope_theta": 10000.0,
+            "max_position_embeddings": 4096,
+            "local_attention": (-1, -1),
+            "local_rope_theta": None,
+            "global_attn_every_n_layers": 4,
+            "reference_compile": False,
+        },
+    )()
+
+    torch_layer = TorchModernBertLayer(config, layer_id=layer_id)
+
+    # Copy weights from JAX to PyTorch with exact precision
+    with torch.no_grad():
+        # Copy attention weights
+        torch_layer.attn.qkv.weight.copy_(
+            torch.tensor(np.array(jax_layer.attn.Wqkv.kernel.T), dtype=torch.float32)
+        )
+        torch_layer.attn.qkv.bias.copy_(
+            torch.tensor(np.array(jax_layer.attn.Wqkv.bias), dtype=torch.float32)
+        )
+        torch_layer.attn.o.weight.copy_(
+            torch.tensor(np.array(jax_layer.attn.Wo.kernel.T), dtype=torch.float32)
+        )
+        torch_layer.attn.o.bias.copy_(
+            torch.tensor(np.array(jax_layer.attn.Wo.bias), dtype=torch.float32)
+        )
+
+        # Copy MLP weights
+        torch_layer.mlp.wi.weight.copy_(
+            torch.tensor(np.array(jax_layer.mlp.Wi.kernel.T), dtype=torch.float32)
+        )
+        torch_layer.mlp.wi.bias.copy_(
+            torch.tensor(np.array(jax_layer.mlp.Wi.bias), dtype=torch.float32)
+        )
+        torch_layer.mlp.wo.weight.copy_(
+            torch.tensor(np.array(jax_layer.mlp.Wo.kernel.T), dtype=torch.float32)
+        )
+        torch_layer.mlp.wo.bias.copy_(
+            torch.tensor(np.array(jax_layer.mlp.Wo.bias), dtype=torch.float32)
+        )
+
+        # Copy LayerNorm weights
+        if not isinstance(torch_layer.attn_norm, nn.Identity):
+            torch_layer.attn_norm.weight.copy_(
+                torch.tensor(np.array(jax_layer.attn_norm.scale), dtype=torch.float32)
+            )
+            torch_layer.attn_norm.bias.copy_(
+                torch.tensor(np.array(jax_layer.attn_norm.bias), dtype=torch.float32)
+            )
+        torch_layer.mlp_norm.weight.copy_(
+            torch.tensor(np.array(jax_layer.mlp_norm.scale), dtype=torch.float32)
+        )
+        torch_layer.mlp_norm.bias.copy_(
+            torch.tensor(np.array(jax_layer.mlp_norm.bias), dtype=torch.float32)
+        )
+
+    # Forward pass in both frameworks with same input
+    hidden_states_torch = torch.tensor(np.array(hidden_states), dtype=torch.float32)
+    hidden_states_jax = hidden_states
+
+    # Run forward passes
+    torch_output = torch_layer(hidden_states_torch)[0]
+    jax_output = jax_layer(hidden_states_jax, deterministic=True)[0]
+
+    # Convert outputs to numpy for comparison
+    torch_output_np = torch_output.detach().cpu().numpy()
+    jax_output_np = np.array(jax_output)
+
+    # Compare outputs with increased tolerance
+    np.testing.assert_allclose(
+        jax_output_np,
+        torch_output_np,
+        rtol=1e-4,
+        atol=1e-4,
+        err_msg="Layer outputs don't match within tolerance",
+    )
+
+
+class TorchModernBertLayer(nn.Module):
+    """PyTorch reference implementation of ModernBertLayer."""
+
+    def __init__(self, config, layer_id: int = 0):
+        super().__init__()
+        self.layer_id = layer_id
+        self.hidden_size = config.hidden_size
+        self.num_attention_heads = config.num_attention_heads
+        self.head_dim = config.hidden_size // config.num_attention_heads
+        self.intermediate_size = config.intermediate_size
+
+        # Pre-norm architecture
+        self.attn_norm = nn.LayerNorm(
+            config.hidden_size, eps=config.norm_eps, elementwise_affine=True
+        )
+        if layer_id == 0:
+            # First layer uses identity for attention norm
+            self.attn_norm = nn.Identity()
+
+        # Attention
+        self.attn = TorchModernBertAttention(config)
+        self.mlp_norm = nn.LayerNorm(
+            config.hidden_size, eps=config.norm_eps, elementwise_affine=True
+        )
+        self.mlp = TorchModernBertMLP(config)
+
+    def forward(
+        self,
+        hidden_states: torch.Tensor,
+        attention_mask: torch.Tensor | None = None,
+        sliding_window_mask: torch.Tensor | None = None,
+        position_ids: torch.Tensor | None = None,
+        output_attentions: bool = False,
+    ) -> tuple[torch.Tensor, ...]:
+        # Pre-norm for attention
+        attn_input = self.attn_norm(hidden_states)
+        attn_outputs = self.attn(
+            attn_input,
+            attention_mask=attention_mask,
+            sliding_window_mask=sliding_window_mask,
+            position_ids=position_ids,
+            output_attentions=output_attentions,
+        )
+        attention_output = attn_outputs[0]
+        outputs = attn_outputs[1:]
+
+        # Residual connection
+        hidden_states = hidden_states + attention_output
+
+        # Pre-norm for MLP
+        mlp_input = self.mlp_norm(hidden_states)
+        mlp_output = self.mlp(mlp_input)
+
+        # Residual connection
+        hidden_states = hidden_states + mlp_output
+
+        if output_attentions:
+            return (hidden_states,) + outputs  # noqa:RUF005
+        return (hidden_states,)
+
+
+class TorchModernBertAttention(nn.Module):
+    """PyTorch reference implementation of ModernBertAttention."""
+
+    def __init__(self, config):
+        super().__init__()
+        self.hidden_size = config.hidden_size
+        self.num_attention_heads = config.num_attention_heads
+        self.head_dim = config.hidden_size // config.num_attention_heads
+        self.local_attention = config.local_attention
+
+        # QKV projection
+        self.qkv = nn.Linear(config.hidden_size, 3 * config.hidden_size, bias=config.attention_bias)
+        self.o = nn.Linear(config.hidden_size, config.hidden_size, bias=config.attention_bias)
+
+        # RoPE
+        self.rope = TorchRotaryEmbedding(
+            self.head_dim,
+            max_position_embeddings=config.max_position_embeddings,
+            base=config.global_rope_theta,
+        )
+
+        # Dropout
+        self.attn_dropout = nn.Dropout(config.attention_dropout)
+        self.hidden_dropout = nn.Dropout(config.hidden_dropout)
+
+    def forward(
+        self,
+        hidden_states: torch.Tensor,
+        attention_mask: torch.Tensor | None = None,
+        sliding_window_mask: torch.Tensor | None = None,
+        position_ids: torch.Tensor | None = None,
+        output_attentions: bool = False,
+    ) -> tuple[torch.Tensor, ...]:
+        batch_size, seq_len, _ = hidden_states.size()
+
+        # Project to QKV
+        qkv = self.qkv(hidden_states)
+        qkv = qkv.view(batch_size, -1, 3, self.num_attention_heads, self.head_dim)
+
+        # Apply RoPE to QK
+        cos, sin = self.rope(qkv, position_ids)
+        query, key, value = qkv.transpose(3, 1).unbind(dim=2)
+        query, key = apply_rotary_pos_emb_torch(query, key, cos, sin)
+
+        # Compute attention scores
+        scale = self.head_dim**-0.5
+        attention_scores = torch.matmul(query, key.transpose(-2, -1)) * scale
+
+        # Apply attention mask if provided
+        if attention_mask is not None:
+            attention_scores = attention_scores + attention_mask
+        if sliding_window_mask is not None:
+            attention_scores = attention_scores + sliding_window_mask
+
+        # Normalize scores to probabilities
+        attention_probs = F.softmax(attention_scores, dim=-1)
+
+        # Apply attention dropout
+        attention_probs = self.attn_dropout(attention_probs)
+
+        # Compute attention output
+        attention_output = torch.matmul(attention_probs, value)
+        attention_output = attention_output.transpose(1, 2).contiguous()
+        attention_output = attention_output.view(batch_size, -1, self.hidden_size)
+
+        # Project to output size
+        attention_output = self.o(attention_output)
+
+        # Apply hidden dropout
+        attention_output = self.hidden_dropout(attention_output)
+
+        outputs = (attention_output,)
+        if output_attentions:
+            outputs = outputs + (attention_probs,)  # noqa: RUF005
+        return outputs
+
+
+class TorchModernBertMLP(nn.Module):
+    """PyTorch reference implementation of ModernBertMLP."""
+
+    def __init__(self, config):
+        super().__init__()
+        self.wi = nn.Linear(config.hidden_size, 2 * config.intermediate_size, bias=True)
+        self.wo = nn.Linear(config.intermediate_size, config.hidden_size, bias=True)
+        self.dropout = nn.Dropout(config.hidden_dropout)
+
+    def forward(self, hidden_states: torch.Tensor) -> torch.Tensor:
+        hidden_states = self.wi(hidden_states)
+        hidden_states = F.gelu(hidden_states)
+        hidden_states = self.wo(hidden_states[:, :, ::2] * hidden_states[:, :, 1::2])
+        hidden_states = self.dropout(hidden_states)
+        return hidden_states

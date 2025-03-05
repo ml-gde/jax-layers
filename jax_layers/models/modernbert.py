@@ -10,6 +10,13 @@ import jax
 import jax.numpy as jnp
 
 
+class Identity(nnx.Module):
+    """Identity layer that simply returns its input."""
+
+    def __call__(self, x: jnp.ndarray) -> jnp.ndarray:
+        return x
+
+
 def create_sinusoidal_positions(max_length: int, dim: int, base: float = 10000.0) -> jnp.ndarray:
     """Create sinusoidal position embeddings.
 
@@ -358,32 +365,142 @@ class ModernBertAttention(nnx.Module):
         return (attention_output,)
 
 
-class ModernBERTLayer(nnx.Module):
-    """ModernBERT transformer layer."""
+class ModernBertLayer(nnx.Module):
+    """ModernBERT transformer layer with pre-LayerNorm architecture.
 
-    num_heads: int
-    head_dim: int
-    intermediate_size: int
-    dropout_rate: float = 0.0
+    This implements a transformer layer with:
+    1. Pre-LayerNorm for attention and MLP
+    2. Residual connections
+    3. Optional identity for first layer's attention norm
+    """
+
+    def __init__(
+        self,
+        rngs: nnx.Rngs,
+        hidden_size: int,
+        num_attention_heads: int,
+        intermediate_size: int,
+        layer_id: int | None = None,
+        attention_dropout: float = 0.0,
+        hidden_dropout: float = 0.0,
+        attention_bias: bool = True,
+        norm_eps: float = 1e-12,
+        norm_bias: bool = True,
+        global_rope_theta: float = 10000.0,
+        max_position_embeddings: int = 4096,
+        local_attention: tuple[int, int] = (-1, -1),
+        local_rope_theta: float | None = None,
+        global_attn_every_n_layers: int = 4,
+    ):
+        """Initialize transformer layer.
+
+        Args:
+            rngs: PRNG key collection
+            hidden_size: Size of hidden states
+            num_attention_heads: Number of attention heads
+            intermediate_size: Size of MLP intermediate layer
+            layer_id: Layer index (first layer uses identity for attn norm)
+            attention_dropout: Dropout probability for attention
+            hidden_dropout: Dropout probability for hidden states
+            attention_bias: Whether to use bias in attention
+            norm_eps: Epsilon for layer normalization
+            norm_bias: Whether to use bias in layer normalization
+            global_rope_theta: Base for global RoPE
+            max_position_embeddings: Maximum sequence length
+            local_attention: Tuple of (left, right) window sizes
+            local_rope_theta: Base for local RoPE (optional)
+            global_attn_every_n_layers: Apply global attention every N layers
+        """
+        super().__init__()
+
+        # Initialize attention normalization
+        if layer_id == 0:
+            self.attn_norm = Identity()
+        else:
+            self.attn_norm = nnx.LayerNorm(
+                rngs=rngs,
+                num_features=hidden_size,
+                epsilon=norm_eps,
+                use_bias=norm_bias,
+                reduction_axes=(-1,),
+                feature_axes=(-1,),
+            )
+
+        # Initialize attention
+        self.attn = ModernBertAttention(
+            rngs=rngs,
+            hidden_size=hidden_size,
+            num_attention_heads=num_attention_heads,
+            attention_dropout=attention_dropout,
+            attention_bias=attention_bias,
+            global_rope_theta=global_rope_theta,
+            max_position_embeddings=max_position_embeddings,
+            local_attention=local_attention,
+            local_rope_theta=local_rope_theta,
+            layer_id=layer_id,
+            global_attn_every_n_layers=global_attn_every_n_layers,
+        )
+
+        # Initialize MLP normalization
+        self.mlp_norm = nnx.LayerNorm(
+            rngs=rngs,
+            num_features=hidden_size,
+            epsilon=norm_eps,
+            use_bias=norm_bias,
+            reduction_axes=(-1,),
+            feature_axes=(-1,),
+        )
+
+        # Initialize MLP
+        self.mlp = ModernBertMLP(
+            rngs=rngs,
+            hidden_size=hidden_size,
+            intermediate_size=intermediate_size,
+            mlp_dropout=hidden_dropout,
+        )
 
     def __call__(
         self,
-        hidden_states: jnp.ndarray,
-        attention_mask: jnp.ndarray | None = None,
+        hidden_states: jax.Array,
+        attention_mask: jax.Array | None = None,
+        sliding_window_mask: jax.Array | None = None,
+        position_ids: jax.Array | None = None,
         deterministic: bool = True,
-    ) -> tuple[jnp.ndarray, dict[str, jnp.ndarray]]:
+        output_attentions: bool = False,
+    ) -> tuple[jax.Array] | tuple[jax.Array, jax.Array]:
         """Apply transformer layer.
 
         Args:
-            hidden_states: Input tensor
+            hidden_states: Input tensor of shape [batch_size, seq_len, hidden_size]
             attention_mask: Optional attention mask
+            sliding_window_mask: Optional sliding window mask
+            position_ids: Optional position ids for RoPE
             deterministic: Whether to apply dropout
+            output_attentions: Whether to return attention probabilities
 
         Returns:
-            Output tensor and attention weights
+            Tuple of:
+                - Output tensor of shape [batch_size, seq_len, hidden_size]
+                - Attention probabilities (optional) of shape [b_size, n_heads, seq_len, seq_len]
         """
-        # TODO: Implement ModernBERT layer
-        return hidden_states, {}
+        # Apply attention with pre-norm and residual
+        attn_outputs = self.attn(
+            self.attn_norm(hidden_states),
+            attention_mask=attention_mask,
+            sliding_window_mask=sliding_window_mask,
+            position_ids=position_ids,
+            deterministic=deterministic,
+            output_attentions=output_attentions,
+        )
+        hidden_states = hidden_states + attn_outputs[0]
+
+        # Apply MLP with pre-norm and residual
+        mlp_output = self.mlp(self.mlp_norm(hidden_states), deterministic=deterministic)
+        hidden_states = hidden_states + mlp_output
+
+        if output_attentions:
+            return (hidden_states, attn_outputs[1])
+        return (hidden_states,)
 
 
 class ModernBERTEncoder(nnx.Module):
@@ -632,12 +749,14 @@ class ModernBertMLP(nnx.Module):
         Returns:
             Output tensor of shape [batch_size, seq_len, hidden_size]
         """
-        # Project and split into input and gate
-        combined = self.Wi(hidden_states)
-        input_tensor, gate = jnp.split(combined, 2, axis=-1)
+        # Project to intermediate size
+        hidden_states = self.Wi(hidden_states)
 
-        # Apply GELU activation to input and multiply with gate
-        hidden_states = jax.nn.gelu(input_tensor) * gate
+        # Apply GELU activation
+        hidden_states = jax.nn.gelu(hidden_states)
+
+        # Split into input and gate by taking every other feature
+        hidden_states = self.Wo(hidden_states[..., ::2] * hidden_states[..., 1::2])
 
         # Apply dropout if in training
         if not deterministic and self.dropout > 0.0:
@@ -646,5 +765,4 @@ class ModernBertMLP(nnx.Module):
                 rate=self.dropout,
             )(hidden_states, deterministic=deterministic)
 
-        # Project back to hidden size
-        return self.Wo(hidden_states)
+        return hidden_states
