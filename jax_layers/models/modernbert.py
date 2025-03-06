@@ -1,8 +1,11 @@
 """ModernBERT implementation in JAX using Flax NNX.
 
 This module implements the ModernBERT architecture as described in the paper
-"Bringing BERT into Modernity" by Answer.AI. The implementation includes modern
-improvements such as RoPE, SwiGLU, and global/local attention mechanisms.
+"Smarter, Better, Faster, Longer: A Modern Bidirectional Encoder
+for Fast, Memory Efficient, and Long Context Finetuning and Inference" by Answer.AI.
+The implementation includes modern improvements such as RoPE and global/local attention mechanisms.
+
+See: https://arxiv.org/abs/2412.13663
 """
 
 import flax.nnx as nnx
