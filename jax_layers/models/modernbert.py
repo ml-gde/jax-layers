@@ -135,24 +135,6 @@ class RoPEPositionalEmbedding(nnx.Module):
         return apply_rotary_pos_emb(x, self.cache, positions)
 
 
-class SwiGLU(nnx.Module):
-    """SwiGLU activation function module."""
-
-    hidden_dim: int
-
-    def __call__(self, x: jnp.ndarray) -> jnp.ndarray:
-        """Apply SwiGLU activation.
-
-        Args:
-            x: Input tensor
-
-        Returns:
-            Activated tensor
-        """
-        # TODO: Implement SwiGLU
-        return x
-
-
 def create_sliding_window_mask(
     seq_len: int, window_size: tuple[int, int], dtype: jnp.dtype = jnp.float32
 ) -> jnp.ndarray:
