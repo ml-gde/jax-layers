@@ -637,13 +637,13 @@ class ModernBERTEncoder(nnx.Module):
                 - All hidden states (optional, if output_hidden_states=True)
                 - All attention weights (optional, if output_attentions=True)
         """
-        all_hidden_states = () if output_hidden_states else None
-        all_self_attentions = () if output_attentions else None
+        all_hidden_states: tuple | None = () if output_hidden_states else None  # type: ignore
+        all_self_attentions: tuple | None = () if output_attentions else None
 
         # Process through each layer
         for layer in self.layers:
             if output_hidden_states:
-                all_hidden_states = all_hidden_states + (hidden_states,)  # type: ignore
+                all_hidden_states = all_hidden_states + (hidden_states,)  # type: ignore #noqa: RUF005
 
             layer_outputs = layer(
                 hidden_states,
@@ -655,12 +655,12 @@ class ModernBERTEncoder(nnx.Module):
             )
 
             hidden_states = layer_outputs[0]
-            if output_attentions and len(layer_outputs) > 1:
-                all_self_attentions = all_self_attentions + (layer_outputs[1],)  # type: ignore
+            if output_attentions and len(layer_outputs) > 1 and all_self_attentions is not None:
+                all_self_attentions = all_self_attentions + (layer_outputs[1],)  #  noqa: RUF005
 
         # Add final hidden state if requested
-        if output_hidden_states:
-            all_hidden_states = all_hidden_states + (hidden_states,)  # type: ignore
+        if output_hidden_states and all_hidden_states is not None:
+            all_hidden_states = all_hidden_states + (hidden_states,)  # noqa: RUF005
 
         # Apply final layer normalization
         hidden_states = self.final_norm(hidden_states)
@@ -873,14 +873,14 @@ class ModernBERTForMaskedLM(nnx.Module):
 
         # Get sequence output and optional states
         sequence_output = encoder_outputs[0]
-        hidden_states = None
+        hidden_states = None  # type: ignore
         attentions = None
 
         if len(encoder_outputs) > 1:
             if output_hidden_states:
-                hidden_states = encoder_outputs[1]
+                hidden_states = encoder_outputs[1]  # type: ignore
             if output_attentions:
-                attentions = encoder_outputs[1] if not output_hidden_states else encoder_outputs[2]
+                attentions = encoder_outputs[1] if not output_hidden_states else encoder_outputs[2]  # type: ignore[misc]
 
         # Apply MLM head
         logits = self.mlm_head(sequence_output)
