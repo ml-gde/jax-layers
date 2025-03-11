@@ -46,7 +46,7 @@ def test_dot_product_attention_flash_mapping(monkeypatch):
     value = jax.random.normal(key3, (2, 16, 4, 8))
 
     _ = dot_product_attention(query, key_tensor, value, implementation="flash")
-    
+
     mock_fn.assert_called_once_with(
         query=query,
         key=key_tensor,
@@ -113,7 +113,9 @@ def test_dot_product_attention_mask_with_bias():
     # Expected bias after conversion: jnp.where(mask, custom_bias, -1e10)
     bias_manual = jnp.where(mask, custom_bias, -1e10)
 
-    output_with_mask_bias = dot_product_attention(query, key_tensor, value, mask=mask, bias=custom_bias)
+    output_with_mask_bias = dot_product_attention(
+        query, key_tensor, value, mask=mask, bias=custom_bias,
+    )
     output_with_manual_bias = dot_product_attention(query, key_tensor, value, bias=bias_manual)
 
     assert output_with_mask_bias.shape == output_with_manual_bias.shape
