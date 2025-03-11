@@ -108,6 +108,20 @@ cd jax-layers
 pip install -e ".[dev]"
 ```
 
+### Pre-commit
+
+This project uses pre-commit hooks to ensure code quality and consistency. Pre-commit automatically runs linting and formatting tools (such as ruff) before each commit, helping to catch issues early.
+
+```bash
+# Install Pre-commit Hooks
+pre-commit install
+
+# Run Pre-commit on All Files
+pre-commit run --all-files
+```
+
+Every time you attempt to commit, pre-commit automatically runs the configured hooks (e.g., ruff). If any issues are detected, the commit will be blocked until they are resolved.
+
 ### Testing
 
 The project maintains a comprehensive test suite to ensure correctness and numerical accuracy:
