@@ -57,7 +57,7 @@ def test_dot_product_attention_flash_mapping(monkeypatch):
         query_seq_lengths=None,
         key_value_seq_lengths=None,
         local_window_size=None,
-        implementation="cudnn"
+        implementation="cudnn",
     )
 
 
@@ -114,7 +114,11 @@ def test_dot_product_attention_mask_with_bias():
     bias_manual = jnp.where(mask, custom_bias, -1e10)
 
     output_with_mask_bias = dot_product_attention(
-        query, key_tensor, value, mask=mask, bias=custom_bias,
+        query,
+        key_tensor,
+        value,
+        mask=mask,
+        bias=custom_bias,
     )
     output_with_manual_bias = dot_product_attention(query, key_tensor, value, bias=bias_manual)
 
