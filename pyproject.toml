@@ -38,6 +38,10 @@ dev = [
     "sphinx",
     "sphinx-rtd-theme",
     "myst-parser",
+    "torch",
+    "torchvision",
+    "torchaudio",
+    "transformers",
 ]
 
 [project.urls]

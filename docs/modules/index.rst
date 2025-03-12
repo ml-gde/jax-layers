@@ -6,6 +6,7 @@ API Documentation
 
    attention
    functional
+   models
 
 Attention Modules
 ---------------
@@ -19,6 +20,14 @@ Functional Interfaces
 ------------------
 
 .. automodule:: jax_layers.functional
+   :members:
+   :undoc-members:
+   :show-inheritance: 
+
+Models
+------------------
+
+.. automodule:: jax_layers.models
    :members:
    :undoc-members:
    :show-inheritance: 
