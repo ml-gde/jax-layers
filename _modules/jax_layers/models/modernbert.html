@@ -1,0 +1,1199 @@
+
+
+<!DOCTYPE html>
+<html class="writer-html5" lang="en" data-content_root="../../../">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>jax_layers.models.modernbert &mdash; JAX Layers 0.1.0 documentation</title>
+      <link rel="stylesheet" type="text/css" href="../../../_static/pygments.css?v=b86133f3" />
+      <link rel="stylesheet" type="text/css" href="../../../_static/css/theme.css?v=e59714d7" />
+
+  
+      <script src="../../../_static/jquery.js?v=5d32c60e"></script>
+      <script src="../../../_static/_sphinx_javascript_frameworks_compat.js?v=2cd50e6c"></script>
+      <script src="../../../_static/documentation_options.js?v=01f34227"></script>
+      <script src="../../../_static/doctools.js?v=9bcbadda"></script>
+      <script src="../../../_static/sphinx_highlight.js?v=dc90522c"></script>
+    <script src="../../../_static/js/theme.js"></script>
+    <link rel="index" title="Index" href="../../../genindex.html" />
+    <link rel="search" title="Search" href="../../../search.html" /> 
+</head>
+
+<body class="wy-body-for-nav"> 
+  <div class="wy-grid-for-nav">
+    <nav data-toggle="wy-nav-shift" class="wy-nav-side">
+      <div class="wy-side-scroll">
+        <div class="wy-side-nav-search" >
+
+          
+          
+          <a href="../../../index.html" class="icon icon-home">
+            JAX Layers
+          </a>
+<div role="search">
+  <form id="rtd-search-form" class="wy-form" action="../../../search.html" method="get">
+    <input type="text" name="q" placeholder="Search docs" aria-label="Search docs" />
+    <input type="hidden" name="check_keywords" value="yes" />
+    <input type="hidden" name="area" value="default" />
+  </form>
+</div>
+        </div><div class="wy-menu wy-menu-vertical" data-spy="affix" role="navigation" aria-label="Navigation menu">
+              <p class="caption" role="heading"><span class="caption-text">Contents:</span></p>
+<ul>
+<li class="toctree-l1"><a class="reference internal" href="../../../modules/index.html">API Documentation</a></li>
+</ul>
+
+        </div>
+      </div>
+    </nav>
+
+    <section data-toggle="wy-nav-shift" class="wy-nav-content-wrap"><nav class="wy-nav-top" aria-label="Mobile navigation menu" >
+          <i data-toggle="wy-nav-top" class="fa fa-bars"></i>
+          <a href="../../../index.html">JAX Layers</a>
+      </nav>
+
+      <div class="wy-nav-content">
+        <div class="rst-content">
+          <div role="navigation" aria-label="Page navigation">
+  <ul class="wy-breadcrumbs">
+      <li><a href="../../../index.html" class="icon icon-home" aria-label="Home"></a></li>
+          <li class="breadcrumb-item"><a href="../../index.html">Module code</a></li>
+      <li class="breadcrumb-item active">jax_layers.models.modernbert</li>
+      <li class="wy-breadcrumbs-aside">
+      </li>
+  </ul>
+  <hr/>
+</div>
+          <div role="main" class="document" itemscope="itemscope" itemtype="http://schema.org/Article">
+           <div itemprop="articleBody">
+             
+  <h1>Source code for jax_layers.models.modernbert</h1><div class="highlight"><pre>
+<span></span><span class="sd">&quot;&quot;&quot;ModernBERT implementation in JAX using Flax NNX.</span>
+
+<span class="sd">This module implements the ModernBERT architecture as described in the paper</span>
+<span class="sd">&quot;Smarter, Better, Faster, Longer: A Modern Bidirectional Encoder</span>
+<span class="sd">for Fast, Memory Efficient, and Long Context Finetuning and Inference&quot; by Answer.AI.</span>
+<span class="sd">The implementation includes modern improvements such as RoPE and global/local attention mechanisms.</span>
+
+<span class="sd">See: https://arxiv.org/abs/2412.13663</span>
+<span class="sd">&quot;&quot;&quot;</span>
+
+<span class="kn">import</span><span class="w"> </span><span class="nn">flax.nnx</span><span class="w"> </span><span class="k">as</span><span class="w"> </span><span class="nn">nnx</span>
+<span class="kn">import</span><span class="w"> </span><span class="nn">jax</span>
+<span class="kn">import</span><span class="w"> </span><span class="nn">jax.numpy</span><span class="w"> </span><span class="k">as</span><span class="w"> </span><span class="nn">jnp</span>
+
+
+<span class="k">class</span><span class="w"> </span><span class="nc">Identity</span><span class="p">(</span><span class="n">nnx</span><span class="o">.</span><span class="n">Module</span><span class="p">):</span>
+<span class="w">    </span><span class="sd">&quot;&quot;&quot;Identity layer that simply returns its input.&quot;&quot;&quot;</span>
+
+    <span class="k">def</span><span class="w"> </span><span class="fm">__call__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">x</span><span class="p">:</span> <span class="n">jnp</span><span class="o">.</span><span class="n">ndarray</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">jnp</span><span class="o">.</span><span class="n">ndarray</span><span class="p">:</span>
+        <span class="k">return</span> <span class="n">x</span>
+
+
+<span class="k">def</span><span class="w"> </span><span class="nf">create_sinusoidal_positions</span><span class="p">(</span><span class="n">max_length</span><span class="p">:</span> <span class="nb">int</span><span class="p">,</span> <span class="n">dim</span><span class="p">:</span> <span class="nb">int</span><span class="p">,</span> <span class="n">base</span><span class="p">:</span> <span class="nb">float</span> <span class="o">=</span> <span class="mf">10000.0</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">jnp</span><span class="o">.</span><span class="n">ndarray</span><span class="p">:</span>
+<span class="w">    </span><span class="sd">&quot;&quot;&quot;Create sinusoidal position embeddings.</span>
+
+<span class="sd">    Args:</span>
+<span class="sd">        max_length: Maximum sequence length</span>
+<span class="sd">        dim: Dimension of the embeddings (must be even)</span>
+<span class="sd">        base: Base for the sinusoidal functions</span>
+
+<span class="sd">    Returns:</span>
+<span class="sd">        Array of shape (max_length, dim//2, 2) containing (cos, sin) values</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+    <span class="c1"># Create position indices [0, 1, ..., max_length-1]</span>
+    <span class="n">positions</span> <span class="o">=</span> <span class="n">jnp</span><span class="o">.</span><span class="n">arange</span><span class="p">(</span><span class="n">max_length</span><span class="p">,</span> <span class="n">dtype</span><span class="o">=</span><span class="n">jnp</span><span class="o">.</span><span class="n">float32</span><span class="p">)</span>
+
+    <span class="c1"># Create dimension indices [0, 2, ..., dim-2] for half the dimensions</span>
+    <span class="n">dim_indices</span> <span class="o">=</span> <span class="n">jnp</span><span class="o">.</span><span class="n">arange</span><span class="p">(</span><span class="mi">0</span><span class="p">,</span> <span class="n">dim</span><span class="p">,</span> <span class="mi">2</span><span class="p">,</span> <span class="n">dtype</span><span class="o">=</span><span class="n">jnp</span><span class="o">.</span><span class="n">float32</span><span class="p">)</span>
+
+    <span class="c1"># Calculate theta: base^(-2i/dim)</span>
+    <span class="n">theta</span> <span class="o">=</span> <span class="mf">1.0</span> <span class="o">/</span> <span class="p">(</span><span class="n">base</span> <span class="o">**</span> <span class="p">(</span><span class="n">dim_indices</span> <span class="o">/</span> <span class="n">dim</span><span class="p">))</span>
+
+    <span class="c1"># Calculate angles: pos * theta using einsum</span>
+    <span class="c1"># Shape: (max_length, dim//2)</span>
+    <span class="n">angles</span> <span class="o">=</span> <span class="n">jnp</span><span class="o">.</span><span class="n">einsum</span><span class="p">(</span><span class="s2">&quot;i,j-&gt;ij&quot;</span><span class="p">,</span> <span class="n">positions</span><span class="p">,</span> <span class="n">theta</span><span class="p">)</span>
+
+    <span class="c1"># Return stacked (cos, sin) tuple of shape (max_length, dim//2, 2)</span>
+    <span class="k">return</span> <span class="n">jnp</span><span class="o">.</span><span class="n">stack</span><span class="p">([</span><span class="n">jnp</span><span class="o">.</span><span class="n">cos</span><span class="p">(</span><span class="n">angles</span><span class="p">),</span> <span class="n">jnp</span><span class="o">.</span><span class="n">sin</span><span class="p">(</span><span class="n">angles</span><span class="p">)],</span> <span class="n">axis</span><span class="o">=-</span><span class="mi">1</span><span class="p">)</span>
+
+
+<span class="k">def</span><span class="w"> </span><span class="nf">apply_rotary_pos_emb</span><span class="p">(</span>
+    <span class="n">x</span><span class="p">:</span> <span class="n">jnp</span><span class="o">.</span><span class="n">ndarray</span><span class="p">,</span> <span class="n">cache</span><span class="p">:</span> <span class="n">jnp</span><span class="o">.</span><span class="n">ndarray</span><span class="p">,</span> <span class="n">positions</span><span class="p">:</span> <span class="n">jnp</span><span class="o">.</span><span class="n">ndarray</span> <span class="o">|</span> <span class="kc">None</span> <span class="o">=</span> <span class="kc">None</span>
+<span class="p">)</span> <span class="o">-&gt;</span> <span class="n">jnp</span><span class="o">.</span><span class="n">ndarray</span><span class="p">:</span>
+<span class="w">    </span><span class="sd">&quot;&quot;&quot;Apply rotary position embeddings to input tensor.</span>
+
+<span class="sd">    Args:</span>
+<span class="sd">        x: Input tensor of shape (batch_size, seq_len, num_heads, head_dim)</span>
+<span class="sd">        cache: Cache tensor of shape (max_seq_len, head_dim//2, 2) containing (cos, sin)</span>
+<span class="sd">        positions: Optional position indices of shape (batch_size, seq_len)</span>
+
+<span class="sd">    Returns:</span>
+<span class="sd">        Tensor with rotary embeddings applied</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+    <span class="c1"># Get sequence length from input</span>
+    <span class="n">seq_len</span> <span class="o">=</span> <span class="n">x</span><span class="o">.</span><span class="n">shape</span><span class="p">[</span><span class="mi">1</span><span class="p">]</span>
+
+    <span class="c1"># Get cache values based on positions</span>
+    <span class="k">if</span> <span class="n">positions</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span><span class="p">:</span>
+        <span class="n">rope_cache</span> <span class="o">=</span> <span class="n">cache</span><span class="p">[</span><span class="n">positions</span><span class="p">]</span>  <span class="c1"># [batch, seq, dim//2, 2]</span>
+    <span class="k">else</span><span class="p">:</span>
+        <span class="c1"># Take exactly seq_len positions and repeat if needed</span>
+        <span class="n">positions</span> <span class="o">=</span> <span class="n">jnp</span><span class="o">.</span><span class="n">arange</span><span class="p">(</span><span class="n">seq_len</span><span class="p">)</span> <span class="o">%</span> <span class="n">cache</span><span class="o">.</span><span class="n">shape</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span>
+        <span class="n">rope_cache</span> <span class="o">=</span> <span class="n">cache</span><span class="p">[</span><span class="n">positions</span><span class="p">]</span>  <span class="c1"># [seq, dim//2, 2]</span>
+        <span class="c1"># Add batch dimension for broadcasting</span>
+        <span class="n">rope_cache</span> <span class="o">=</span> <span class="n">jnp</span><span class="o">.</span><span class="n">expand_dims</span><span class="p">(</span><span class="n">rope_cache</span><span class="p">,</span> <span class="mi">0</span><span class="p">)</span>  <span class="c1"># [1, seq, dim//2, 2]</span>
+
+    <span class="c1"># Reshape input for rotation</span>
+    <span class="n">x_reshaped</span> <span class="o">=</span> <span class="n">x</span><span class="o">.</span><span class="n">reshape</span><span class="p">(</span><span class="o">*</span><span class="n">x</span><span class="o">.</span><span class="n">shape</span><span class="p">[:</span><span class="o">-</span><span class="mi">1</span><span class="p">],</span> <span class="o">-</span><span class="mi">1</span><span class="p">,</span> <span class="mi">2</span><span class="p">)</span>  <span class="c1"># [batch, seq, heads, dim//2, 2]</span>
+
+    <span class="c1"># Add head dimension to rope_cache for broadcasting</span>
+    <span class="n">rope_cache</span> <span class="o">=</span> <span class="n">jnp</span><span class="o">.</span><span class="n">expand_dims</span><span class="p">(</span><span class="n">rope_cache</span><span class="p">,</span> <span class="mi">2</span><span class="p">)</span>  <span class="c1"># [batch/1, seq, 1, dim//2, 2]</span>
+
+    <span class="c1"># Apply rotation using complex multiplication</span>
+    <span class="n">x_out</span> <span class="o">=</span> <span class="n">jnp</span><span class="o">.</span><span class="n">stack</span><span class="p">(</span>
+        <span class="p">[</span>
+            <span class="n">x_reshaped</span><span class="p">[</span><span class="o">...</span><span class="p">,</span> <span class="mi">0</span><span class="p">]</span> <span class="o">*</span> <span class="n">rope_cache</span><span class="p">[</span><span class="o">...</span><span class="p">,</span> <span class="mi">0</span><span class="p">]</span> <span class="o">-</span> <span class="n">x_reshaped</span><span class="p">[</span><span class="o">...</span><span class="p">,</span> <span class="mi">1</span><span class="p">]</span> <span class="o">*</span> <span class="n">rope_cache</span><span class="p">[</span><span class="o">...</span><span class="p">,</span> <span class="mi">1</span><span class="p">],</span>
+            <span class="n">x_reshaped</span><span class="p">[</span><span class="o">...</span><span class="p">,</span> <span class="mi">1</span><span class="p">]</span> <span class="o">*</span> <span class="n">rope_cache</span><span class="p">[</span><span class="o">...</span><span class="p">,</span> <span class="mi">0</span><span class="p">]</span> <span class="o">+</span> <span class="n">x_reshaped</span><span class="p">[</span><span class="o">...</span><span class="p">,</span> <span class="mi">0</span><span class="p">]</span> <span class="o">*</span> <span class="n">rope_cache</span><span class="p">[</span><span class="o">...</span><span class="p">,</span> <span class="mi">1</span><span class="p">],</span>
+        <span class="p">],</span>
+        <span class="n">axis</span><span class="o">=-</span><span class="mi">1</span><span class="p">,</span>
+    <span class="p">)</span>
+
+    <span class="c1"># Reshape back to original shape</span>
+    <span class="k">return</span> <span class="n">x_out</span><span class="o">.</span><span class="n">reshape</span><span class="p">(</span><span class="n">x</span><span class="o">.</span><span class="n">shape</span><span class="p">)</span>
+
+
+<span class="k">class</span><span class="w"> </span><span class="nc">RoPEPositionalEmbedding</span><span class="p">(</span><span class="n">nnx</span><span class="o">.</span><span class="n">Module</span><span class="p">):</span>
+<span class="w">    </span><span class="sd">&quot;&quot;&quot;Rotary Position Embedding (RoPE) implementation.</span>
+
+<span class="sd">    Based on https://arxiv.org/abs/2104.09864</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+
+    <span class="k">def</span><span class="w"> </span><span class="fm">__init__</span><span class="p">(</span>
+        <span class="bp">self</span><span class="p">,</span> <span class="n">rngs</span><span class="p">:</span> <span class="n">nnx</span><span class="o">.</span><span class="n">Rngs</span><span class="p">,</span> <span class="n">dim</span><span class="p">:</span> <span class="nb">int</span><span class="p">,</span> <span class="n">max_position_embeddings</span><span class="p">:</span> <span class="nb">int</span> <span class="o">=</span> <span class="mi">4096</span><span class="p">,</span> <span class="n">base</span><span class="p">:</span> <span class="nb">float</span> <span class="o">=</span> <span class="mf">10000.0</span>
+    <span class="p">):</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;Initialize RoPE module.</span>
+
+<span class="sd">        Args:</span>
+<span class="sd">            rngs: PRNG key collection</span>
+<span class="sd">            dim: Dimension of the embeddings (must be even)</span>
+<span class="sd">            max_position_embeddings: Maximum sequence length to cache</span>
+<span class="sd">            base: Base for the sinusoidal functions</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="nb">super</span><span class="p">()</span><span class="o">.</span><span class="fm">__init__</span><span class="p">()</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">dim</span> <span class="o">=</span> <span class="n">dim</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">max_position_embeddings</span> <span class="o">=</span> <span class="n">max_position_embeddings</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">base</span> <span class="o">=</span> <span class="n">base</span>
+
+        <span class="c1"># Create and store the cos/sin cache</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">cache</span> <span class="o">=</span> <span class="n">create_sinusoidal_positions</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">max_position_embeddings</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">dim</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">base</span><span class="p">)</span>
+
+    <span class="k">def</span><span class="w"> </span><span class="fm">__call__</span><span class="p">(</span>
+        <span class="bp">self</span><span class="p">,</span>
+        <span class="n">x</span><span class="p">:</span> <span class="n">jnp</span><span class="o">.</span><span class="n">ndarray</span><span class="p">,</span>
+        <span class="n">positions</span><span class="p">:</span> <span class="n">jnp</span><span class="o">.</span><span class="n">ndarray</span> <span class="o">|</span> <span class="kc">None</span> <span class="o">=</span> <span class="kc">None</span><span class="p">,</span>
+    <span class="p">)</span> <span class="o">-&gt;</span> <span class="n">jnp</span><span class="o">.</span><span class="n">ndarray</span><span class="p">:</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;Apply rotary position embeddings to input tensor.</span>
+
+<span class="sd">        Args:</span>
+<span class="sd">            x: Input tensor of shape [batch_size, seq_len, num_heads, head_dim]</span>
+<span class="sd">            positions: Optional position ids of shape [batch_size, seq_len]</span>
+
+<span class="sd">        Returns:</span>
+<span class="sd">            Tensor with position embeddings applied</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="k">return</span> <span class="n">apply_rotary_pos_emb</span><span class="p">(</span><span class="n">x</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">cache</span><span class="p">,</span> <span class="n">positions</span><span class="p">)</span>
+
+
+<span class="k">def</span><span class="w"> </span><span class="nf">create_sliding_window_mask</span><span class="p">(</span>
+    <span class="n">seq_len</span><span class="p">:</span> <span class="nb">int</span><span class="p">,</span> <span class="n">window_size</span><span class="p">:</span> <span class="nb">tuple</span><span class="p">[</span><span class="nb">int</span><span class="p">,</span> <span class="nb">int</span><span class="p">],</span> <span class="n">dtype</span><span class="p">:</span> <span class="n">jnp</span><span class="o">.</span><span class="n">dtype</span> <span class="o">=</span> <span class="n">jnp</span><span class="o">.</span><span class="n">float32</span>
+<span class="p">)</span> <span class="o">-&gt;</span> <span class="n">jnp</span><span class="o">.</span><span class="n">ndarray</span><span class="p">:</span>
+<span class="w">    </span><span class="sd">&quot;&quot;&quot;Create a sliding window attention mask.</span>
+
+<span class="sd">    Args:</span>
+<span class="sd">        seq_len: Length of the sequence</span>
+<span class="sd">        window_size: Tuple of (left, right) window sizes</span>
+<span class="sd">        dtype: Data type of the mask</span>
+
+<span class="sd">    Returns:</span>
+<span class="sd">        Mask tensor of shape [1, 1, seq_len, seq_len] with -inf outside window</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+    <span class="c1"># Create position indices</span>
+    <span class="n">positions</span> <span class="o">=</span> <span class="n">jnp</span><span class="o">.</span><span class="n">arange</span><span class="p">(</span><span class="n">seq_len</span><span class="p">)</span>
+
+    <span class="c1"># Create relative position matrix [seq_len, seq_len]</span>
+    <span class="n">relative_positions</span> <span class="o">=</span> <span class="n">positions</span><span class="p">[:,</span> <span class="kc">None</span><span class="p">]</span> <span class="o">-</span> <span class="n">positions</span><span class="p">[</span><span class="kc">None</span><span class="p">,</span> <span class="p">:]</span>
+
+    <span class="c1"># Create window mask</span>
+    <span class="n">left_window</span><span class="p">,</span> <span class="n">right_window</span> <span class="o">=</span> <span class="n">window_size</span>
+    <span class="n">mask</span> <span class="o">=</span> <span class="p">(</span><span class="n">relative_positions</span> <span class="o">&gt;=</span> <span class="o">-</span><span class="n">left_window</span><span class="p">)</span> <span class="o">&amp;</span> <span class="p">(</span><span class="n">relative_positions</span> <span class="o">&lt;=</span> <span class="n">right_window</span><span class="p">)</span>
+
+    <span class="c1"># Convert to float and replace False with -inf</span>
+    <span class="n">mask</span> <span class="o">=</span> <span class="n">mask</span><span class="o">.</span><span class="n">astype</span><span class="p">(</span><span class="n">dtype</span><span class="p">)</span>
+    <span class="n">mask</span> <span class="o">=</span> <span class="n">jnp</span><span class="o">.</span><span class="n">where</span><span class="p">(</span><span class="n">mask</span><span class="p">,</span> <span class="mf">0.0</span><span class="p">,</span> <span class="o">-</span><span class="n">jnp</span><span class="o">.</span><span class="n">inf</span><span class="p">)</span>
+
+    <span class="c1"># Add batch and head dimensions [1, 1, seq_len, seq_len]</span>
+    <span class="k">return</span> <span class="n">mask</span><span class="p">[</span><span class="kc">None</span><span class="p">,</span> <span class="kc">None</span><span class="p">,</span> <span class="p">:,</span> <span class="p">:]</span>
+
+
+<div class="viewcode-block" id="ModernBertAttention">
+<a class="viewcode-back" href="../../../modules/index.html#jax_layers.models.ModernBertAttention">[docs]</a>
+<span class="k">class</span><span class="w"> </span><span class="nc">ModernBertAttention</span><span class="p">(</span><span class="n">nnx</span><span class="o">.</span><span class="n">Module</span><span class="p">):</span>
+<span class="w">    </span><span class="sd">&quot;&quot;&quot;Multi-headed self attention implementation.</span>
+
+<span class="sd">    This implements the standard attention mechanism with RoPE (Rotary Position Embeddings).</span>
+<span class="sd">    Supports both global attention and sliding window attention.</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+
+<div class="viewcode-block" id="ModernBertAttention.__init__">
+<a class="viewcode-back" href="../../../modules/index.html#jax_layers.models.ModernBertAttention.__init__">[docs]</a>
+    <span class="k">def</span><span class="w"> </span><span class="fm">__init__</span><span class="p">(</span>
+        <span class="bp">self</span><span class="p">,</span>
+        <span class="n">rngs</span><span class="p">:</span> <span class="n">nnx</span><span class="o">.</span><span class="n">Rngs</span><span class="p">,</span>
+        <span class="n">hidden_size</span><span class="p">:</span> <span class="nb">int</span><span class="p">,</span>
+        <span class="n">num_attention_heads</span><span class="p">:</span> <span class="nb">int</span><span class="p">,</span>
+        <span class="n">attention_dropout</span><span class="p">:</span> <span class="nb">float</span> <span class="o">=</span> <span class="mf">0.0</span><span class="p">,</span>
+        <span class="n">attention_bias</span><span class="p">:</span> <span class="nb">bool</span> <span class="o">=</span> <span class="kc">True</span><span class="p">,</span>
+        <span class="n">global_rope_theta</span><span class="p">:</span> <span class="nb">float</span> <span class="o">=</span> <span class="mf">10000.0</span><span class="p">,</span>
+        <span class="n">max_position_embeddings</span><span class="p">:</span> <span class="nb">int</span> <span class="o">=</span> <span class="mi">4096</span><span class="p">,</span>
+        <span class="n">local_attention</span><span class="p">:</span> <span class="nb">tuple</span><span class="p">[</span><span class="nb">int</span><span class="p">,</span> <span class="nb">int</span><span class="p">]</span> <span class="o">=</span> <span class="p">(</span><span class="o">-</span><span class="mi">1</span><span class="p">,</span> <span class="o">-</span><span class="mi">1</span><span class="p">),</span>  <span class="c1"># (-1, -1) means global attention</span>
+        <span class="n">local_rope_theta</span><span class="p">:</span> <span class="nb">float</span> <span class="o">|</span> <span class="kc">None</span> <span class="o">=</span> <span class="kc">None</span><span class="p">,</span>
+        <span class="n">layer_id</span><span class="p">:</span> <span class="nb">int</span> <span class="o">|</span> <span class="kc">None</span> <span class="o">=</span> <span class="kc">None</span><span class="p">,</span>
+        <span class="n">global_attn_every_n_layers</span><span class="p">:</span> <span class="nb">int</span> <span class="o">=</span> <span class="mi">4</span><span class="p">,</span>
+    <span class="p">):</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;Initialize attention module.</span>
+
+<span class="sd">        Args:</span>
+<span class="sd">            rngs: PRNG key collection</span>
+<span class="sd">            hidden_size: Size of hidden states</span>
+<span class="sd">            num_attention_heads: Number of attention heads</span>
+<span class="sd">            attention_dropout: Dropout probability for attention weights</span>
+<span class="sd">            attention_bias: Whether to use bias in linear layers</span>
+<span class="sd">            global_rope_theta: Base for global RoPE</span>
+<span class="sd">            max_position_embeddings: Maximum sequence length</span>
+<span class="sd">            local_attention: Tuple of (left, right) window sizes for local attention</span>
+<span class="sd">            local_rope_theta: Base for local RoPE (optional)</span>
+<span class="sd">            layer_id: Layer index for determining attention type</span>
+<span class="sd">            global_attn_every_n_layers: Apply global attention every N layers</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="k">if</span> <span class="n">hidden_size</span> <span class="o">%</span> <span class="n">num_attention_heads</span> <span class="o">!=</span> <span class="mi">0</span><span class="p">:</span>
+            <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span>
+                <span class="sa">f</span><span class="s2">&quot;The hidden size (</span><span class="si">{</span><span class="n">hidden_size</span><span class="si">}</span><span class="s2">) is not a multiple of the number &quot;</span>
+                <span class="sa">f</span><span class="s2">&quot;of attention heads (</span><span class="si">{</span><span class="n">num_attention_heads</span><span class="si">}</span><span class="s2">)&quot;</span>
+            <span class="p">)</span>
+
+        <span class="c1"># Store configuration</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">hidden_size</span> <span class="o">=</span> <span class="n">hidden_size</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">num_attention_heads</span> <span class="o">=</span> <span class="n">num_attention_heads</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">head_dim</span> <span class="o">=</span> <span class="n">hidden_size</span> <span class="o">//</span> <span class="n">num_attention_heads</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">all_head_size</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">head_dim</span> <span class="o">*</span> <span class="n">num_attention_heads</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">attention_dropout</span> <span class="o">=</span> <span class="n">attention_dropout</span>
+
+        <span class="c1"># Compute local attention window if needed</span>
+        <span class="k">if</span> <span class="n">layer_id</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span> <span class="ow">and</span> <span class="n">layer_id</span> <span class="o">%</span> <span class="n">global_attn_every_n_layers</span> <span class="o">!=</span> <span class="mi">0</span><span class="p">:</span>
+            <span class="n">local_attention</span> <span class="o">=</span> <span class="p">(</span><span class="n">local_attention</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span> <span class="o">//</span> <span class="mi">2</span><span class="p">,</span> <span class="n">local_attention</span><span class="p">[</span><span class="mi">1</span><span class="p">]</span> <span class="o">//</span> <span class="mi">2</span><span class="p">)</span>
+
+        <span class="c1"># Select RoPE parameters based on attention type</span>
+        <span class="n">rope_theta</span> <span class="o">=</span> <span class="n">global_rope_theta</span>
+        <span class="n">max_pos</span> <span class="o">=</span> <span class="n">max_position_embeddings</span>
+        <span class="k">if</span> <span class="n">local_attention</span> <span class="o">!=</span> <span class="p">(</span><span class="o">-</span><span class="mi">1</span><span class="p">,</span> <span class="o">-</span><span class="mi">1</span><span class="p">):</span>
+            <span class="k">if</span> <span class="n">local_rope_theta</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span><span class="p">:</span>
+                <span class="n">rope_theta</span> <span class="o">=</span> <span class="n">local_rope_theta</span>
+            <span class="n">max_pos</span> <span class="o">=</span> <span class="n">local_attention</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span> <span class="o">+</span> <span class="n">local_attention</span><span class="p">[</span><span class="mi">1</span><span class="p">]</span>
+
+        <span class="c1"># Initialize layers</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">Wqkv</span> <span class="o">=</span> <span class="n">nnx</span><span class="o">.</span><span class="n">Linear</span><span class="p">(</span>
+            <span class="n">rngs</span><span class="o">=</span><span class="n">rngs</span><span class="p">,</span>
+            <span class="n">in_features</span><span class="o">=</span><span class="n">hidden_size</span><span class="p">,</span>
+            <span class="n">out_features</span><span class="o">=</span><span class="mi">3</span> <span class="o">*</span> <span class="bp">self</span><span class="o">.</span><span class="n">all_head_size</span><span class="p">,</span>
+            <span class="n">use_bias</span><span class="o">=</span><span class="n">attention_bias</span><span class="p">,</span>
+        <span class="p">)</span>
+
+        <span class="bp">self</span><span class="o">.</span><span class="n">rotary_emb</span> <span class="o">=</span> <span class="n">RoPEPositionalEmbedding</span><span class="p">(</span>
+            <span class="n">rngs</span><span class="o">=</span><span class="n">rngs</span><span class="p">,</span>
+            <span class="n">dim</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">head_dim</span><span class="p">,</span>
+            <span class="n">max_position_embeddings</span><span class="o">=</span><span class="n">max_pos</span><span class="p">,</span>
+            <span class="n">base</span><span class="o">=</span><span class="n">rope_theta</span><span class="p">,</span>
+        <span class="p">)</span>
+
+        <span class="bp">self</span><span class="o">.</span><span class="n">Wo</span> <span class="o">=</span> <span class="n">nnx</span><span class="o">.</span><span class="n">Linear</span><span class="p">(</span>
+            <span class="n">rngs</span><span class="o">=</span><span class="n">rngs</span><span class="p">,</span>
+            <span class="n">in_features</span><span class="o">=</span><span class="n">hidden_size</span><span class="p">,</span>
+            <span class="n">out_features</span><span class="o">=</span><span class="n">hidden_size</span><span class="p">,</span>
+            <span class="n">use_bias</span><span class="o">=</span><span class="n">attention_bias</span><span class="p">,</span>
+        <span class="p">)</span>
+
+        <span class="c1"># Store configuration</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">local_attention</span> <span class="o">=</span> <span class="n">local_attention</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">_rngs</span> <span class="o">=</span> <span class="n">rngs</span>  <span class="c1"># Store rngs for dropout</span></div>
+
+
+<div class="viewcode-block" id="ModernBertAttention.__call__">
+<a class="viewcode-back" href="../../../modules/index.html#jax_layers.models.ModernBertAttention.__call__">[docs]</a>
+    <span class="k">def</span><span class="w"> </span><span class="fm">__call__</span><span class="p">(</span>
+        <span class="bp">self</span><span class="p">,</span>
+        <span class="n">hidden_states</span><span class="p">:</span> <span class="n">jax</span><span class="o">.</span><span class="n">Array</span><span class="p">,</span>
+        <span class="n">attention_mask</span><span class="p">:</span> <span class="n">jax</span><span class="o">.</span><span class="n">Array</span> <span class="o">|</span> <span class="kc">None</span> <span class="o">=</span> <span class="kc">None</span><span class="p">,</span>
+        <span class="n">sliding_window_mask</span><span class="p">:</span> <span class="n">jax</span><span class="o">.</span><span class="n">Array</span> <span class="o">|</span> <span class="kc">None</span> <span class="o">=</span> <span class="kc">None</span><span class="p">,</span>
+        <span class="n">position_ids</span><span class="p">:</span> <span class="n">jax</span><span class="o">.</span><span class="n">Array</span> <span class="o">|</span> <span class="kc">None</span> <span class="o">=</span> <span class="kc">None</span><span class="p">,</span>
+        <span class="n">deterministic</span><span class="p">:</span> <span class="nb">bool</span> <span class="o">=</span> <span class="kc">True</span><span class="p">,</span>
+        <span class="n">output_attentions</span><span class="p">:</span> <span class="nb">bool</span> <span class="o">=</span> <span class="kc">False</span><span class="p">,</span>
+    <span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">tuple</span><span class="p">[</span><span class="n">jax</span><span class="o">.</span><span class="n">Array</span><span class="p">]</span> <span class="o">|</span> <span class="nb">tuple</span><span class="p">[</span><span class="n">jax</span><span class="o">.</span><span class="n">Array</span><span class="p">,</span> <span class="n">jax</span><span class="o">.</span><span class="n">Array</span><span class="p">]:</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;Apply attention module.</span>
+
+<span class="sd">        Args:</span>
+<span class="sd">            hidden_states: Input tensor of shape [batch_size, seq_len, hidden_size]</span>
+<span class="sd">            attention_mask: Optional attention mask</span>
+<span class="sd">            sliding_window_mask: Optional sliding window mask for local attention</span>
+<span class="sd">            position_ids: Optional position ids for RoPE</span>
+<span class="sd">            deterministic: Whether to apply dropout</span>
+<span class="sd">            output_attentions: Whether to return attention probabilities</span>
+
+<span class="sd">        Returns:</span>
+<span class="sd">            Tuple of:</span>
+<span class="sd">                - Output tensor of shape [batch_size, seq_len, hidden_size]</span>
+<span class="sd">                - Attention probabilities (optional) of shape [b_size, n_heads, seq_len, seq_len]</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="c1"># Project to Q, K, V</span>
+        <span class="n">qkv</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">Wqkv</span><span class="p">(</span><span class="n">hidden_states</span><span class="p">)</span>  <span class="c1"># [batch_size, seq_len, 3 * hidden_size]</span>
+
+        <span class="c1"># Reshape to [batch_size, seq_len, 3, num_heads, head_dim]</span>
+        <span class="n">batch_size</span> <span class="o">=</span> <span class="n">hidden_states</span><span class="o">.</span><span class="n">shape</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span>
+        <span class="n">qkv</span> <span class="o">=</span> <span class="n">jnp</span><span class="o">.</span><span class="n">reshape</span><span class="p">(</span><span class="n">qkv</span><span class="p">,</span> <span class="p">(</span><span class="n">batch_size</span><span class="p">,</span> <span class="o">-</span><span class="mi">1</span><span class="p">,</span> <span class="mi">3</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">num_attention_heads</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">head_dim</span><span class="p">))</span>
+
+        <span class="c1"># Split into query, key, value and apply RoPE</span>
+        <span class="c1"># First transpose to get [batch_size, num_heads, seq_len, head_dim]</span>
+        <span class="n">qkv</span> <span class="o">=</span> <span class="n">jnp</span><span class="o">.</span><span class="n">transpose</span><span class="p">(</span><span class="n">qkv</span><span class="p">,</span> <span class="p">(</span><span class="mi">0</span><span class="p">,</span> <span class="mi">3</span><span class="p">,</span> <span class="mi">1</span><span class="p">,</span> <span class="mi">2</span><span class="p">,</span> <span class="mi">4</span><span class="p">))</span>  <span class="c1"># [batch_size, num_heads, seq_len, 3, head_dim]</span>
+        <span class="n">query</span><span class="p">,</span> <span class="n">key</span><span class="p">,</span> <span class="n">value</span> <span class="o">=</span> <span class="n">jnp</span><span class="o">.</span><span class="n">split</span><span class="p">(</span>
+            <span class="n">qkv</span><span class="p">,</span> <span class="mi">3</span><span class="p">,</span> <span class="n">axis</span><span class="o">=</span><span class="mi">3</span>
+        <span class="p">)</span>  <span class="c1"># Each: [batch_size, num_heads, seq_len, 1, head_dim]</span>
+        <span class="n">query</span> <span class="o">=</span> <span class="n">jnp</span><span class="o">.</span><span class="n">squeeze</span><span class="p">(</span><span class="n">query</span><span class="p">,</span> <span class="n">axis</span><span class="o">=</span><span class="mi">3</span><span class="p">)</span>  <span class="c1"># [batch_size, num_heads, seq_len, head_dim]</span>
+        <span class="n">key</span> <span class="o">=</span> <span class="n">jnp</span><span class="o">.</span><span class="n">squeeze</span><span class="p">(</span><span class="n">key</span><span class="p">,</span> <span class="n">axis</span><span class="o">=</span><span class="mi">3</span><span class="p">)</span>
+        <span class="n">value</span> <span class="o">=</span> <span class="n">jnp</span><span class="o">.</span><span class="n">squeeze</span><span class="p">(</span><span class="n">value</span><span class="p">,</span> <span class="n">axis</span><span class="o">=</span><span class="mi">3</span><span class="p">)</span>
+
+        <span class="c1"># Apply rotary embeddings</span>
+        <span class="c1"># First transpose to [batch_size, seq_len, num_heads, head_dim] for RoPE</span>
+        <span class="n">query</span> <span class="o">=</span> <span class="n">jnp</span><span class="o">.</span><span class="n">transpose</span><span class="p">(</span><span class="n">query</span><span class="p">,</span> <span class="p">(</span><span class="mi">0</span><span class="p">,</span> <span class="mi">2</span><span class="p">,</span> <span class="mi">1</span><span class="p">,</span> <span class="mi">3</span><span class="p">))</span>
+        <span class="n">key</span> <span class="o">=</span> <span class="n">jnp</span><span class="o">.</span><span class="n">transpose</span><span class="p">(</span><span class="n">key</span><span class="p">,</span> <span class="p">(</span><span class="mi">0</span><span class="p">,</span> <span class="mi">2</span><span class="p">,</span> <span class="mi">1</span><span class="p">,</span> <span class="mi">3</span><span class="p">))</span>
+        <span class="n">query</span> <span class="o">=</span> <span class="n">apply_rotary_pos_emb</span><span class="p">(</span><span class="n">query</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">rotary_emb</span><span class="o">.</span><span class="n">cache</span><span class="p">,</span> <span class="n">position_ids</span><span class="p">)</span>
+        <span class="n">key</span> <span class="o">=</span> <span class="n">apply_rotary_pos_emb</span><span class="p">(</span><span class="n">key</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">rotary_emb</span><span class="o">.</span><span class="n">cache</span><span class="p">,</span> <span class="n">position_ids</span><span class="p">)</span>
+        <span class="c1"># Transpose back to [batch_size, num_heads, seq_len, head_dim]</span>
+        <span class="n">query</span> <span class="o">=</span> <span class="n">jnp</span><span class="o">.</span><span class="n">transpose</span><span class="p">(</span><span class="n">query</span><span class="p">,</span> <span class="p">(</span><span class="mi">0</span><span class="p">,</span> <span class="mi">2</span><span class="p">,</span> <span class="mi">1</span><span class="p">,</span> <span class="mi">3</span><span class="p">))</span>
+        <span class="n">key</span> <span class="o">=</span> <span class="n">jnp</span><span class="o">.</span><span class="n">transpose</span><span class="p">(</span><span class="n">key</span><span class="p">,</span> <span class="p">(</span><span class="mi">0</span><span class="p">,</span> <span class="mi">2</span><span class="p">,</span> <span class="mi">1</span><span class="p">,</span> <span class="mi">3</span><span class="p">))</span>
+
+        <span class="c1"># Compute attention scores</span>
+        <span class="n">scale</span> <span class="o">=</span> <span class="n">jnp</span><span class="o">.</span><span class="n">sqrt</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">head_dim</span><span class="p">)</span>
+        <span class="n">attention_scores</span> <span class="o">=</span> <span class="n">jnp</span><span class="o">.</span><span class="n">matmul</span><span class="p">(</span><span class="n">query</span><span class="p">,</span> <span class="n">jnp</span><span class="o">.</span><span class="n">swapaxes</span><span class="p">(</span><span class="n">key</span><span class="p">,</span> <span class="o">-</span><span class="mi">2</span><span class="p">,</span> <span class="o">-</span><span class="mi">1</span><span class="p">))</span> <span class="o">/</span> <span class="n">scale</span>
+
+        <span class="c1"># Apply attention masks</span>
+        <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">local_attention</span> <span class="o">!=</span> <span class="p">(</span><span class="o">-</span><span class="mi">1</span><span class="p">,</span> <span class="o">-</span><span class="mi">1</span><span class="p">):</span>
+            <span class="c1"># Create sliding window mask if not provided</span>
+            <span class="k">if</span> <span class="n">sliding_window_mask</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span>
+                <span class="n">sliding_window_mask</span> <span class="o">=</span> <span class="n">create_sliding_window_mask</span><span class="p">(</span>
+                    <span class="n">query</span><span class="o">.</span><span class="n">shape</span><span class="p">[</span><span class="mi">2</span><span class="p">],</span> <span class="bp">self</span><span class="o">.</span><span class="n">local_attention</span><span class="p">,</span> <span class="n">query</span><span class="o">.</span><span class="n">dtype</span>
+                <span class="p">)</span>
+            <span class="c1"># Ensure the mask is properly broadcasted to [batch_size, num_heads, seq_len, seq_len]</span>
+            <span class="k">if</span> <span class="nb">len</span><span class="p">(</span><span class="n">sliding_window_mask</span><span class="o">.</span><span class="n">shape</span><span class="p">)</span> <span class="o">==</span> <span class="mi">4</span> <span class="ow">and</span> <span class="n">sliding_window_mask</span><span class="o">.</span><span class="n">shape</span><span class="p">[:</span><span class="mi">2</span><span class="p">]</span> <span class="o">==</span> <span class="p">(</span><span class="mi">1</span><span class="p">,</span> <span class="mi">1</span><span class="p">):</span>
+                <span class="n">sliding_window_mask</span> <span class="o">=</span> <span class="n">jnp</span><span class="o">.</span><span class="n">broadcast_to</span><span class="p">(</span>
+                    <span class="n">sliding_window_mask</span><span class="p">,</span>
+                    <span class="p">(</span><span class="n">batch_size</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">num_attention_heads</span><span class="p">,</span> <span class="n">query</span><span class="o">.</span><span class="n">shape</span><span class="p">[</span><span class="mi">2</span><span class="p">],</span> <span class="n">query</span><span class="o">.</span><span class="n">shape</span><span class="p">[</span><span class="mi">2</span><span class="p">]),</span>
+                <span class="p">)</span>
+            <span class="c1"># Apply sliding window mask first</span>
+            <span class="n">attention_scores</span> <span class="o">=</span> <span class="n">attention_scores</span> <span class="o">+</span> <span class="n">sliding_window_mask</span>
+
+        <span class="c1"># Apply additional attention mask if provided</span>
+        <span class="k">if</span> <span class="n">attention_mask</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span> <span class="ow">and</span> <span class="n">attention_mask</span> <span class="ow">is</span> <span class="ow">not</span> <span class="n">sliding_window_mask</span><span class="p">:</span>
+            <span class="c1"># Ensure proper broadcasting for attention mask</span>
+            <span class="k">if</span> <span class="nb">len</span><span class="p">(</span><span class="n">attention_mask</span><span class="o">.</span><span class="n">shape</span><span class="p">)</span> <span class="o">==</span> <span class="mi">4</span> <span class="ow">and</span> <span class="n">attention_mask</span><span class="o">.</span><span class="n">shape</span><span class="p">[:</span><span class="mi">2</span><span class="p">]</span> <span class="o">==</span> <span class="p">(</span><span class="mi">1</span><span class="p">,</span> <span class="mi">1</span><span class="p">):</span>
+                <span class="n">attention_mask</span> <span class="o">=</span> <span class="n">jnp</span><span class="o">.</span><span class="n">broadcast_to</span><span class="p">(</span>
+                    <span class="n">attention_mask</span><span class="p">,</span>
+                    <span class="p">(</span><span class="n">batch_size</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">num_attention_heads</span><span class="p">,</span> <span class="n">query</span><span class="o">.</span><span class="n">shape</span><span class="p">[</span><span class="mi">2</span><span class="p">],</span> <span class="n">query</span><span class="o">.</span><span class="n">shape</span><span class="p">[</span><span class="mi">2</span><span class="p">]),</span>
+                <span class="p">)</span>
+            <span class="n">attention_scores</span> <span class="o">=</span> <span class="n">attention_scores</span> <span class="o">+</span> <span class="n">attention_mask</span>
+
+        <span class="c1"># Apply softmax and dropout</span>
+        <span class="n">attention_probs</span> <span class="o">=</span> <span class="n">jax</span><span class="o">.</span><span class="n">nn</span><span class="o">.</span><span class="n">softmax</span><span class="p">(</span><span class="n">attention_scores</span><span class="p">,</span> <span class="n">axis</span><span class="o">=-</span><span class="mi">1</span><span class="p">)</span>
+
+        <span class="c1"># Explicitly zero out probabilities where sliding window mask was -inf</span>
+        <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">local_attention</span> <span class="o">!=</span> <span class="p">(</span><span class="o">-</span><span class="mi">1</span><span class="p">,</span> <span class="o">-</span><span class="mi">1</span><span class="p">):</span>
+            <span class="c1"># Create a binary mask from the sliding window mask</span>
+            <span class="n">binary_mask</span> <span class="o">=</span> <span class="n">jnp</span><span class="o">.</span><span class="n">where</span><span class="p">(</span><span class="n">sliding_window_mask</span> <span class="o">==</span> <span class="o">-</span><span class="n">jnp</span><span class="o">.</span><span class="n">inf</span><span class="p">,</span> <span class="mf">0.0</span><span class="p">,</span> <span class="mf">1.0</span><span class="p">)</span>
+            <span class="n">attention_probs</span> <span class="o">=</span> <span class="n">attention_probs</span> <span class="o">*</span> <span class="n">binary_mask</span>
+
+        <span class="k">if</span> <span class="ow">not</span> <span class="n">deterministic</span> <span class="ow">and</span> <span class="bp">self</span><span class="o">.</span><span class="n">attention_dropout</span> <span class="o">&gt;</span> <span class="mi">0</span><span class="p">:</span>
+            <span class="n">attention_probs</span> <span class="o">=</span> <span class="n">nnx</span><span class="o">.</span><span class="n">Dropout</span><span class="p">(</span>
+                <span class="bp">self</span><span class="o">.</span><span class="n">attention_dropout</span><span class="p">,</span>
+                <span class="n">rngs</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">_rngs</span><span class="p">,</span>
+                <span class="n">deterministic</span><span class="o">=</span><span class="n">deterministic</span><span class="p">,</span>
+            <span class="p">)(</span><span class="n">attention_probs</span><span class="p">)</span>
+
+        <span class="c1"># Compute attention output</span>
+        <span class="n">attention_output</span> <span class="o">=</span> <span class="n">jnp</span><span class="o">.</span><span class="n">matmul</span><span class="p">(</span><span class="n">attention_probs</span><span class="p">,</span> <span class="n">value</span><span class="p">)</span>
+
+        <span class="c1"># Reshape and apply output projection</span>
+        <span class="n">attention_output</span> <span class="o">=</span> <span class="n">jnp</span><span class="o">.</span><span class="n">transpose</span><span class="p">(</span><span class="n">attention_output</span><span class="p">,</span> <span class="p">(</span><span class="mi">0</span><span class="p">,</span> <span class="mi">2</span><span class="p">,</span> <span class="mi">1</span><span class="p">,</span> <span class="mi">3</span><span class="p">))</span>
+        <span class="n">attention_output</span> <span class="o">=</span> <span class="n">jnp</span><span class="o">.</span><span class="n">reshape</span><span class="p">(</span><span class="n">attention_output</span><span class="p">,</span> <span class="p">(</span><span class="n">batch_size</span><span class="p">,</span> <span class="o">-</span><span class="mi">1</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">hidden_size</span><span class="p">))</span>
+        <span class="n">attention_output</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">Wo</span><span class="p">(</span><span class="n">attention_output</span><span class="p">)</span>
+
+        <span class="c1"># Apply output dropout</span>
+        <span class="k">if</span> <span class="ow">not</span> <span class="n">deterministic</span> <span class="ow">and</span> <span class="bp">self</span><span class="o">.</span><span class="n">attention_dropout</span> <span class="o">&gt;</span> <span class="mi">0</span><span class="p">:</span>
+            <span class="n">attention_output</span> <span class="o">=</span> <span class="n">nnx</span><span class="o">.</span><span class="n">Dropout</span><span class="p">(</span>
+                <span class="bp">self</span><span class="o">.</span><span class="n">attention_dropout</span><span class="p">,</span>
+                <span class="n">rngs</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">_rngs</span><span class="p">,</span>
+                <span class="n">deterministic</span><span class="o">=</span><span class="n">deterministic</span><span class="p">,</span>
+            <span class="p">)(</span><span class="n">attention_output</span><span class="p">)</span>
+
+        <span class="k">if</span> <span class="n">output_attentions</span><span class="p">:</span>
+            <span class="k">return</span> <span class="p">(</span><span class="n">attention_output</span><span class="p">,</span> <span class="n">attention_probs</span><span class="p">)</span>
+        <span class="k">return</span> <span class="p">(</span><span class="n">attention_output</span><span class="p">,)</span></div>
+</div>
+
+
+
+<div class="viewcode-block" id="ModernBertLayer">
+<a class="viewcode-back" href="../../../modules/index.html#jax_layers.models.ModernBertLayer">[docs]</a>
+<span class="k">class</span><span class="w"> </span><span class="nc">ModernBertLayer</span><span class="p">(</span><span class="n">nnx</span><span class="o">.</span><span class="n">Module</span><span class="p">):</span>
+<span class="w">    </span><span class="sd">&quot;&quot;&quot;ModernBERT transformer layer with pre-LayerNorm architecture.</span>
+
+<span class="sd">    This implements a transformer layer with:</span>
+<span class="sd">    1. Pre-LayerNorm for attention and MLP</span>
+<span class="sd">    2. Residual connections</span>
+<span class="sd">    3. Optional identity for first layer&#39;s attention norm</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+
+<div class="viewcode-block" id="ModernBertLayer.__init__">
+<a class="viewcode-back" href="../../../modules/index.html#jax_layers.models.ModernBertLayer.__init__">[docs]</a>
+    <span class="k">def</span><span class="w"> </span><span class="fm">__init__</span><span class="p">(</span>
+        <span class="bp">self</span><span class="p">,</span>
+        <span class="n">rngs</span><span class="p">:</span> <span class="n">nnx</span><span class="o">.</span><span class="n">Rngs</span><span class="p">,</span>
+        <span class="n">hidden_size</span><span class="p">:</span> <span class="nb">int</span><span class="p">,</span>
+        <span class="n">num_attention_heads</span><span class="p">:</span> <span class="nb">int</span><span class="p">,</span>
+        <span class="n">intermediate_size</span><span class="p">:</span> <span class="nb">int</span><span class="p">,</span>
+        <span class="n">layer_id</span><span class="p">:</span> <span class="nb">int</span> <span class="o">|</span> <span class="kc">None</span> <span class="o">=</span> <span class="kc">None</span><span class="p">,</span>
+        <span class="n">attention_dropout</span><span class="p">:</span> <span class="nb">float</span> <span class="o">=</span> <span class="mf">0.0</span><span class="p">,</span>
+        <span class="n">hidden_dropout</span><span class="p">:</span> <span class="nb">float</span> <span class="o">=</span> <span class="mf">0.0</span><span class="p">,</span>
+        <span class="n">attention_bias</span><span class="p">:</span> <span class="nb">bool</span> <span class="o">=</span> <span class="kc">True</span><span class="p">,</span>
+        <span class="n">norm_eps</span><span class="p">:</span> <span class="nb">float</span> <span class="o">=</span> <span class="mf">1e-12</span><span class="p">,</span>
+        <span class="n">norm_bias</span><span class="p">:</span> <span class="nb">bool</span> <span class="o">=</span> <span class="kc">True</span><span class="p">,</span>
+        <span class="n">global_rope_theta</span><span class="p">:</span> <span class="nb">float</span> <span class="o">=</span> <span class="mf">10000.0</span><span class="p">,</span>
+        <span class="n">max_position_embeddings</span><span class="p">:</span> <span class="nb">int</span> <span class="o">=</span> <span class="mi">4096</span><span class="p">,</span>
+        <span class="n">local_attention</span><span class="p">:</span> <span class="nb">tuple</span><span class="p">[</span><span class="nb">int</span><span class="p">,</span> <span class="nb">int</span><span class="p">]</span> <span class="o">=</span> <span class="p">(</span><span class="o">-</span><span class="mi">1</span><span class="p">,</span> <span class="o">-</span><span class="mi">1</span><span class="p">),</span>
+        <span class="n">local_rope_theta</span><span class="p">:</span> <span class="nb">float</span> <span class="o">|</span> <span class="kc">None</span> <span class="o">=</span> <span class="kc">None</span><span class="p">,</span>
+        <span class="n">global_attn_every_n_layers</span><span class="p">:</span> <span class="nb">int</span> <span class="o">=</span> <span class="mi">4</span><span class="p">,</span>
+    <span class="p">):</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;Initialize transformer layer.</span>
+
+<span class="sd">        Args:</span>
+<span class="sd">            rngs: PRNG key collection</span>
+<span class="sd">            hidden_size: Size of hidden states</span>
+<span class="sd">            num_attention_heads: Number of attention heads</span>
+<span class="sd">            intermediate_size: Size of MLP intermediate layer</span>
+<span class="sd">            layer_id: Layer index (first layer uses identity for attn norm)</span>
+<span class="sd">            attention_dropout: Dropout probability for attention</span>
+<span class="sd">            hidden_dropout: Dropout probability for hidden states</span>
+<span class="sd">            attention_bias: Whether to use bias in attention</span>
+<span class="sd">            norm_eps: Epsilon for layer normalization</span>
+<span class="sd">            norm_bias: Whether to use bias in layer normalization</span>
+<span class="sd">            global_rope_theta: Base for global RoPE</span>
+<span class="sd">            max_position_embeddings: Maximum sequence length</span>
+<span class="sd">            local_attention: Tuple of (left, right) window sizes</span>
+<span class="sd">            local_rope_theta: Base for local RoPE (optional)</span>
+<span class="sd">            global_attn_every_n_layers: Apply global attention every N layers</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="nb">super</span><span class="p">()</span><span class="o">.</span><span class="fm">__init__</span><span class="p">()</span>
+
+        <span class="c1"># Initialize attention normalization</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">attn_norm</span> <span class="o">=</span> <span class="p">(</span>
+            <span class="n">Identity</span><span class="p">()</span>
+            <span class="k">if</span> <span class="n">layer_id</span> <span class="o">==</span> <span class="mi">0</span>
+            <span class="k">else</span> <span class="n">nnx</span><span class="o">.</span><span class="n">LayerNorm</span><span class="p">(</span>
+                <span class="n">rngs</span><span class="o">=</span><span class="n">rngs</span><span class="p">,</span>
+                <span class="n">num_features</span><span class="o">=</span><span class="n">hidden_size</span><span class="p">,</span>
+                <span class="n">epsilon</span><span class="o">=</span><span class="n">norm_eps</span><span class="p">,</span>
+                <span class="n">use_bias</span><span class="o">=</span><span class="n">norm_bias</span><span class="p">,</span>
+                <span class="n">reduction_axes</span><span class="o">=</span><span class="p">(</span><span class="o">-</span><span class="mi">1</span><span class="p">,),</span>
+                <span class="n">feature_axes</span><span class="o">=</span><span class="p">(</span><span class="o">-</span><span class="mi">1</span><span class="p">,),</span>
+            <span class="p">)</span>
+        <span class="p">)</span>  <span class="c1"># type: ignore</span>
+
+        <span class="c1"># Initialize attention</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">attn</span> <span class="o">=</span> <span class="n">ModernBertAttention</span><span class="p">(</span>
+            <span class="n">rngs</span><span class="o">=</span><span class="n">rngs</span><span class="p">,</span>
+            <span class="n">hidden_size</span><span class="o">=</span><span class="n">hidden_size</span><span class="p">,</span>
+            <span class="n">num_attention_heads</span><span class="o">=</span><span class="n">num_attention_heads</span><span class="p">,</span>
+            <span class="n">attention_dropout</span><span class="o">=</span><span class="n">attention_dropout</span><span class="p">,</span>
+            <span class="n">attention_bias</span><span class="o">=</span><span class="n">attention_bias</span><span class="p">,</span>
+            <span class="n">global_rope_theta</span><span class="o">=</span><span class="n">global_rope_theta</span><span class="p">,</span>
+            <span class="n">max_position_embeddings</span><span class="o">=</span><span class="n">max_position_embeddings</span><span class="p">,</span>
+            <span class="n">local_attention</span><span class="o">=</span><span class="n">local_attention</span><span class="p">,</span>
+            <span class="n">local_rope_theta</span><span class="o">=</span><span class="n">local_rope_theta</span><span class="p">,</span>
+            <span class="n">layer_id</span><span class="o">=</span><span class="n">layer_id</span><span class="p">,</span>
+            <span class="n">global_attn_every_n_layers</span><span class="o">=</span><span class="n">global_attn_every_n_layers</span><span class="p">,</span>
+        <span class="p">)</span>
+
+        <span class="c1"># Initialize MLP normalization</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">mlp_norm</span> <span class="o">=</span> <span class="n">nnx</span><span class="o">.</span><span class="n">LayerNorm</span><span class="p">(</span>
+            <span class="n">rngs</span><span class="o">=</span><span class="n">rngs</span><span class="p">,</span>
+            <span class="n">num_features</span><span class="o">=</span><span class="n">hidden_size</span><span class="p">,</span>
+            <span class="n">epsilon</span><span class="o">=</span><span class="n">norm_eps</span><span class="p">,</span>
+            <span class="n">use_bias</span><span class="o">=</span><span class="n">norm_bias</span><span class="p">,</span>
+            <span class="n">reduction_axes</span><span class="o">=</span><span class="p">(</span><span class="o">-</span><span class="mi">1</span><span class="p">,),</span>
+            <span class="n">feature_axes</span><span class="o">=</span><span class="p">(</span><span class="o">-</span><span class="mi">1</span><span class="p">,),</span>
+        <span class="p">)</span>
+
+        <span class="c1"># Initialize MLP</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">mlp</span> <span class="o">=</span> <span class="n">ModernBertMLP</span><span class="p">(</span>
+            <span class="n">rngs</span><span class="o">=</span><span class="n">rngs</span><span class="p">,</span>
+            <span class="n">hidden_size</span><span class="o">=</span><span class="n">hidden_size</span><span class="p">,</span>
+            <span class="n">intermediate_size</span><span class="o">=</span><span class="n">intermediate_size</span><span class="p">,</span>
+            <span class="n">mlp_dropout</span><span class="o">=</span><span class="n">hidden_dropout</span><span class="p">,</span>
+        <span class="p">)</span></div>
+
+
+<div class="viewcode-block" id="ModernBertLayer.__call__">
+<a class="viewcode-back" href="../../../modules/index.html#jax_layers.models.ModernBertLayer.__call__">[docs]</a>
+    <span class="k">def</span><span class="w"> </span><span class="fm">__call__</span><span class="p">(</span>
+        <span class="bp">self</span><span class="p">,</span>
+        <span class="n">hidden_states</span><span class="p">:</span> <span class="n">jax</span><span class="o">.</span><span class="n">Array</span><span class="p">,</span>
+        <span class="n">attention_mask</span><span class="p">:</span> <span class="n">jax</span><span class="o">.</span><span class="n">Array</span> <span class="o">|</span> <span class="kc">None</span> <span class="o">=</span> <span class="kc">None</span><span class="p">,</span>
+        <span class="n">sliding_window_mask</span><span class="p">:</span> <span class="n">jax</span><span class="o">.</span><span class="n">Array</span> <span class="o">|</span> <span class="kc">None</span> <span class="o">=</span> <span class="kc">None</span><span class="p">,</span>
+        <span class="n">position_ids</span><span class="p">:</span> <span class="n">jax</span><span class="o">.</span><span class="n">Array</span> <span class="o">|</span> <span class="kc">None</span> <span class="o">=</span> <span class="kc">None</span><span class="p">,</span>
+        <span class="n">deterministic</span><span class="p">:</span> <span class="nb">bool</span> <span class="o">=</span> <span class="kc">True</span><span class="p">,</span>
+        <span class="n">output_attentions</span><span class="p">:</span> <span class="nb">bool</span> <span class="o">=</span> <span class="kc">False</span><span class="p">,</span>
+    <span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">tuple</span><span class="p">[</span><span class="n">jax</span><span class="o">.</span><span class="n">Array</span><span class="p">]</span> <span class="o">|</span> <span class="nb">tuple</span><span class="p">[</span><span class="n">jax</span><span class="o">.</span><span class="n">Array</span><span class="p">,</span> <span class="n">jax</span><span class="o">.</span><span class="n">Array</span><span class="p">]:</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;Apply transformer layer.</span>
+
+<span class="sd">        Args:</span>
+<span class="sd">            hidden_states: Input tensor of shape [batch_size, seq_len, hidden_size]</span>
+<span class="sd">            attention_mask: Optional attention mask</span>
+<span class="sd">            sliding_window_mask: Optional sliding window mask</span>
+<span class="sd">            position_ids: Optional position ids for RoPE</span>
+<span class="sd">            deterministic: Whether to apply dropout</span>
+<span class="sd">            output_attentions: Whether to return attention probabilities</span>
+
+<span class="sd">        Returns:</span>
+<span class="sd">            Tuple of:</span>
+<span class="sd">                - Output tensor of shape [batch_size, seq_len, hidden_size]</span>
+<span class="sd">                - Attention probabilities (optional) of shape [b_size, n_heads, seq_len, seq_len]</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="c1"># Apply attention with pre-norm and residual</span>
+        <span class="n">attn_outputs</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">attn</span><span class="p">(</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">attn_norm</span><span class="p">(</span><span class="n">hidden_states</span><span class="p">),</span>
+            <span class="n">attention_mask</span><span class="o">=</span><span class="n">attention_mask</span><span class="p">,</span>
+            <span class="n">sliding_window_mask</span><span class="o">=</span><span class="n">sliding_window_mask</span><span class="p">,</span>
+            <span class="n">position_ids</span><span class="o">=</span><span class="n">position_ids</span><span class="p">,</span>
+            <span class="n">deterministic</span><span class="o">=</span><span class="n">deterministic</span><span class="p">,</span>
+            <span class="n">output_attentions</span><span class="o">=</span><span class="n">output_attentions</span><span class="p">,</span>
+        <span class="p">)</span>
+        <span class="n">attention_output</span> <span class="o">=</span> <span class="n">attn_outputs</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span>
+        <span class="n">attention_weights</span> <span class="o">=</span> <span class="n">attn_outputs</span><span class="p">[</span><span class="mi">1</span><span class="p">]</span> <span class="k">if</span> <span class="n">output_attentions</span> <span class="k">else</span> <span class="kc">None</span>  <span class="c1"># type: ignore</span>
+
+        <span class="c1"># Residual connection</span>
+        <span class="n">hidden_states</span> <span class="o">=</span> <span class="n">hidden_states</span> <span class="o">+</span> <span class="n">attention_output</span>
+
+        <span class="c1"># Apply MLP with pre-norm and residual</span>
+        <span class="n">mlp_output</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">mlp</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">mlp_norm</span><span class="p">(</span><span class="n">hidden_states</span><span class="p">),</span> <span class="n">deterministic</span><span class="o">=</span><span class="n">deterministic</span><span class="p">)</span>
+        <span class="n">hidden_states</span> <span class="o">=</span> <span class="n">hidden_states</span> <span class="o">+</span> <span class="n">mlp_output</span>
+
+        <span class="k">if</span> <span class="n">output_attentions</span><span class="p">:</span>
+            <span class="k">return</span> <span class="p">(</span><span class="n">hidden_states</span><span class="p">,</span> <span class="n">attention_weights</span><span class="p">)</span>  <span class="c1"># type: ignore</span>
+        <span class="k">return</span> <span class="p">(</span><span class="n">hidden_states</span><span class="p">,)</span></div>
+</div>
+
+
+
+<div class="viewcode-block" id="ModernBERTEncoder">
+<a class="viewcode-back" href="../../../modules/index.html#jax_layers.models.ModernBERTEncoder">[docs]</a>
+<span class="k">class</span><span class="w"> </span><span class="nc">ModernBERTEncoder</span><span class="p">(</span><span class="n">nnx</span><span class="o">.</span><span class="n">Module</span><span class="p">):</span>
+<span class="w">    </span><span class="sd">&quot;&quot;&quot;ModernBERT encoder consisting of multiple transformer layers.&quot;&quot;&quot;</span>
+
+<div class="viewcode-block" id="ModernBERTEncoder.__init__">
+<a class="viewcode-back" href="../../../modules/index.html#jax_layers.models.ModernBERTEncoder.__init__">[docs]</a>
+    <span class="k">def</span><span class="w"> </span><span class="fm">__init__</span><span class="p">(</span>
+        <span class="bp">self</span><span class="p">,</span>
+        <span class="n">rngs</span><span class="p">:</span> <span class="n">nnx</span><span class="o">.</span><span class="n">Rngs</span><span class="p">,</span>
+        <span class="n">hidden_size</span><span class="p">:</span> <span class="nb">int</span><span class="p">,</span>
+        <span class="n">num_attention_heads</span><span class="p">:</span> <span class="nb">int</span><span class="p">,</span>
+        <span class="n">intermediate_size</span><span class="p">:</span> <span class="nb">int</span><span class="p">,</span>
+        <span class="n">num_hidden_layers</span><span class="p">:</span> <span class="nb">int</span><span class="p">,</span>
+        <span class="n">attention_dropout</span><span class="p">:</span> <span class="nb">float</span> <span class="o">=</span> <span class="mf">0.0</span><span class="p">,</span>
+        <span class="n">hidden_dropout</span><span class="p">:</span> <span class="nb">float</span> <span class="o">=</span> <span class="mf">0.0</span><span class="p">,</span>
+        <span class="n">attention_bias</span><span class="p">:</span> <span class="nb">bool</span> <span class="o">=</span> <span class="kc">True</span><span class="p">,</span>
+        <span class="n">norm_eps</span><span class="p">:</span> <span class="nb">float</span> <span class="o">=</span> <span class="mf">1e-12</span><span class="p">,</span>
+        <span class="n">norm_bias</span><span class="p">:</span> <span class="nb">bool</span> <span class="o">=</span> <span class="kc">True</span><span class="p">,</span>
+        <span class="n">global_rope_theta</span><span class="p">:</span> <span class="nb">float</span> <span class="o">=</span> <span class="mf">10000.0</span><span class="p">,</span>
+        <span class="n">max_position_embeddings</span><span class="p">:</span> <span class="nb">int</span> <span class="o">=</span> <span class="mi">4096</span><span class="p">,</span>
+        <span class="n">local_attention</span><span class="p">:</span> <span class="nb">tuple</span><span class="p">[</span><span class="nb">int</span><span class="p">,</span> <span class="nb">int</span><span class="p">]</span> <span class="o">=</span> <span class="p">(</span><span class="o">-</span><span class="mi">1</span><span class="p">,</span> <span class="o">-</span><span class="mi">1</span><span class="p">),</span>
+        <span class="n">local_rope_theta</span><span class="p">:</span> <span class="nb">float</span> <span class="o">|</span> <span class="kc">None</span> <span class="o">=</span> <span class="kc">None</span><span class="p">,</span>
+        <span class="n">global_attn_every_n_layers</span><span class="p">:</span> <span class="nb">int</span> <span class="o">=</span> <span class="mi">4</span><span class="p">,</span>
+    <span class="p">):</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;Initialize encoder.</span>
+
+<span class="sd">        Args:</span>
+<span class="sd">            rngs: PRNG key collection</span>
+<span class="sd">            hidden_size: Size of hidden states</span>
+<span class="sd">            num_attention_heads: Number of attention heads</span>
+<span class="sd">            intermediate_size: Size of MLP intermediate layer</span>
+<span class="sd">            num_hidden_layers: Number of transformer layers</span>
+<span class="sd">            attention_dropout: Dropout probability for attention</span>
+<span class="sd">            hidden_dropout: Dropout probability for hidden states</span>
+<span class="sd">            attention_bias: Whether to use bias in attention</span>
+<span class="sd">            norm_eps: Epsilon for layer normalization</span>
+<span class="sd">            norm_bias: Whether to use bias in layer normalization</span>
+<span class="sd">            global_rope_theta: Base for global RoPE</span>
+<span class="sd">            max_position_embeddings: Maximum sequence length</span>
+<span class="sd">            local_attention: Tuple of (left, right) window sizes</span>
+<span class="sd">            local_rope_theta: Base for local RoPE (optional)</span>
+<span class="sd">            global_attn_every_n_layers: Apply global attention every N layers</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="nb">super</span><span class="p">()</span><span class="o">.</span><span class="fm">__init__</span><span class="p">()</span>
+
+        <span class="c1"># Initialize transformer layers</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">layers</span> <span class="o">=</span> <span class="p">[</span>
+            <span class="n">ModernBertLayer</span><span class="p">(</span>
+                <span class="n">rngs</span><span class="o">=</span><span class="n">rngs</span><span class="p">,</span>
+                <span class="n">hidden_size</span><span class="o">=</span><span class="n">hidden_size</span><span class="p">,</span>
+                <span class="n">num_attention_heads</span><span class="o">=</span><span class="n">num_attention_heads</span><span class="p">,</span>
+                <span class="n">intermediate_size</span><span class="o">=</span><span class="n">intermediate_size</span><span class="p">,</span>
+                <span class="n">layer_id</span><span class="o">=</span><span class="n">layer_id</span><span class="p">,</span>
+                <span class="n">attention_dropout</span><span class="o">=</span><span class="n">attention_dropout</span><span class="p">,</span>
+                <span class="n">hidden_dropout</span><span class="o">=</span><span class="n">hidden_dropout</span><span class="p">,</span>
+                <span class="n">attention_bias</span><span class="o">=</span><span class="n">attention_bias</span><span class="p">,</span>
+                <span class="n">norm_eps</span><span class="o">=</span><span class="n">norm_eps</span><span class="p">,</span>
+                <span class="n">norm_bias</span><span class="o">=</span><span class="n">norm_bias</span><span class="p">,</span>
+                <span class="n">global_rope_theta</span><span class="o">=</span><span class="n">global_rope_theta</span><span class="p">,</span>
+                <span class="n">max_position_embeddings</span><span class="o">=</span><span class="n">max_position_embeddings</span><span class="p">,</span>
+                <span class="n">local_attention</span><span class="o">=</span><span class="n">local_attention</span><span class="p">,</span>
+                <span class="n">local_rope_theta</span><span class="o">=</span><span class="n">local_rope_theta</span><span class="p">,</span>
+                <span class="n">global_attn_every_n_layers</span><span class="o">=</span><span class="n">global_attn_every_n_layers</span><span class="p">,</span>
+            <span class="p">)</span>
+            <span class="k">for</span> <span class="n">layer_id</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="n">num_hidden_layers</span><span class="p">)</span>
+        <span class="p">]</span>
+
+        <span class="c1"># Initialize final layer normalization</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">final_norm</span> <span class="o">=</span> <span class="n">nnx</span><span class="o">.</span><span class="n">LayerNorm</span><span class="p">(</span>
+            <span class="n">rngs</span><span class="o">=</span><span class="n">rngs</span><span class="p">,</span>
+            <span class="n">num_features</span><span class="o">=</span><span class="n">hidden_size</span><span class="p">,</span>
+            <span class="n">epsilon</span><span class="o">=</span><span class="n">norm_eps</span><span class="p">,</span>
+            <span class="n">use_bias</span><span class="o">=</span><span class="n">norm_bias</span><span class="p">,</span>
+            <span class="n">reduction_axes</span><span class="o">=</span><span class="p">(</span><span class="o">-</span><span class="mi">1</span><span class="p">,),</span>
+            <span class="n">feature_axes</span><span class="o">=</span><span class="p">(</span><span class="o">-</span><span class="mi">1</span><span class="p">,),</span>
+        <span class="p">)</span></div>
+
+
+<div class="viewcode-block" id="ModernBERTEncoder.__call__">
+<a class="viewcode-back" href="../../../modules/index.html#jax_layers.models.ModernBERTEncoder.__call__">[docs]</a>
+    <span class="k">def</span><span class="w"> </span><span class="fm">__call__</span><span class="p">(</span>
+        <span class="bp">self</span><span class="p">,</span>
+        <span class="n">hidden_states</span><span class="p">:</span> <span class="n">jnp</span><span class="o">.</span><span class="n">ndarray</span><span class="p">,</span>
+        <span class="n">attention_mask</span><span class="p">:</span> <span class="n">jnp</span><span class="o">.</span><span class="n">ndarray</span> <span class="o">|</span> <span class="kc">None</span> <span class="o">=</span> <span class="kc">None</span><span class="p">,</span>
+        <span class="n">sliding_window_mask</span><span class="p">:</span> <span class="n">jnp</span><span class="o">.</span><span class="n">ndarray</span> <span class="o">|</span> <span class="kc">None</span> <span class="o">=</span> <span class="kc">None</span><span class="p">,</span>
+        <span class="n">position_ids</span><span class="p">:</span> <span class="n">jnp</span><span class="o">.</span><span class="n">ndarray</span> <span class="o">|</span> <span class="kc">None</span> <span class="o">=</span> <span class="kc">None</span><span class="p">,</span>
+        <span class="n">deterministic</span><span class="p">:</span> <span class="nb">bool</span> <span class="o">=</span> <span class="kc">True</span><span class="p">,</span>
+        <span class="n">output_attentions</span><span class="p">:</span> <span class="nb">bool</span> <span class="o">=</span> <span class="kc">False</span><span class="p">,</span>
+        <span class="n">output_hidden_states</span><span class="p">:</span> <span class="nb">bool</span> <span class="o">=</span> <span class="kc">False</span><span class="p">,</span>
+    <span class="p">)</span> <span class="o">-&gt;</span> <span class="p">(</span>
+        <span class="nb">tuple</span><span class="p">[</span><span class="n">jnp</span><span class="o">.</span><span class="n">ndarray</span><span class="p">]</span>
+        <span class="o">|</span> <span class="nb">tuple</span><span class="p">[</span><span class="n">jnp</span><span class="o">.</span><span class="n">ndarray</span><span class="p">,</span> <span class="nb">list</span><span class="p">[</span><span class="n">jnp</span><span class="o">.</span><span class="n">ndarray</span><span class="p">]]</span>
+        <span class="o">|</span> <span class="nb">tuple</span><span class="p">[</span><span class="n">jnp</span><span class="o">.</span><span class="n">ndarray</span><span class="p">,</span> <span class="nb">list</span><span class="p">[</span><span class="n">jnp</span><span class="o">.</span><span class="n">ndarray</span><span class="p">],</span> <span class="nb">list</span><span class="p">[</span><span class="n">jnp</span><span class="o">.</span><span class="n">ndarray</span><span class="p">]]</span>
+    <span class="p">):</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;Apply transformer encoder.</span>
+
+<span class="sd">        Args:</span>
+<span class="sd">            hidden_states: Input tensor</span>
+<span class="sd">            attention_mask: Optional attention mask</span>
+<span class="sd">            sliding_window_mask: Optional sliding window mask</span>
+<span class="sd">            position_ids: Optional position ids</span>
+<span class="sd">            deterministic: Whether to apply dropout</span>
+<span class="sd">            output_attentions: Whether to return attention weights</span>
+<span class="sd">            output_hidden_states: Whether to return all hidden states</span>
+
+<span class="sd">        Returns:</span>
+<span class="sd">            Tuple of:</span>
+<span class="sd">                - Output tensor</span>
+<span class="sd">                - All hidden states (optional, if output_hidden_states=True)</span>
+<span class="sd">                - All attention weights (optional, if output_attentions=True)</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="n">all_hidden_states</span><span class="p">:</span> <span class="nb">tuple</span> <span class="o">|</span> <span class="kc">None</span> <span class="o">=</span> <span class="p">()</span> <span class="k">if</span> <span class="n">output_hidden_states</span> <span class="k">else</span> <span class="kc">None</span>  <span class="c1"># type: ignore</span>
+        <span class="n">all_self_attentions</span><span class="p">:</span> <span class="nb">tuple</span> <span class="o">|</span> <span class="kc">None</span> <span class="o">=</span> <span class="p">()</span> <span class="k">if</span> <span class="n">output_attentions</span> <span class="k">else</span> <span class="kc">None</span>
+
+        <span class="c1"># Process through each layer</span>
+        <span class="k">for</span> <span class="n">layer</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">layers</span><span class="p">:</span>
+            <span class="k">if</span> <span class="n">output_hidden_states</span><span class="p">:</span>
+                <span class="n">all_hidden_states</span> <span class="o">=</span> <span class="n">all_hidden_states</span> <span class="o">+</span> <span class="p">(</span><span class="n">hidden_states</span><span class="p">,)</span>  <span class="c1"># type: ignore #noqa: RUF005</span>
+
+            <span class="n">layer_outputs</span> <span class="o">=</span> <span class="n">layer</span><span class="p">(</span>
+                <span class="n">hidden_states</span><span class="p">,</span>
+                <span class="n">attention_mask</span><span class="o">=</span><span class="n">attention_mask</span><span class="p">,</span>
+                <span class="n">sliding_window_mask</span><span class="o">=</span><span class="n">sliding_window_mask</span><span class="p">,</span>
+                <span class="n">position_ids</span><span class="o">=</span><span class="n">position_ids</span><span class="p">,</span>
+                <span class="n">deterministic</span><span class="o">=</span><span class="n">deterministic</span><span class="p">,</span>
+                <span class="n">output_attentions</span><span class="o">=</span><span class="n">output_attentions</span><span class="p">,</span>
+            <span class="p">)</span>
+
+            <span class="n">hidden_states</span> <span class="o">=</span> <span class="n">layer_outputs</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span>
+            <span class="k">if</span> <span class="n">output_attentions</span> <span class="ow">and</span> <span class="nb">len</span><span class="p">(</span><span class="n">layer_outputs</span><span class="p">)</span> <span class="o">&gt;</span> <span class="mi">1</span> <span class="ow">and</span> <span class="n">all_self_attentions</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span><span class="p">:</span>
+                <span class="n">all_self_attentions</span> <span class="o">=</span> <span class="n">all_self_attentions</span> <span class="o">+</span> <span class="p">(</span><span class="n">layer_outputs</span><span class="p">[</span><span class="mi">1</span><span class="p">],)</span>  <span class="c1">#  noqa: RUF005</span>
+
+        <span class="c1"># Add final hidden state if requested</span>
+        <span class="k">if</span> <span class="n">output_hidden_states</span> <span class="ow">and</span> <span class="n">all_hidden_states</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span><span class="p">:</span>
+            <span class="n">all_hidden_states</span> <span class="o">=</span> <span class="n">all_hidden_states</span> <span class="o">+</span> <span class="p">(</span><span class="n">hidden_states</span><span class="p">,)</span>  <span class="c1"># noqa: RUF005</span>
+
+        <span class="c1"># Apply final layer normalization</span>
+        <span class="n">hidden_states</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">final_norm</span><span class="p">(</span><span class="n">hidden_states</span><span class="p">)</span>
+
+        <span class="k">if</span> <span class="ow">not</span> <span class="n">output_hidden_states</span> <span class="ow">and</span> <span class="ow">not</span> <span class="n">output_attentions</span><span class="p">:</span>
+            <span class="k">return</span> <span class="p">(</span><span class="n">hidden_states</span><span class="p">,)</span>
+        <span class="k">elif</span> <span class="n">output_hidden_states</span> <span class="ow">and</span> <span class="ow">not</span> <span class="n">output_attentions</span><span class="p">:</span>
+            <span class="k">return</span> <span class="p">(</span><span class="n">hidden_states</span><span class="p">,</span> <span class="n">all_hidden_states</span><span class="p">)</span>  <span class="c1"># type: ignore</span>
+        <span class="k">elif</span> <span class="n">output_attentions</span> <span class="ow">and</span> <span class="ow">not</span> <span class="n">output_hidden_states</span><span class="p">:</span>
+            <span class="k">return</span> <span class="p">(</span><span class="n">hidden_states</span><span class="p">,</span> <span class="n">all_self_attentions</span><span class="p">)</span>  <span class="c1"># type: ignore</span>
+        <span class="k">else</span><span class="p">:</span>  <span class="c1"># both output_hidden_states and output_attentions</span>
+            <span class="k">return</span> <span class="p">(</span><span class="n">hidden_states</span><span class="p">,</span> <span class="n">all_hidden_states</span><span class="p">,</span> <span class="n">all_self_attentions</span><span class="p">)</span>  <span class="c1"># type: ignore</span></div>
+</div>
+
+
+
+<span class="k">class</span><span class="w"> </span><span class="nc">ModernBERTMLMHead</span><span class="p">(</span><span class="n">nnx</span><span class="o">.</span><span class="n">Module</span><span class="p">):</span>
+<span class="w">    </span><span class="sd">&quot;&quot;&quot;ModernBERT masked language modeling head.&quot;&quot;&quot;</span>
+
+    <span class="k">def</span><span class="w"> </span><span class="fm">__init__</span><span class="p">(</span>
+        <span class="bp">self</span><span class="p">,</span>
+        <span class="n">rngs</span><span class="p">:</span> <span class="n">nnx</span><span class="o">.</span><span class="n">Rngs</span><span class="p">,</span>
+        <span class="n">hidden_size</span><span class="p">:</span> <span class="nb">int</span><span class="p">,</span>
+        <span class="n">vocab_size</span><span class="p">:</span> <span class="nb">int</span><span class="p">,</span>
+        <span class="n">norm_eps</span><span class="p">:</span> <span class="nb">float</span> <span class="o">=</span> <span class="mf">1e-12</span><span class="p">,</span>
+        <span class="n">norm_bias</span><span class="p">:</span> <span class="nb">bool</span> <span class="o">=</span> <span class="kc">True</span><span class="p">,</span>
+    <span class="p">):</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;Initialize MLM head.</span>
+
+<span class="sd">        Args:</span>
+<span class="sd">            rngs: PRNG key collection</span>
+<span class="sd">            hidden_size: Size of hidden states</span>
+<span class="sd">            vocab_size: Size of vocabulary</span>
+<span class="sd">            norm_eps: Epsilon for layer normalization</span>
+<span class="sd">            norm_bias: Whether to use bias in layer normalization</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="nb">super</span><span class="p">()</span><span class="o">.</span><span class="fm">__init__</span><span class="p">()</span>
+
+        <span class="c1"># Layer norm</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">norm</span> <span class="o">=</span> <span class="n">nnx</span><span class="o">.</span><span class="n">LayerNorm</span><span class="p">(</span>
+            <span class="n">rngs</span><span class="o">=</span><span class="n">rngs</span><span class="p">,</span>
+            <span class="n">num_features</span><span class="o">=</span><span class="n">hidden_size</span><span class="p">,</span>
+            <span class="n">epsilon</span><span class="o">=</span><span class="n">norm_eps</span><span class="p">,</span>
+            <span class="n">use_bias</span><span class="o">=</span><span class="n">norm_bias</span><span class="p">,</span>
+            <span class="n">reduction_axes</span><span class="o">=</span><span class="p">(</span><span class="o">-</span><span class="mi">1</span><span class="p">,),</span>
+            <span class="n">feature_axes</span><span class="o">=</span><span class="p">(</span><span class="o">-</span><span class="mi">1</span><span class="p">,),</span>
+        <span class="p">)</span>
+
+        <span class="c1"># Dense projection</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">dense</span> <span class="o">=</span> <span class="n">nnx</span><span class="o">.</span><span class="n">Linear</span><span class="p">(</span>
+            <span class="n">rngs</span><span class="o">=</span><span class="n">rngs</span><span class="p">,</span>
+            <span class="n">in_features</span><span class="o">=</span><span class="n">hidden_size</span><span class="p">,</span>
+            <span class="n">out_features</span><span class="o">=</span><span class="n">hidden_size</span><span class="p">,</span>
+            <span class="n">use_bias</span><span class="o">=</span><span class="kc">True</span><span class="p">,</span>
+        <span class="p">)</span>
+
+        <span class="c1"># Output projection (tied with embeddings)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">decoder</span> <span class="o">=</span> <span class="n">nnx</span><span class="o">.</span><span class="n">Linear</span><span class="p">(</span>
+            <span class="n">rngs</span><span class="o">=</span><span class="n">rngs</span><span class="p">,</span>
+            <span class="n">in_features</span><span class="o">=</span><span class="n">hidden_size</span><span class="p">,</span>
+            <span class="n">out_features</span><span class="o">=</span><span class="n">vocab_size</span><span class="p">,</span>
+            <span class="n">use_bias</span><span class="o">=</span><span class="kc">True</span><span class="p">,</span>
+        <span class="p">)</span>
+
+    <span class="k">def</span><span class="w"> </span><span class="fm">__call__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">hidden_states</span><span class="p">:</span> <span class="n">jnp</span><span class="o">.</span><span class="n">ndarray</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">jnp</span><span class="o">.</span><span class="n">ndarray</span><span class="p">:</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;Apply MLM head.</span>
+
+<span class="sd">        Args:</span>
+<span class="sd">            hidden_states: Input tensor of shape [batch_size, seq_len, hidden_size]</span>
+
+<span class="sd">        Returns:</span>
+<span class="sd">            Logits of shape [batch_size, seq_len, vocab_size]</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="n">hidden_states</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">norm</span><span class="p">(</span><span class="n">hidden_states</span><span class="p">)</span>
+        <span class="n">hidden_states</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">dense</span><span class="p">(</span><span class="n">hidden_states</span><span class="p">)</span>
+        <span class="n">hidden_states</span> <span class="o">=</span> <span class="n">jax</span><span class="o">.</span><span class="n">nn</span><span class="o">.</span><span class="n">gelu</span><span class="p">(</span><span class="n">hidden_states</span><span class="p">)</span>
+        <span class="n">hidden_states</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">decoder</span><span class="p">(</span><span class="n">hidden_states</span><span class="p">)</span>
+        <span class="k">return</span> <span class="n">hidden_states</span>
+
+
+<div class="viewcode-block" id="ModernBERTForMaskedLM">
+<a class="viewcode-back" href="../../../modules/index.html#jax_layers.models.ModernBERTForMaskedLM">[docs]</a>
+<span class="k">class</span><span class="w"> </span><span class="nc">ModernBERTForMaskedLM</span><span class="p">(</span><span class="n">nnx</span><span class="o">.</span><span class="n">Module</span><span class="p">):</span>
+<span class="w">    </span><span class="sd">&quot;&quot;&quot;ModernBERT model with masked language modeling head.&quot;&quot;&quot;</span>
+
+<div class="viewcode-block" id="ModernBERTForMaskedLM.__init__">
+<a class="viewcode-back" href="../../../modules/index.html#jax_layers.models.ModernBERTForMaskedLM.__init__">[docs]</a>
+    <span class="k">def</span><span class="w"> </span><span class="fm">__init__</span><span class="p">(</span>
+        <span class="bp">self</span><span class="p">,</span>
+        <span class="n">rngs</span><span class="p">:</span> <span class="n">nnx</span><span class="o">.</span><span class="n">Rngs</span><span class="p">,</span>
+        <span class="n">vocab_size</span><span class="p">:</span> <span class="nb">int</span><span class="p">,</span>
+        <span class="n">hidden_size</span><span class="p">:</span> <span class="nb">int</span><span class="p">,</span>
+        <span class="n">num_hidden_layers</span><span class="p">:</span> <span class="nb">int</span><span class="p">,</span>
+        <span class="n">num_attention_heads</span><span class="p">:</span> <span class="nb">int</span><span class="p">,</span>
+        <span class="n">intermediate_size</span><span class="p">:</span> <span class="nb">int</span><span class="p">,</span>
+        <span class="n">max_position_embeddings</span><span class="p">:</span> <span class="nb">int</span> <span class="o">=</span> <span class="mi">2048</span><span class="p">,</span>
+        <span class="n">attention_dropout</span><span class="p">:</span> <span class="nb">float</span> <span class="o">=</span> <span class="mf">0.0</span><span class="p">,</span>
+        <span class="n">hidden_dropout</span><span class="p">:</span> <span class="nb">float</span> <span class="o">=</span> <span class="mf">0.0</span><span class="p">,</span>
+        <span class="n">attention_bias</span><span class="p">:</span> <span class="nb">bool</span> <span class="o">=</span> <span class="kc">True</span><span class="p">,</span>
+        <span class="n">norm_eps</span><span class="p">:</span> <span class="nb">float</span> <span class="o">=</span> <span class="mf">1e-12</span><span class="p">,</span>
+        <span class="n">norm_bias</span><span class="p">:</span> <span class="nb">bool</span> <span class="o">=</span> <span class="kc">True</span><span class="p">,</span>
+        <span class="n">global_rope_theta</span><span class="p">:</span> <span class="nb">float</span> <span class="o">=</span> <span class="mf">10000.0</span><span class="p">,</span>
+        <span class="n">local_attention</span><span class="p">:</span> <span class="nb">tuple</span><span class="p">[</span><span class="nb">int</span><span class="p">,</span> <span class="nb">int</span><span class="p">]</span> <span class="o">=</span> <span class="p">(</span><span class="o">-</span><span class="mi">1</span><span class="p">,</span> <span class="o">-</span><span class="mi">1</span><span class="p">),</span>
+        <span class="n">local_rope_theta</span><span class="p">:</span> <span class="nb">float</span> <span class="o">|</span> <span class="kc">None</span> <span class="o">=</span> <span class="kc">None</span><span class="p">,</span>
+        <span class="n">global_attn_every_n_layers</span><span class="p">:</span> <span class="nb">int</span> <span class="o">=</span> <span class="mi">4</span><span class="p">,</span>
+        <span class="n">pad_token_id</span><span class="p">:</span> <span class="nb">int</span> <span class="o">=</span> <span class="mi">0</span><span class="p">,</span>
+    <span class="p">):</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;Initialize ModernBERT model.</span>
+
+<span class="sd">        Args:</span>
+<span class="sd">            rngs: PRNG key collection</span>
+<span class="sd">            vocab_size: Size of vocabulary</span>
+<span class="sd">            hidden_size: Size of hidden states</span>
+<span class="sd">            num_hidden_layers: Number of transformer layers</span>
+<span class="sd">            num_attention_heads: Number of attention heads</span>
+<span class="sd">            intermediate_size: Size of MLP intermediate layer</span>
+<span class="sd">            max_position_embeddings: Maximum sequence length</span>
+<span class="sd">            attention_dropout: Dropout probability for attention</span>
+<span class="sd">            hidden_dropout: Dropout probability for hidden states</span>
+<span class="sd">            attention_bias: Whether to use bias in attention</span>
+<span class="sd">            norm_eps: Epsilon for layer normalization</span>
+<span class="sd">            norm_bias: Whether to use bias in layer normalization</span>
+<span class="sd">            global_rope_theta: Base for global RoPE</span>
+<span class="sd">            local_attention: Tuple of (left, right) window sizes</span>
+<span class="sd">            local_rope_theta: Base for local RoPE (optional)</span>
+<span class="sd">            global_attn_every_n_layers: Apply global attention every N layers</span>
+<span class="sd">            pad_token_id: Token ID to use for padding</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="nb">super</span><span class="p">()</span><span class="o">.</span><span class="fm">__init__</span><span class="p">()</span>
+
+        <span class="c1"># Initialize embeddings</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">embeddings</span> <span class="o">=</span> <span class="n">ModernBertEmbeddings</span><span class="p">(</span>
+            <span class="n">rngs</span><span class="o">=</span><span class="n">rngs</span><span class="p">,</span>
+            <span class="n">vocab_size</span><span class="o">=</span><span class="n">vocab_size</span><span class="p">,</span>
+            <span class="n">hidden_size</span><span class="o">=</span><span class="n">hidden_size</span><span class="p">,</span>
+            <span class="n">pad_token_id</span><span class="o">=</span><span class="n">pad_token_id</span><span class="p">,</span>
+            <span class="n">norm_eps</span><span class="o">=</span><span class="n">norm_eps</span><span class="p">,</span>
+            <span class="n">norm_bias</span><span class="o">=</span><span class="n">norm_bias</span><span class="p">,</span>
+            <span class="n">embedding_dropout</span><span class="o">=</span><span class="n">hidden_dropout</span><span class="p">,</span>
+        <span class="p">)</span>
+
+        <span class="c1"># Initialize encoder</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">encoder</span> <span class="o">=</span> <span class="n">ModernBERTEncoder</span><span class="p">(</span>
+            <span class="n">rngs</span><span class="o">=</span><span class="n">rngs</span><span class="p">,</span>
+            <span class="n">hidden_size</span><span class="o">=</span><span class="n">hidden_size</span><span class="p">,</span>
+            <span class="n">num_attention_heads</span><span class="o">=</span><span class="n">num_attention_heads</span><span class="p">,</span>
+            <span class="n">intermediate_size</span><span class="o">=</span><span class="n">intermediate_size</span><span class="p">,</span>
+            <span class="n">num_hidden_layers</span><span class="o">=</span><span class="n">num_hidden_layers</span><span class="p">,</span>
+            <span class="n">attention_dropout</span><span class="o">=</span><span class="n">attention_dropout</span><span class="p">,</span>
+            <span class="n">hidden_dropout</span><span class="o">=</span><span class="n">hidden_dropout</span><span class="p">,</span>
+            <span class="n">attention_bias</span><span class="o">=</span><span class="n">attention_bias</span><span class="p">,</span>
+            <span class="n">norm_eps</span><span class="o">=</span><span class="n">norm_eps</span><span class="p">,</span>
+            <span class="n">norm_bias</span><span class="o">=</span><span class="n">norm_bias</span><span class="p">,</span>
+            <span class="n">global_rope_theta</span><span class="o">=</span><span class="n">global_rope_theta</span><span class="p">,</span>
+            <span class="n">max_position_embeddings</span><span class="o">=</span><span class="n">max_position_embeddings</span><span class="p">,</span>
+            <span class="n">local_attention</span><span class="o">=</span><span class="n">local_attention</span><span class="p">,</span>
+            <span class="n">local_rope_theta</span><span class="o">=</span><span class="n">local_rope_theta</span><span class="p">,</span>
+            <span class="n">global_attn_every_n_layers</span><span class="o">=</span><span class="n">global_attn_every_n_layers</span><span class="p">,</span>
+        <span class="p">)</span>
+
+        <span class="c1"># Initialize MLM head</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">mlm_head</span> <span class="o">=</span> <span class="n">ModernBERTMLMHead</span><span class="p">(</span>
+            <span class="n">rngs</span><span class="o">=</span><span class="n">rngs</span><span class="p">,</span>
+            <span class="n">hidden_size</span><span class="o">=</span><span class="n">hidden_size</span><span class="p">,</span>
+            <span class="n">vocab_size</span><span class="o">=</span><span class="n">vocab_size</span><span class="p">,</span>
+            <span class="n">norm_eps</span><span class="o">=</span><span class="n">norm_eps</span><span class="p">,</span>
+            <span class="n">norm_bias</span><span class="o">=</span><span class="n">norm_bias</span><span class="p">,</span>
+        <span class="p">)</span></div>
+
+
+<div class="viewcode-block" id="ModernBERTForMaskedLM.__call__">
+<a class="viewcode-back" href="../../../modules/index.html#jax_layers.models.ModernBERTForMaskedLM.__call__">[docs]</a>
+    <span class="k">def</span><span class="w"> </span><span class="fm">__call__</span><span class="p">(</span>
+        <span class="bp">self</span><span class="p">,</span>
+        <span class="n">input_ids</span><span class="p">:</span> <span class="n">jnp</span><span class="o">.</span><span class="n">ndarray</span><span class="p">,</span>
+        <span class="n">attention_mask</span><span class="p">:</span> <span class="n">jnp</span><span class="o">.</span><span class="n">ndarray</span> <span class="o">|</span> <span class="kc">None</span> <span class="o">=</span> <span class="kc">None</span><span class="p">,</span>
+        <span class="n">sliding_window_mask</span><span class="p">:</span> <span class="n">jnp</span><span class="o">.</span><span class="n">ndarray</span> <span class="o">|</span> <span class="kc">None</span> <span class="o">=</span> <span class="kc">None</span><span class="p">,</span>
+        <span class="n">position_ids</span><span class="p">:</span> <span class="n">jnp</span><span class="o">.</span><span class="n">ndarray</span> <span class="o">|</span> <span class="kc">None</span> <span class="o">=</span> <span class="kc">None</span><span class="p">,</span>
+        <span class="n">inputs_embeds</span><span class="p">:</span> <span class="n">jnp</span><span class="o">.</span><span class="n">ndarray</span> <span class="o">|</span> <span class="kc">None</span> <span class="o">=</span> <span class="kc">None</span><span class="p">,</span>
+        <span class="n">deterministic</span><span class="p">:</span> <span class="nb">bool</span> <span class="o">=</span> <span class="kc">True</span><span class="p">,</span>
+        <span class="n">output_attentions</span><span class="p">:</span> <span class="nb">bool</span> <span class="o">=</span> <span class="kc">False</span><span class="p">,</span>
+        <span class="n">output_hidden_states</span><span class="p">:</span> <span class="nb">bool</span> <span class="o">=</span> <span class="kc">False</span><span class="p">,</span>
+    <span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">dict</span><span class="p">[</span><span class="nb">str</span><span class="p">,</span> <span class="n">jnp</span><span class="o">.</span><span class="n">ndarray</span><span class="p">]:</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;Apply ModernBERT model.</span>
+
+<span class="sd">        Args:</span>
+<span class="sd">            input_ids: Input token ids of shape [batch_size, seq_len]</span>
+<span class="sd">            attention_mask: Optional attention mask</span>
+<span class="sd">            sliding_window_mask: Optional sliding window mask</span>
+<span class="sd">            position_ids: Optional position ids</span>
+<span class="sd">            inputs_embeds: Optional pre-computed embeddings</span>
+<span class="sd">            deterministic: Whether to apply dropout</span>
+<span class="sd">            output_attentions: Whether to return attention weights</span>
+<span class="sd">            output_hidden_states: Whether to return all hidden states</span>
+
+<span class="sd">        Returns:</span>
+<span class="sd">            Dictionary containing:</span>
+<span class="sd">                - logits: Output logits of shape [batch_size, seq_len, vocab_size]</span>
+<span class="sd">                - hidden_states: All hidden states (optional)</span>
+<span class="sd">                - attentions: All attention weights (optional)</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="c1"># Get embeddings</span>
+        <span class="n">hidden_states</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">embeddings</span><span class="p">(</span>
+            <span class="n">input_ids</span><span class="o">=</span><span class="n">input_ids</span><span class="p">,</span>
+            <span class="n">deterministic</span><span class="o">=</span><span class="n">deterministic</span><span class="p">,</span>
+            <span class="n">inputs_embeds</span><span class="o">=</span><span class="n">inputs_embeds</span><span class="p">,</span>
+        <span class="p">)</span>
+
+        <span class="c1"># Apply encoder</span>
+        <span class="n">encoder_outputs</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">encoder</span><span class="p">(</span>
+            <span class="n">hidden_states</span><span class="p">,</span>
+            <span class="n">attention_mask</span><span class="o">=</span><span class="n">attention_mask</span><span class="p">,</span>
+            <span class="n">sliding_window_mask</span><span class="o">=</span><span class="n">sliding_window_mask</span><span class="p">,</span>
+            <span class="n">position_ids</span><span class="o">=</span><span class="n">position_ids</span><span class="p">,</span>
+            <span class="n">deterministic</span><span class="o">=</span><span class="n">deterministic</span><span class="p">,</span>
+            <span class="n">output_attentions</span><span class="o">=</span><span class="n">output_attentions</span><span class="p">,</span>
+            <span class="n">output_hidden_states</span><span class="o">=</span><span class="n">output_hidden_states</span><span class="p">,</span>
+        <span class="p">)</span>
+
+        <span class="c1"># Get sequence output and optional states</span>
+        <span class="n">sequence_output</span> <span class="o">=</span> <span class="n">encoder_outputs</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span>
+        <span class="n">hidden_states</span> <span class="o">=</span> <span class="kc">None</span>  <span class="c1"># type: ignore</span>
+        <span class="n">attentions</span> <span class="o">=</span> <span class="kc">None</span>
+
+        <span class="k">if</span> <span class="nb">len</span><span class="p">(</span><span class="n">encoder_outputs</span><span class="p">)</span> <span class="o">&gt;</span> <span class="mi">1</span><span class="p">:</span>
+            <span class="k">if</span> <span class="n">output_hidden_states</span><span class="p">:</span>
+                <span class="n">hidden_states</span> <span class="o">=</span> <span class="n">encoder_outputs</span><span class="p">[</span><span class="mi">1</span><span class="p">]</span>  <span class="c1"># type: ignore</span>
+            <span class="k">if</span> <span class="n">output_attentions</span><span class="p">:</span>
+                <span class="n">attentions</span> <span class="o">=</span> <span class="n">encoder_outputs</span><span class="p">[</span><span class="mi">1</span><span class="p">]</span> <span class="k">if</span> <span class="ow">not</span> <span class="n">output_hidden_states</span> <span class="k">else</span> <span class="n">encoder_outputs</span><span class="p">[</span><span class="mi">2</span><span class="p">]</span>  <span class="c1"># type: ignore[misc]</span>
+
+        <span class="c1"># Apply MLM head</span>
+        <span class="n">logits</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">mlm_head</span><span class="p">(</span><span class="n">sequence_output</span><span class="p">)</span>
+
+        <span class="c1"># Build output dictionary</span>
+        <span class="n">outputs</span> <span class="o">=</span> <span class="p">{</span><span class="s2">&quot;logits&quot;</span><span class="p">:</span> <span class="n">logits</span><span class="p">}</span>
+        <span class="k">if</span> <span class="n">output_hidden_states</span><span class="p">:</span>
+            <span class="n">outputs</span><span class="p">[</span><span class="s2">&quot;hidden_states&quot;</span><span class="p">]</span> <span class="o">=</span> <span class="n">hidden_states</span>  <span class="c1"># type: ignore</span>
+        <span class="k">if</span> <span class="n">output_attentions</span><span class="p">:</span>
+            <span class="n">outputs</span><span class="p">[</span><span class="s2">&quot;attentions&quot;</span><span class="p">]</span> <span class="o">=</span> <span class="n">attentions</span>  <span class="c1"># type: ignore</span>
+
+        <span class="k">return</span> <span class="n">outputs</span></div>
+</div>
+
+
+
+<div class="viewcode-block" id="ModernBertEmbeddings">
+<a class="viewcode-back" href="../../../modules/index.html#jax_layers.models.ModernBertEmbeddings">[docs]</a>
+<span class="k">class</span><span class="w"> </span><span class="nc">ModernBertEmbeddings</span><span class="p">(</span><span class="n">nnx</span><span class="o">.</span><span class="n">Module</span><span class="p">):</span>
+<span class="w">    </span><span class="sd">&quot;&quot;&quot;Token embeddings with normalization and dropout.</span>
+
+<span class="sd">    Similar to BERT embeddings but without position embeddings since we use RoPE.</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+
+<div class="viewcode-block" id="ModernBertEmbeddings.__init__">
+<a class="viewcode-back" href="../../../modules/index.html#jax_layers.models.ModernBertEmbeddings.__init__">[docs]</a>
+    <span class="k">def</span><span class="w"> </span><span class="fm">__init__</span><span class="p">(</span>
+        <span class="bp">self</span><span class="p">,</span>
+        <span class="n">rngs</span><span class="p">:</span> <span class="n">nnx</span><span class="o">.</span><span class="n">Rngs</span><span class="p">,</span>
+        <span class="n">vocab_size</span><span class="p">:</span> <span class="nb">int</span><span class="p">,</span>
+        <span class="n">hidden_size</span><span class="p">:</span> <span class="nb">int</span><span class="p">,</span>
+        <span class="n">pad_token_id</span><span class="p">:</span> <span class="nb">int</span> <span class="o">=</span> <span class="mi">0</span><span class="p">,</span>
+        <span class="n">norm_eps</span><span class="p">:</span> <span class="nb">float</span> <span class="o">=</span> <span class="mf">1e-12</span><span class="p">,</span>
+        <span class="n">norm_bias</span><span class="p">:</span> <span class="nb">bool</span> <span class="o">=</span> <span class="kc">True</span><span class="p">,</span>
+        <span class="n">embedding_dropout</span><span class="p">:</span> <span class="nb">float</span> <span class="o">=</span> <span class="mf">0.0</span><span class="p">,</span>
+    <span class="p">):</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;Initialize embeddings module.</span>
+
+<span class="sd">        Args:</span>
+<span class="sd">            rngs: PRNG key collection</span>
+<span class="sd">            vocab_size: Size of the vocabulary</span>
+<span class="sd">            hidden_size: Size of the embeddings</span>
+<span class="sd">            pad_token_id: Token ID to use for padding</span>
+<span class="sd">            norm_eps: Epsilon for layer normalization</span>
+<span class="sd">            norm_bias: Whether to use bias in layer normalization</span>
+<span class="sd">            embedding_dropout: Dropout probability for embeddings</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="nb">super</span><span class="p">()</span><span class="o">.</span><span class="fm">__init__</span><span class="p">()</span>
+
+        <span class="c1"># Create embeddings table with non-zero initialization</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">token_embeddings</span> <span class="o">=</span> <span class="n">nnx</span><span class="o">.</span><span class="n">Embed</span><span class="p">(</span>
+            <span class="n">rngs</span><span class="o">=</span><span class="n">rngs</span><span class="p">,</span>
+            <span class="n">num_embeddings</span><span class="o">=</span><span class="n">vocab_size</span><span class="p">,</span>
+            <span class="n">features</span><span class="o">=</span><span class="n">hidden_size</span><span class="p">,</span>
+            <span class="n">embedding_init</span><span class="o">=</span><span class="n">nnx</span><span class="o">.</span><span class="n">initializers</span><span class="o">.</span><span class="n">normal</span><span class="p">(</span><span class="n">stddev</span><span class="o">=</span><span class="mf">1.0</span><span class="p">),</span>  <span class="c1"># Increased stddev</span>
+        <span class="p">)</span>
+
+        <span class="c1"># Layer norm with explicit feature axes</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">norm</span> <span class="o">=</span> <span class="n">nnx</span><span class="o">.</span><span class="n">LayerNorm</span><span class="p">(</span>
+            <span class="n">rngs</span><span class="o">=</span><span class="n">rngs</span><span class="p">,</span>
+            <span class="n">num_features</span><span class="o">=</span><span class="n">hidden_size</span><span class="p">,</span>
+            <span class="n">epsilon</span><span class="o">=</span><span class="n">norm_eps</span><span class="p">,</span>
+            <span class="n">use_bias</span><span class="o">=</span><span class="n">norm_bias</span><span class="p">,</span>
+            <span class="n">use_scale</span><span class="o">=</span><span class="kc">True</span><span class="p">,</span>
+            <span class="n">scale_init</span><span class="o">=</span><span class="n">nnx</span><span class="o">.</span><span class="n">initializers</span><span class="o">.</span><span class="n">ones</span><span class="p">,</span>
+            <span class="n">bias_init</span><span class="o">=</span><span class="n">nnx</span><span class="o">.</span><span class="n">initializers</span><span class="o">.</span><span class="n">zeros</span><span class="p">,</span>
+            <span class="n">reduction_axes</span><span class="o">=</span><span class="p">(</span><span class="o">-</span><span class="mi">1</span><span class="p">,),</span>  <span class="c1"># Explicit tuple</span>
+            <span class="n">feature_axes</span><span class="o">=</span><span class="p">(</span><span class="o">-</span><span class="mi">1</span><span class="p">,),</span>  <span class="c1"># Explicit tuple</span>
+        <span class="p">)</span>
+
+        <span class="bp">self</span><span class="o">.</span><span class="n">dropout</span> <span class="o">=</span> <span class="n">embedding_dropout</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">deterministic</span> <span class="o">=</span> <span class="kc">True</span>  <span class="c1"># Will be overridden in __call__</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">_rngs</span> <span class="o">=</span> <span class="n">rngs</span>  <span class="c1"># Store rngs for dropout</span></div>
+
+
+<div class="viewcode-block" id="ModernBertEmbeddings.__call__">
+<a class="viewcode-back" href="../../../modules/index.html#jax_layers.models.ModernBertEmbeddings.__call__">[docs]</a>
+    <span class="k">def</span><span class="w"> </span><span class="fm">__call__</span><span class="p">(</span>
+        <span class="bp">self</span><span class="p">,</span>
+        <span class="n">input_ids</span><span class="p">:</span> <span class="n">jnp</span><span class="o">.</span><span class="n">ndarray</span><span class="p">,</span>
+        <span class="n">deterministic</span><span class="p">:</span> <span class="nb">bool</span> <span class="o">=</span> <span class="kc">True</span><span class="p">,</span>
+        <span class="n">inputs_embeds</span><span class="p">:</span> <span class="n">jnp</span><span class="o">.</span><span class="n">ndarray</span> <span class="o">|</span> <span class="kc">None</span> <span class="o">=</span> <span class="kc">None</span><span class="p">,</span>
+    <span class="p">)</span> <span class="o">-&gt;</span> <span class="n">jnp</span><span class="o">.</span><span class="n">ndarray</span><span class="p">:</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;Apply embeddings module.</span>
+
+<span class="sd">        Args:</span>
+<span class="sd">            input_ids: Integer tokens of shape [batch_size, seq_len]</span>
+<span class="sd">            deterministic: Whether to apply dropout</span>
+<span class="sd">            inputs_embeds: Optional pre-computed embeddings</span>
+
+<span class="sd">        Returns:</span>
+<span class="sd">            Embedded tokens with shape [batch_size, seq_len, hidden_size]</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="k">if</span> <span class="n">inputs_embeds</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span><span class="p">:</span>
+            <span class="n">hidden_states</span> <span class="o">=</span> <span class="n">inputs_embeds</span>
+        <span class="k">else</span><span class="p">:</span>
+            <span class="n">hidden_states</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">token_embeddings</span><span class="p">(</span><span class="n">input_ids</span><span class="p">)</span>
+
+            <span class="c1"># Scale embeddings</span>
+            <span class="n">hidden_states</span> <span class="o">=</span> <span class="n">hidden_states</span> <span class="o">*</span> <span class="p">(</span><span class="n">hidden_states</span><span class="o">.</span><span class="n">shape</span><span class="p">[</span><span class="o">-</span><span class="mi">1</span><span class="p">]</span> <span class="o">**</span> <span class="mf">0.5</span><span class="p">)</span>
+
+        <span class="c1"># Apply layer norm</span>
+        <span class="n">hidden_states</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">norm</span><span class="p">(</span><span class="n">hidden_states</span><span class="p">)</span>
+
+        <span class="c1"># Apply dropout if in training</span>
+        <span class="k">if</span> <span class="ow">not</span> <span class="n">deterministic</span> <span class="ow">and</span> <span class="bp">self</span><span class="o">.</span><span class="n">dropout</span> <span class="o">&gt;</span> <span class="mf">0.0</span><span class="p">:</span>
+            <span class="n">hidden_states</span> <span class="o">=</span> <span class="n">nnx</span><span class="o">.</span><span class="n">Dropout</span><span class="p">(</span>
+                <span class="n">rngs</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">_rngs</span><span class="p">,</span>
+                <span class="n">rate</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">dropout</span><span class="p">,</span>
+            <span class="p">)(</span><span class="n">hidden_states</span><span class="p">,</span> <span class="n">deterministic</span><span class="o">=</span><span class="n">deterministic</span><span class="p">)</span>
+
+        <span class="k">return</span> <span class="n">hidden_states</span></div>
+</div>
+
+
+
+<div class="viewcode-block" id="ModernBertMLP">
+<a class="viewcode-back" href="../../../modules/index.html#jax_layers.models.ModernBertMLP">[docs]</a>
+<span class="k">class</span><span class="w"> </span><span class="nc">ModernBertMLP</span><span class="p">(</span><span class="n">nnx</span><span class="o">.</span><span class="n">Module</span><span class="p">):</span>
+<span class="w">    </span><span class="sd">&quot;&quot;&quot;MLP with gated linear units.</span>
+
+<span class="sd">    Replaces the traditional intermediate + output layers with a single gated MLP.</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+
+<div class="viewcode-block" id="ModernBertMLP.__init__">
+<a class="viewcode-back" href="../../../modules/index.html#jax_layers.models.ModernBertMLP.__init__">[docs]</a>
+    <span class="k">def</span><span class="w"> </span><span class="fm">__init__</span><span class="p">(</span>
+        <span class="bp">self</span><span class="p">,</span>
+        <span class="n">rngs</span><span class="p">:</span> <span class="n">nnx</span><span class="o">.</span><span class="n">Rngs</span><span class="p">,</span>
+        <span class="n">hidden_size</span><span class="p">:</span> <span class="nb">int</span><span class="p">,</span>
+        <span class="n">intermediate_size</span><span class="p">:</span> <span class="nb">int</span><span class="p">,</span>
+        <span class="n">mlp_bias</span><span class="p">:</span> <span class="nb">bool</span> <span class="o">=</span> <span class="kc">True</span><span class="p">,</span>
+        <span class="n">mlp_dropout</span><span class="p">:</span> <span class="nb">float</span> <span class="o">=</span> <span class="mf">0.0</span><span class="p">,</span>
+    <span class="p">):</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;Initialize MLP module.</span>
+
+<span class="sd">        Args:</span>
+<span class="sd">            rngs: PRNG key collection</span>
+<span class="sd">            hidden_size: Size of input and output</span>
+<span class="sd">            intermediate_size: Size of intermediate layer</span>
+<span class="sd">            mlp_bias: Whether to use bias in linear layers</span>
+<span class="sd">            mlp_dropout: Dropout probability</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="nb">super</span><span class="p">()</span><span class="o">.</span><span class="fm">__init__</span><span class="p">()</span>
+
+        <span class="c1"># Input projection (creates both input and gate values)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">Wi</span> <span class="o">=</span> <span class="n">nnx</span><span class="o">.</span><span class="n">Linear</span><span class="p">(</span>
+            <span class="n">rngs</span><span class="o">=</span><span class="n">rngs</span><span class="p">,</span>
+            <span class="n">in_features</span><span class="o">=</span><span class="n">hidden_size</span><span class="p">,</span>
+            <span class="n">out_features</span><span class="o">=</span><span class="n">intermediate_size</span> <span class="o">*</span> <span class="mi">2</span><span class="p">,</span>
+            <span class="n">use_bias</span><span class="o">=</span><span class="n">mlp_bias</span><span class="p">,</span>
+            <span class="n">kernel_init</span><span class="o">=</span><span class="n">nnx</span><span class="o">.</span><span class="n">initializers</span><span class="o">.</span><span class="n">normal</span><span class="p">(</span><span class="n">stddev</span><span class="o">=</span><span class="mf">0.02</span><span class="p">),</span>
+        <span class="p">)</span>
+
+        <span class="c1"># Output projection</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">Wo</span> <span class="o">=</span> <span class="n">nnx</span><span class="o">.</span><span class="n">Linear</span><span class="p">(</span>
+            <span class="n">rngs</span><span class="o">=</span><span class="n">rngs</span><span class="p">,</span>
+            <span class="n">in_features</span><span class="o">=</span><span class="n">intermediate_size</span><span class="p">,</span>
+            <span class="n">out_features</span><span class="o">=</span><span class="n">hidden_size</span><span class="p">,</span>
+            <span class="n">use_bias</span><span class="o">=</span><span class="n">mlp_bias</span><span class="p">,</span>
+            <span class="n">kernel_init</span><span class="o">=</span><span class="n">nnx</span><span class="o">.</span><span class="n">initializers</span><span class="o">.</span><span class="n">normal</span><span class="p">(</span><span class="n">stddev</span><span class="o">=</span><span class="mf">0.02</span><span class="p">),</span>
+        <span class="p">)</span>
+
+        <span class="bp">self</span><span class="o">.</span><span class="n">dropout</span> <span class="o">=</span> <span class="n">mlp_dropout</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">deterministic</span> <span class="o">=</span> <span class="kc">True</span>  <span class="c1"># Will be overridden in __call__</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">_rngs</span> <span class="o">=</span> <span class="n">rngs</span>  <span class="c1"># Store rngs for dropout</span></div>
+
+
+<div class="viewcode-block" id="ModernBertMLP.__call__">
+<a class="viewcode-back" href="../../../modules/index.html#jax_layers.models.ModernBertMLP.__call__">[docs]</a>
+    <span class="k">def</span><span class="w"> </span><span class="fm">__call__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">hidden_states</span><span class="p">:</span> <span class="n">jnp</span><span class="o">.</span><span class="n">ndarray</span><span class="p">,</span> <span class="n">deterministic</span><span class="p">:</span> <span class="nb">bool</span> <span class="o">=</span> <span class="kc">True</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">jnp</span><span class="o">.</span><span class="n">ndarray</span><span class="p">:</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;Apply MLP module.</span>
+
+<span class="sd">        Args:</span>
+<span class="sd">            hidden_states: Input tensor of shape [batch_size, seq_len, hidden_size]</span>
+<span class="sd">            deterministic: Whether to apply dropout</span>
+
+<span class="sd">        Returns:</span>
+<span class="sd">            Output tensor of shape [batch_size, seq_len, hidden_size]</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="c1"># Project to intermediate size</span>
+        <span class="n">hidden_states</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">Wi</span><span class="p">(</span><span class="n">hidden_states</span><span class="p">)</span>
+
+        <span class="c1"># Apply GELU activation</span>
+        <span class="n">hidden_states</span> <span class="o">=</span> <span class="n">jax</span><span class="o">.</span><span class="n">nn</span><span class="o">.</span><span class="n">gelu</span><span class="p">(</span><span class="n">hidden_states</span><span class="p">)</span>
+
+        <span class="c1"># Split into input and gate by taking every other feature</span>
+        <span class="n">hidden_states</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">Wo</span><span class="p">(</span><span class="n">hidden_states</span><span class="p">[</span><span class="o">...</span><span class="p">,</span> <span class="p">::</span><span class="mi">2</span><span class="p">]</span> <span class="o">*</span> <span class="n">hidden_states</span><span class="p">[</span><span class="o">...</span><span class="p">,</span> <span class="mi">1</span><span class="p">::</span><span class="mi">2</span><span class="p">])</span>
+
+        <span class="c1"># Apply dropout if in training</span>
+        <span class="k">if</span> <span class="ow">not</span> <span class="n">deterministic</span> <span class="ow">and</span> <span class="bp">self</span><span class="o">.</span><span class="n">dropout</span> <span class="o">&gt;</span> <span class="mf">0.0</span><span class="p">:</span>
+            <span class="n">hidden_states</span> <span class="o">=</span> <span class="n">nnx</span><span class="o">.</span><span class="n">Dropout</span><span class="p">(</span>
+                <span class="n">rngs</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">_rngs</span><span class="p">,</span>
+                <span class="n">rate</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">dropout</span><span class="p">,</span>
+            <span class="p">)(</span><span class="n">hidden_states</span><span class="p">,</span> <span class="n">deterministic</span><span class="o">=</span><span class="n">deterministic</span><span class="p">)</span>
+
+        <span class="k">return</span> <span class="n">hidden_states</span></div>
+</div>
+
+</pre></div>
+
+           </div>
+          </div>
+          <footer>
+
+  <hr/>
+
+  <div role="contentinfo">
+    <p>&#169; Copyright 2025, JAX Layers Contributors.</p>
+  </div>
+
+  Built with <a href="https://www.sphinx-doc.org/">Sphinx</a> using a
+    <a href="https://github.com/readthedocs/sphinx_rtd_theme">theme</a>
+    provided by <a href="https://readthedocs.org">Read the Docs</a>.
+   
+
+</footer>
+        </div>
+      </div>
+    </section>
+  </div>
+  <script>
+      jQuery(function () {
+          SphinxRtdTheme.Navigation.enable(true);
+      });
+  </script> 
+
+</body>
+</html>
