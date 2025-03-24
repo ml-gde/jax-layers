@@ -199,5 +199,7 @@ This project is licensed under the MIT License - see the [LICENSE](LICENSE) file
 
 ## Acknowledgements
 
+**Google AI Developer Programs team supported this work by providing Google Cloud Credit.**
+
 - Thanks to the JAX and Flax teams for their excellent libraries.
 - Special thanks to the ML GDE group for initiating this project.
