@@ -74,7 +74,7 @@ def eval_step(
     logits = state.apply_fn(
         {'params': state.params},
         inputs,
-        rngs={'dropout': jax.random.PRNGKey(0)},  # Use fixed rng for eval
+rngs={'dropout': jax.random.PRNGKey(0)},  # Use fixed rng for eval
     )
     loss = optax.softmax_cross_entropy_with_integer_labels(logits, targets).mean()
     accuracy = (jnp.argmax(logits, axis=-1) == targets).mean()
