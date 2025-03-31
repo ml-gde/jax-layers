@@ -29,7 +29,7 @@ class CausalSelfAttention(nn.Module):
         if mask is not None:
             att = jnp.where(mask == 0, float('-inf'), att)
         att = nn.softmax(att, axis=-1)
-        att = nn.Dropout(rate=self.dropout)(att, deterministic=False)
+        att = nn.Dropout(rate=self.dropout)(att, deterministic=True)
         y = (att @ v).transpose(0, 2, 1, 3).reshape(B, T, C)
         
         # output projection
@@ -78,7 +78,7 @@ class GPT(nn.Module):
         tok_emb = nn.Embed(self.vocab_size, self.n_embd, dtype=self.dtype)(idx)
         pos = jnp.arange(0, T, dtype=jnp.int32)[None, :]  # shape (1, T)
         pos_emb = nn.Embed(self.block_size, self.n_embd, dtype=self.dtype)(pos)
-        x = nn.Dropout(rate=self.dropout)(tok_emb + pos_emb, deterministic=False)
+        x = nn.Dropout(rate=self.dropout)(tok_emb + pos_emb, deterministic=True)
         
         # transformer blocks
         for _ in range(self.n_layer):
