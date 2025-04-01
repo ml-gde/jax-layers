@@ -1,14 +1,16 @@
 """Training utilities for NanoGPT."""
 
+from typing import Any, Dict, Optional, Tuple, cast
+
 import jax
 import jax.numpy as jnp
 import optax
-from flax.training import train_state
-from typing import Any, Dict, Optional, Tuple
+from flax import training
+from flax.core import FrozenDict
 
 from .model import GPT
 
-class TrainState(train_state.TrainState):
+class TrainState(training.TrainState):
     """Training state for the GPT model."""
     dropout_rng: jax.random.PRNGKey
     key: jax.random.PRNGKey
@@ -37,7 +39,7 @@ def train_step(
     """Perform a single training step."""
     inputs, targets = batch
     
-    def loss_fn(params):
+    def loss_fn(params: FrozenDict[str, Any]) -> Tuple[float, jnp.ndarray]:
         logits = state.apply_fn(
             {'params': params},
             inputs,
@@ -74,7 +76,7 @@ def eval_step(
     logits = state.apply_fn(
         {'params': state.params},
         inputs,
-rngs={'dropout': jax.random.PRNGKey(0)},  # Use fixed rng for eval
+        rngs={'dropout': jax.random.PRNGKey(0)},  # Use fixed rng for eval
     )
     loss = optax.softmax_cross_entropy_with_integer_labels(logits, targets).mean()
     accuracy = (jnp.argmax(logits, axis=-1) == targets).mean()

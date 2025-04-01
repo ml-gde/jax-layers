@@ -1,11 +1,12 @@
 """NanoGPT model implementation using JAX and Flax."""
 
-from typing import Optional, Tuple
+from typing import Optional, Tuple, Any, Dict
 
 import jax
 import jax.numpy as jnp
 from flax import linen as nn
 from jax import lax
+from jax_layers.attention import MultiHeadAttention
 
 class CausalSelfAttention(nn.Module):
     """Causal self-attention layer."""
@@ -17,24 +18,20 @@ class CausalSelfAttention(nn.Module):
     
     @nn.compact
     def __call__(self, x: jnp.ndarray, mask: Optional[jnp.ndarray] = None) -> jnp.ndarray:
-        B, T, C = x.shape  # batch, sequence length, embedding dimensionality
+        # Create causal mask if not provided
+        if mask is None:
+            B, T = x.shape[:2]
+            mask = jnp.tril(jnp.ones((B, 1, T, T)))
         
-        # calculate query, key, values for all heads in batch
-        qkv = nn.Dense(3 * self.n_embd, dtype=self.dtype)(x)
-        qkv = qkv.reshape(B, T, 3, self.n_head, C // self.n_head).transpose(2, 0, 3, 1, 4)
-        q, k, v = qkv[0], qkv[1], qkv[2]
-        
-        # causal self-attention
-        att = (q @ k.transpose(0, 1, 3, 2)) * (1.0 / jnp.sqrt(k.shape[-1]))
-        if mask is not None:
-            att = jnp.where(mask == 0, float('-inf'), att)
-        att = nn.softmax(att, axis=-1)
-        att = nn.Dropout(rate=self.dropout)(att, deterministic=True)
-        y = (att @ v).transpose(0, 2, 1, 3).reshape(B, T, C)
-        
-        # output projection
-        y = nn.Dense(self.n_embd, dtype=self.dtype)(y)
-        return y
+        # Apply attention
+        attn = MultiHeadAttention(
+            num_heads=self.n_head,
+            in_features=self.n_embd,
+            dropout_rate=self.dropout,
+            dtype=self.dtype,
+            implementation="flash",  # Use Flash Attention if available
+        )
+        return attn(x, mask=mask)
 
 class Block(nn.Module):
     """Transformer block."""
