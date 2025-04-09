@@ -521,7 +521,7 @@ def test_create_sliding_window_mask():
 @pytest.mark.skipif(
     jax.devices()[0].platform == "gpu",
     reason="This test passes on CPU but fails on Cuda. Skipping for now",
-)  # noqa: E501
+)
 def test_attention_numerical_correctness():
     """Test that our JAX attention implementation matches PyTorch reference."""
     # Test parameters
@@ -814,7 +814,7 @@ def test_layer_sliding_window():
 @pytest.mark.skipif(
     jax.devices()[0].platform == "gpu",
     reason="This test passes on CPU but fails on Cuda. Skipping for now",
-)  # noqa: E501
+)
 def test_layer_numerical_correctness():
     """Test layer against PyTorch reference implementation."""
     # Test parameters
