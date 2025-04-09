@@ -64,7 +64,7 @@ param_dtype: Data type in which params are stored.
         return pure_dict_state
 
     def save(self, path: str) -> None:
-        """Saves the model state to a file.
+        """Saves the model state to a directory.
 
         Args:
             path: The directory path to save the model state to.
@@ -75,7 +75,7 @@ param_dtype: Data type in which params are stored.
         checkpointer.wait_until_finished()
 
     def load(self, path: str) -> nnx.Module:
-        """Loads the model state from a file.
+        """Loads the model state from a directory.
 
         Args:
             path: The directory path to load the model state from.
