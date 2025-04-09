@@ -387,6 +387,7 @@ dependencies = [
     { name = "flax" },
     { name = "huggingface-hub" },
     { name = "jax" },
+    { name = "orbax" },
     { name = "safetensors" },
 ]
 
@@ -414,6 +415,7 @@ requires-dist = [
     { name = "jax", specifier = "==0.5.1" },
     { name = "mypy", marker = "extra == 'dev'", specifier = ">=1.0.0" },
     { name = "myst-parser", marker = "extra == 'dev'" },
+    { name = "orbax", specifier = ">=0.1.9" },
     { name = "pre-commit", marker = "extra == 'dev'" },
     { name = "pytest", marker = "extra == 'dev'", specifier = ">=7.0.0" },
     { name = "pytest-cov", marker = "extra == 'dev'", specifier = ">=4.0.0" },
@@ -947,6 +949,15 @@ sdist = { url = "https://files.pythonhosted.org/packages/af/b5/f88a0d851547b2e6b
 wheels = [
     { url = "https://files.pythonhosted.org/packages/5c/24/28d0bb21600a78e46754947333ec9a297044af884d360092eb8561575fe9/optax-0.2.4-py3-none-any.whl", hash = "sha256:db35c04e50b52596662efb002334de08c2a0a74971e4da33f467e84fac08886a", size = 319212 },
 ]
+
+[[package]]
+name = "orbax"
+version = "0.1.9"
+source = { registry = "https://pypi.org/simple" }
+dependencies = [
+    { name = "orbax-checkpoint" },
+]
+sdist = { url = "https://files.pythonhosted.org/packages/c7/78/0e144f12703c95d4495e9abc390c2f548ee9f24d2e487137108a921b1d81/orbax-0.1.9.tar.gz", hash = "sha256:42dd487ceef9fbf027f4720f3d041686af75120466a528a8a8141226bc197218", size = 1649 }
 
 [[package]]
 name = "orbax-checkpoint"

@@ -1,12 +1,12 @@
 import os
+from collections.abc import Iterator
 from dataclasses import dataclass, field
-from glob import glob
 from pathlib import Path
-from typing import Any, Iterator, Tuple
+from typing import Any
 
 import jax
 import jax.numpy as jnp
-import orbax.checkpoint as ocp
+import orbax.checkpoint as ocp  # type: ignore
 from flax import nnx
 from huggingface_hub import snapshot_download
 from safetensors import safe_open
@@ -22,7 +22,7 @@ class BaseConfig:
     def to_dict(self) -> dict[str, Any]:
         return self.__dict__
 
-    def update(self, **kwargs) -> None:
+    def update(self, **kwargs: dict) -> None:
         for k, v in kwargs.items():
             if hasattr(self, k):
                 setattr(self, k, v)
@@ -63,7 +63,7 @@ param_dtype: Data type in which params are stored.
         pure_dict_state = nnx.to_pure_dict(state)
         return pure_dict_state
 
-    def save(self, path: str):
+    def save(self, path: str) -> None:
         """Saves the model state to a file.
 
         Args:
@@ -74,7 +74,7 @@ param_dtype: Data type in which params are stored.
         checkpointer.save(os.path.join(path, DEFAULT_PARAMS_FILE), state)
         checkpointer.wait_until_finished()
 
-    def load(self, path: str):
+    def load(self, path: str) -> nnx.Module:
         """Loads the model state from a file.
 
         Args:
@@ -88,7 +88,7 @@ param_dtype: Data type in which params are stored.
         return nnx.merge(graphdef, abstract_state)
 
     @staticmethod
-    def download_from_hf(repo_id: str, local_dir: str):
+    def download_from_hf(repo_id: str, local_dir: str) -> None:
         """Downloads the model from the Hugging Face Hub.
 
         Args:
@@ -98,7 +98,7 @@ param_dtype: Data type in which params are stored.
         snapshot_download(repo_id, local_dir=local_dir)
 
     @staticmethod
-    def load_safetensors(path_to_model_weights: str) -> Iterator[Tuple[str, jnp.ndarray]]:
+    def load_safetensors(path_to_model_weights: str) -> Iterator[tuple[Any, Any]]:
         """Helper function to lazily load params from safetensors file.
 
         Use this static method to load weights for conversion tasks.
@@ -109,5 +109,5 @@ param_dtype: Data type in which params are stored.
 
         for file in safetensors_files:
             with safe_open(file, framework="jax", device="cpu") as f:
-                for key in f.keys():
-                    return (key, f.get_tensor(key))
+                for key in f:
+                    yield (key, f.get_tensor(key))

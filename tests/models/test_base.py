@@ -7,6 +7,7 @@ from flax import nnx
 
 from jax_layers.models.base import BaseConfig, BaseModel
 
+
 class TwoLayerMLPConfig(BaseConfig):
   dim: int = 4
   use_bias: bool = False

@@ -28,6 +28,7 @@ dependencies = [
     "flax>=0.10.4",
     "safetensors>=0.5.3",
     "huggingface-hub>=0.30.2",
+    "orbax>=0.1.9",
 ]
 
 [project.optional-dependencies]
