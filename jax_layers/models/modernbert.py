@@ -8,9 +8,13 @@ The implementation includes modern improvements such as RoPE and global/local at
 See: https://arxiv.org/abs/2412.13663
 """
 
+from dataclasses import dataclass
+
 import flax.nnx as nnx
 import jax
 import jax.numpy as jnp
+
+from jax_layers.models.base import BaseConfig, BaseModel
 
 
 class Identity(nnx.Module):
@@ -721,89 +725,127 @@ class ModernBERTMLMHead(nnx.Module):
         return hidden_states
 
 
-class ModernBERTForMaskedLM(nnx.Module):
-    """ModernBERT model with masked language modeling head."""
+@dataclass
+class ModernBERTConfig(BaseConfig):
+    """
+    Configuration for ModernBERT model.
+
+    This configuration class extends BaseConfig and contains all the parameters
+    required to initialize a ModernBERT model. It includes settings for model architecture,
+    attention mechanisms, dropout rates, and other hyperparameters.
+
+    Attributes:
+        vocab_size: Size of vocabulary
+        hidden_size: Size of hidden states
+        num_hidden_layers: Number of transformer layers
+        num_attention_heads: Number of attention heads
+        intermediate_size: Size of MLP intermediate layer
+        max_position_embeddings: Maximum sequence length
+        attention_dropout: Dropout probability for attention
+        hidden_dropout: Dropout probability for hidden states
+        attention_bias: Whether to use bias in attention
+        norm_eps: Epsilon for layer normalization
+        norm_bias: Whether to use bias in layer normalization
+        global_rope_theta: Base for global RoPE
+        local_attention: Tuple of (left, right) window sizes
+        local_rope_theta: Base for local RoPE (optional)
+        global_attn_every_n_layers: Apply global attention every N layers
+        pad_token_id: Token ID to use for padding
+    """
+
+    # Default ModernBERT configuration
+    # https://huggingface.co/docs/transformers/main//model_doc/modernbert#transformers.ModernBertConfig
+    vocab_size: int = 50368
+    hidden_size: int = 768
+    intermediate_size: int = 1152
+    num_hidden_layers: int = 22
+    num_attention_heads: int = 12
+    max_position_embeddings: int = 8192
+    attention_dropout: float = 0.0
+    hidden_dropout: float = 0.0
+    attention_bias: bool = False
+    norm_eps: float = 1e-05
+    norm_bias: bool = False
+    global_rope_theta: float = 160000.0
+    local_attention: tuple[int, int] = (-1, -1)
+    local_rope_theta: float | None = None
+    global_attn_every_n_layers: int = 3
+    pad_token_id: int = 50283
+
+
+class ModernBERTForMaskedLM(BaseModel):
+    """ModernBERT model with masked language modeling head.
+
+    This implements the ModernBERT architecture as described in the paper
+    "Smarter, Better, Faster, Longer: A Modern Bidirectional Encoder for Fast, Memory Efficient,
+    and Long Context Finetuning and Inference" by Answer.AI.
+
+    The implementation includes modern improvements such as:
+    - Rotary Position Embeddings (RoPE)
+    - Mixed global/local attention mechanism
+    - Pre-LayerNorm architecture
+    - Efficient parameter sharing
+    """
 
     def __init__(
         self,
+        config: ModernBERTConfig,
+        *,
+        dtype: jnp.dtype | None = None,
+        param_dtype: jnp.dtype = jnp.float32,
+        precision: jax.lax.Precision | str | None = None,
         rngs: nnx.Rngs,
-        vocab_size: int,
-        hidden_size: int,
-        num_hidden_layers: int,
-        num_attention_heads: int,
-        intermediate_size: int,
-        max_position_embeddings: int = 2048,
-        attention_dropout: float = 0.0,
-        hidden_dropout: float = 0.0,
-        attention_bias: bool = True,
-        norm_eps: float = 1e-12,
-        norm_bias: bool = True,
-        global_rope_theta: float = 10000.0,
-        local_attention: tuple[int, int] = (-1, -1),
-        local_rope_theta: float | None = None,
-        global_attn_every_n_layers: int = 4,
-        pad_token_id: int = 0,
     ):
         """Initialize ModernBERT model.
 
         Args:
-            rngs: PRNG key collection
-            vocab_size: Size of vocabulary
-            hidden_size: Size of hidden states
-            num_hidden_layers: Number of transformer layers
-            num_attention_heads: Number of attention heads
-            intermediate_size: Size of MLP intermediate layer
-            max_position_embeddings: Maximum sequence length
-            attention_dropout: Dropout probability for attention
-            hidden_dropout: Dropout probability for hidden states
-            attention_bias: Whether to use bias in attention
-            norm_eps: Epsilon for layer normalization
-            norm_bias: Whether to use bias in layer normalization
-            global_rope_theta: Base for global RoPE
-            local_attention: Tuple of (left, right) window sizes
-            local_rope_theta: Base for local RoPE (optional)
-            global_attn_every_n_layers: Apply global attention every N layers
-            pad_token_id: Token ID to use for padding
+            config: Configuration for ModernBERT model
+            dtype: Data type in which computation is performed
+            param_dtype: Data type in which params are stored
+            precision: Numerical precision
+            rngs: Random number generators for param initialization
         """
-        super().__init__()
+        super().__init__(
+            config, dtype=dtype, param_dtype=param_dtype, precision=precision, rngs=rngs
+        )
 
         # Initialize embeddings
         self.embeddings = ModernBertEmbeddings(
             rngs=rngs,
-            vocab_size=vocab_size,
-            hidden_size=hidden_size,
-            pad_token_id=pad_token_id,
-            norm_eps=norm_eps,
-            norm_bias=norm_bias,
-            embedding_dropout=hidden_dropout,
+            vocab_size=config.vocab_size,
+            hidden_size=config.hidden_size,
+            pad_token_id=config.pad_token_id,
+            norm_eps=config.norm_eps,
+            norm_bias=config.norm_bias,
+            embedding_dropout=config.hidden_dropout,
         )
 
         # Initialize encoder
         self.encoder = ModernBERTEncoder(
             rngs=rngs,
-            hidden_size=hidden_size,
-            num_attention_heads=num_attention_heads,
-            intermediate_size=intermediate_size,
-            num_hidden_layers=num_hidden_layers,
-            attention_dropout=attention_dropout,
-            hidden_dropout=hidden_dropout,
-            attention_bias=attention_bias,
-            norm_eps=norm_eps,
-            norm_bias=norm_bias,
-            global_rope_theta=global_rope_theta,
-            max_position_embeddings=max_position_embeddings,
-            local_attention=local_attention,
-            local_rope_theta=local_rope_theta,
-            global_attn_every_n_layers=global_attn_every_n_layers,
+            hidden_size=config.hidden_size,
+            num_attention_heads=config.num_attention_heads,
+            intermediate_size=config.intermediate_size,
+            num_hidden_layers=config.num_hidden_layers,
+            attention_dropout=config.attention_dropout,
+            hidden_dropout=config.hidden_dropout,
+            attention_bias=config.attention_bias,
+            norm_eps=config.norm_eps,
+            norm_bias=config.norm_bias,
+            global_rope_theta=config.global_rope_theta,
+            max_position_embeddings=config.max_position_embeddings,
+            local_attention=config.local_attention,
+            local_rope_theta=config.local_rope_theta,
+            global_attn_every_n_layers=config.global_attn_every_n_layers,
         )
 
         # Initialize MLM head
         self.mlm_head = ModernBERTMLMHead(
             rngs=rngs,
-            hidden_size=hidden_size,
-            vocab_size=vocab_size,
-            norm_eps=norm_eps,
-            norm_bias=norm_bias,
+            hidden_size=config.hidden_size,
+            vocab_size=config.vocab_size,
+            norm_eps=config.norm_eps,
+            norm_bias=config.norm_bias,
         )
 
     def __call__(

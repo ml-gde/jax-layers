@@ -12,6 +12,7 @@ import torch.nn.functional as F  # noqa: N812
 from jax_layers.models.modernbert import (
     Identity,
     ModernBertAttention,
+    ModernBERTConfig,
     ModernBertEmbeddings,
     ModernBERTEncoder,
     ModernBERTForMaskedLM,
@@ -1186,14 +1187,19 @@ def test_full_model():
     # Create attention mask with correct broadcasting shape for attention
     attention_mask = jnp.ones((batch_size, 1, 1, seq_len))
 
-    # Initialize model
-    model = ModernBERTForMaskedLM(
-        rngs=nnx.Rngs(0),
+    # Create model config
+    config = ModernBERTConfig(
         vocab_size=vocab_size,
         hidden_size=hidden_size,
         num_hidden_layers=num_hidden_layers,
         num_attention_heads=num_attention_heads,
         intermediate_size=intermediate_size,
+    )
+
+    # Initialize model
+    model = ModernBERTForMaskedLM(
+        config=config,
+        rngs=nnx.Rngs(0),
     )
 
     # Test basic forward pass
@@ -1236,14 +1242,20 @@ def test_model_with_sliding_window():
     num_attention_heads = 4
     window_size = (8, 8)  # 8 tokens left and right
 
-    model = ModernBERTForMaskedLM(
-        rngs=nnx.Rngs(0),
+    # Create config with sliding window attention
+    config = ModernBERTConfig(
         vocab_size=100,
         hidden_size=hidden_size,
         num_hidden_layers=2,
         num_attention_heads=num_attention_heads,
         intermediate_size=hidden_size * 4,
         local_attention=window_size,
+    )
+
+    # Initialize model
+    model = ModernBERTForMaskedLM(
+        config=config,
+        rngs=nnx.Rngs(0),
     )
 
     # Create random input
