@@ -79,9 +79,13 @@
 <span class="sd">See: https://arxiv.org/abs/2412.13663</span>
 <span class="sd">&quot;&quot;&quot;</span>
 
+<span class="kn">from</span><span class="w"> </span><span class="nn">dataclasses</span><span class="w"> </span><span class="kn">import</span> <span class="n">dataclass</span>
+
 <span class="kn">import</span><span class="w"> </span><span class="nn">flax.nnx</span><span class="w"> </span><span class="k">as</span><span class="w"> </span><span class="nn">nnx</span>
 <span class="kn">import</span><span class="w"> </span><span class="nn">jax</span>
 <span class="kn">import</span><span class="w"> </span><span class="nn">jax.numpy</span><span class="w"> </span><span class="k">as</span><span class="w"> </span><span class="nn">jnp</span>
+
+<span class="kn">from</span><span class="w"> </span><span class="nn">jax_layers.models.base</span><span class="w"> </span><span class="kn">import</span> <span class="n">BaseConfig</span><span class="p">,</span> <span class="n">BaseModel</span>
 
 
 <span class="k">class</span><span class="w"> </span><span class="nc">Identity</span><span class="p">(</span><span class="n">nnx</span><span class="o">.</span><span class="n">Module</span><span class="p">):</span>
@@ -819,93 +823,131 @@
         <span class="k">return</span> <span class="n">hidden_states</span>
 
 
+<span class="nd">@dataclass</span>
+<span class="k">class</span><span class="w"> </span><span class="nc">ModernBERTConfig</span><span class="p">(</span><span class="n">BaseConfig</span><span class="p">):</span>
+<span class="w">    </span><span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">    Configuration for ModernBERT model.</span>
+
+<span class="sd">    This configuration class extends BaseConfig and contains all the parameters</span>
+<span class="sd">    required to initialize a ModernBERT model. It includes settings for model architecture,</span>
+<span class="sd">    attention mechanisms, dropout rates, and other hyperparameters.</span>
+
+<span class="sd">    Attributes:</span>
+<span class="sd">        vocab_size: Size of vocabulary</span>
+<span class="sd">        hidden_size: Size of hidden states</span>
+<span class="sd">        num_hidden_layers: Number of transformer layers</span>
+<span class="sd">        num_attention_heads: Number of attention heads</span>
+<span class="sd">        intermediate_size: Size of MLP intermediate layer</span>
+<span class="sd">        max_position_embeddings: Maximum sequence length</span>
+<span class="sd">        attention_dropout: Dropout probability for attention</span>
+<span class="sd">        hidden_dropout: Dropout probability for hidden states</span>
+<span class="sd">        attention_bias: Whether to use bias in attention</span>
+<span class="sd">        norm_eps: Epsilon for layer normalization</span>
+<span class="sd">        norm_bias: Whether to use bias in layer normalization</span>
+<span class="sd">        global_rope_theta: Base for global RoPE</span>
+<span class="sd">        local_attention: Tuple of (left, right) window sizes</span>
+<span class="sd">        local_rope_theta: Base for local RoPE (optional)</span>
+<span class="sd">        global_attn_every_n_layers: Apply global attention every N layers</span>
+<span class="sd">        pad_token_id: Token ID to use for padding</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+
+    <span class="c1"># Default ModernBERT configuration</span>
+    <span class="c1"># https://huggingface.co/docs/transformers/main//model_doc/modernbert#transformers.ModernBertConfig</span>
+    <span class="n">vocab_size</span><span class="p">:</span> <span class="nb">int</span> <span class="o">=</span> <span class="mi">50368</span>
+    <span class="n">hidden_size</span><span class="p">:</span> <span class="nb">int</span> <span class="o">=</span> <span class="mi">768</span>
+    <span class="n">intermediate_size</span><span class="p">:</span> <span class="nb">int</span> <span class="o">=</span> <span class="mi">1152</span>
+    <span class="n">num_hidden_layers</span><span class="p">:</span> <span class="nb">int</span> <span class="o">=</span> <span class="mi">22</span>
+    <span class="n">num_attention_heads</span><span class="p">:</span> <span class="nb">int</span> <span class="o">=</span> <span class="mi">12</span>
+    <span class="n">max_position_embeddings</span><span class="p">:</span> <span class="nb">int</span> <span class="o">=</span> <span class="mi">8192</span>
+    <span class="n">attention_dropout</span><span class="p">:</span> <span class="nb">float</span> <span class="o">=</span> <span class="mf">0.0</span>
+    <span class="n">hidden_dropout</span><span class="p">:</span> <span class="nb">float</span> <span class="o">=</span> <span class="mf">0.0</span>
+    <span class="n">attention_bias</span><span class="p">:</span> <span class="nb">bool</span> <span class="o">=</span> <span class="kc">False</span>
+    <span class="n">norm_eps</span><span class="p">:</span> <span class="nb">float</span> <span class="o">=</span> <span class="mf">1e-05</span>
+    <span class="n">norm_bias</span><span class="p">:</span> <span class="nb">bool</span> <span class="o">=</span> <span class="kc">False</span>
+    <span class="n">global_rope_theta</span><span class="p">:</span> <span class="nb">float</span> <span class="o">=</span> <span class="mf">160000.0</span>
+    <span class="n">local_attention</span><span class="p">:</span> <span class="nb">tuple</span><span class="p">[</span><span class="nb">int</span><span class="p">,</span> <span class="nb">int</span><span class="p">]</span> <span class="o">=</span> <span class="p">(</span><span class="o">-</span><span class="mi">1</span><span class="p">,</span> <span class="o">-</span><span class="mi">1</span><span class="p">)</span>
+    <span class="n">local_rope_theta</span><span class="p">:</span> <span class="nb">float</span> <span class="o">|</span> <span class="kc">None</span> <span class="o">=</span> <span class="kc">None</span>
+    <span class="n">global_attn_every_n_layers</span><span class="p">:</span> <span class="nb">int</span> <span class="o">=</span> <span class="mi">3</span>
+    <span class="n">pad_token_id</span><span class="p">:</span> <span class="nb">int</span> <span class="o">=</span> <span class="mi">50283</span>
+
+
 <div class="viewcode-block" id="ModernBERTForMaskedLM">
 <a class="viewcode-back" href="../../../modules/index.html#jax_layers.models.ModernBERTForMaskedLM">[docs]</a>
-<span class="k">class</span><span class="w"> </span><span class="nc">ModernBERTForMaskedLM</span><span class="p">(</span><span class="n">nnx</span><span class="o">.</span><span class="n">Module</span><span class="p">):</span>
-<span class="w">    </span><span class="sd">&quot;&quot;&quot;ModernBERT model with masked language modeling head.&quot;&quot;&quot;</span>
+<span class="k">class</span><span class="w"> </span><span class="nc">ModernBERTForMaskedLM</span><span class="p">(</span><span class="n">BaseModel</span><span class="p">):</span>
+<span class="w">    </span><span class="sd">&quot;&quot;&quot;ModernBERT model with masked language modeling head.</span>
+
+<span class="sd">    This implements the ModernBERT architecture as described in the paper</span>
+<span class="sd">    &quot;Smarter, Better, Faster, Longer: A Modern Bidirectional Encoder for Fast, Memory Efficient,</span>
+<span class="sd">    and Long Context Finetuning and Inference&quot; by Answer.AI.</span>
+
+<span class="sd">    The implementation includes modern improvements such as:</span>
+<span class="sd">    - Rotary Position Embeddings (RoPE)</span>
+<span class="sd">    - Mixed global/local attention mechanism</span>
+<span class="sd">    - Pre-LayerNorm architecture</span>
+<span class="sd">    - Efficient parameter sharing</span>
+<span class="sd">    &quot;&quot;&quot;</span>
 
 <div class="viewcode-block" id="ModernBERTForMaskedLM.__init__">
 <a class="viewcode-back" href="../../../modules/index.html#jax_layers.models.ModernBERTForMaskedLM.__init__">[docs]</a>
     <span class="k">def</span><span class="w"> </span><span class="fm">__init__</span><span class="p">(</span>
         <span class="bp">self</span><span class="p">,</span>
+        <span class="n">config</span><span class="p">:</span> <span class="n">ModernBERTConfig</span><span class="p">,</span>
+        <span class="o">*</span><span class="p">,</span>
+        <span class="n">dtype</span><span class="p">:</span> <span class="n">jnp</span><span class="o">.</span><span class="n">dtype</span> <span class="o">|</span> <span class="kc">None</span> <span class="o">=</span> <span class="kc">None</span><span class="p">,</span>
+        <span class="n">param_dtype</span><span class="p">:</span> <span class="n">jnp</span><span class="o">.</span><span class="n">dtype</span> <span class="o">=</span> <span class="n">jnp</span><span class="o">.</span><span class="n">float32</span><span class="p">,</span>
+        <span class="n">precision</span><span class="p">:</span> <span class="n">jax</span><span class="o">.</span><span class="n">lax</span><span class="o">.</span><span class="n">Precision</span> <span class="o">|</span> <span class="nb">str</span> <span class="o">|</span> <span class="kc">None</span> <span class="o">=</span> <span class="kc">None</span><span class="p">,</span>
         <span class="n">rngs</span><span class="p">:</span> <span class="n">nnx</span><span class="o">.</span><span class="n">Rngs</span><span class="p">,</span>
-        <span class="n">vocab_size</span><span class="p">:</span> <span class="nb">int</span><span class="p">,</span>
-        <span class="n">hidden_size</span><span class="p">:</span> <span class="nb">int</span><span class="p">,</span>
-        <span class="n">num_hidden_layers</span><span class="p">:</span> <span class="nb">int</span><span class="p">,</span>
-        <span class="n">num_attention_heads</span><span class="p">:</span> <span class="nb">int</span><span class="p">,</span>
-        <span class="n">intermediate_size</span><span class="p">:</span> <span class="nb">int</span><span class="p">,</span>
-        <span class="n">max_position_embeddings</span><span class="p">:</span> <span class="nb">int</span> <span class="o">=</span> <span class="mi">2048</span><span class="p">,</span>
-        <span class="n">attention_dropout</span><span class="p">:</span> <span class="nb">float</span> <span class="o">=</span> <span class="mf">0.0</span><span class="p">,</span>
-        <span class="n">hidden_dropout</span><span class="p">:</span> <span class="nb">float</span> <span class="o">=</span> <span class="mf">0.0</span><span class="p">,</span>
-        <span class="n">attention_bias</span><span class="p">:</span> <span class="nb">bool</span> <span class="o">=</span> <span class="kc">True</span><span class="p">,</span>
-        <span class="n">norm_eps</span><span class="p">:</span> <span class="nb">float</span> <span class="o">=</span> <span class="mf">1e-12</span><span class="p">,</span>
-        <span class="n">norm_bias</span><span class="p">:</span> <span class="nb">bool</span> <span class="o">=</span> <span class="kc">True</span><span class="p">,</span>
-        <span class="n">global_rope_theta</span><span class="p">:</span> <span class="nb">float</span> <span class="o">=</span> <span class="mf">10000.0</span><span class="p">,</span>
-        <span class="n">local_attention</span><span class="p">:</span> <span class="nb">tuple</span><span class="p">[</span><span class="nb">int</span><span class="p">,</span> <span class="nb">int</span><span class="p">]</span> <span class="o">=</span> <span class="p">(</span><span class="o">-</span><span class="mi">1</span><span class="p">,</span> <span class="o">-</span><span class="mi">1</span><span class="p">),</span>
-        <span class="n">local_rope_theta</span><span class="p">:</span> <span class="nb">float</span> <span class="o">|</span> <span class="kc">None</span> <span class="o">=</span> <span class="kc">None</span><span class="p">,</span>
-        <span class="n">global_attn_every_n_layers</span><span class="p">:</span> <span class="nb">int</span> <span class="o">=</span> <span class="mi">4</span><span class="p">,</span>
-        <span class="n">pad_token_id</span><span class="p">:</span> <span class="nb">int</span> <span class="o">=</span> <span class="mi">0</span><span class="p">,</span>
     <span class="p">):</span>
 <span class="w">        </span><span class="sd">&quot;&quot;&quot;Initialize ModernBERT model.</span>
 
 <span class="sd">        Args:</span>
-<span class="sd">            rngs: PRNG key collection</span>
-<span class="sd">            vocab_size: Size of vocabulary</span>
-<span class="sd">            hidden_size: Size of hidden states</span>
-<span class="sd">            num_hidden_layers: Number of transformer layers</span>
-<span class="sd">            num_attention_heads: Number of attention heads</span>
-<span class="sd">            intermediate_size: Size of MLP intermediate layer</span>
-<span class="sd">            max_position_embeddings: Maximum sequence length</span>
-<span class="sd">            attention_dropout: Dropout probability for attention</span>
-<span class="sd">            hidden_dropout: Dropout probability for hidden states</span>
-<span class="sd">            attention_bias: Whether to use bias in attention</span>
-<span class="sd">            norm_eps: Epsilon for layer normalization</span>
-<span class="sd">            norm_bias: Whether to use bias in layer normalization</span>
-<span class="sd">            global_rope_theta: Base for global RoPE</span>
-<span class="sd">            local_attention: Tuple of (left, right) window sizes</span>
-<span class="sd">            local_rope_theta: Base for local RoPE (optional)</span>
-<span class="sd">            global_attn_every_n_layers: Apply global attention every N layers</span>
-<span class="sd">            pad_token_id: Token ID to use for padding</span>
+<span class="sd">            config: Configuration for ModernBERT model</span>
+<span class="sd">            dtype: Data type in which computation is performed</span>
+<span class="sd">            param_dtype: Data type in which params are stored</span>
+<span class="sd">            precision: Numerical precision</span>
+<span class="sd">            rngs: Random number generators for param initialization</span>
 <span class="sd">        &quot;&quot;&quot;</span>
-        <span class="nb">super</span><span class="p">()</span><span class="o">.</span><span class="fm">__init__</span><span class="p">()</span>
+        <span class="nb">super</span><span class="p">()</span><span class="o">.</span><span class="fm">__init__</span><span class="p">(</span>
+            <span class="n">config</span><span class="p">,</span> <span class="n">dtype</span><span class="o">=</span><span class="n">dtype</span><span class="p">,</span> <span class="n">param_dtype</span><span class="o">=</span><span class="n">param_dtype</span><span class="p">,</span> <span class="n">precision</span><span class="o">=</span><span class="n">precision</span><span class="p">,</span> <span class="n">rngs</span><span class="o">=</span><span class="n">rngs</span>
+        <span class="p">)</span>
 
         <span class="c1"># Initialize embeddings</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">embeddings</span> <span class="o">=</span> <span class="n">ModernBertEmbeddings</span><span class="p">(</span>
             <span class="n">rngs</span><span class="o">=</span><span class="n">rngs</span><span class="p">,</span>
-            <span class="n">vocab_size</span><span class="o">=</span><span class="n">vocab_size</span><span class="p">,</span>
-            <span class="n">hidden_size</span><span class="o">=</span><span class="n">hidden_size</span><span class="p">,</span>
-            <span class="n">pad_token_id</span><span class="o">=</span><span class="n">pad_token_id</span><span class="p">,</span>
-            <span class="n">norm_eps</span><span class="o">=</span><span class="n">norm_eps</span><span class="p">,</span>
-            <span class="n">norm_bias</span><span class="o">=</span><span class="n">norm_bias</span><span class="p">,</span>
-            <span class="n">embedding_dropout</span><span class="o">=</span><span class="n">hidden_dropout</span><span class="p">,</span>
+            <span class="n">vocab_size</span><span class="o">=</span><span class="n">config</span><span class="o">.</span><span class="n">vocab_size</span><span class="p">,</span>
+            <span class="n">hidden_size</span><span class="o">=</span><span class="n">config</span><span class="o">.</span><span class="n">hidden_size</span><span class="p">,</span>
+            <span class="n">pad_token_id</span><span class="o">=</span><span class="n">config</span><span class="o">.</span><span class="n">pad_token_id</span><span class="p">,</span>
+            <span class="n">norm_eps</span><span class="o">=</span><span class="n">config</span><span class="o">.</span><span class="n">norm_eps</span><span class="p">,</span>
+            <span class="n">norm_bias</span><span class="o">=</span><span class="n">config</span><span class="o">.</span><span class="n">norm_bias</span><span class="p">,</span>
+            <span class="n">embedding_dropout</span><span class="o">=</span><span class="n">config</span><span class="o">.</span><span class="n">hidden_dropout</span><span class="p">,</span>
         <span class="p">)</span>
 
         <span class="c1"># Initialize encoder</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">encoder</span> <span class="o">=</span> <span class="n">ModernBERTEncoder</span><span class="p">(</span>
             <span class="n">rngs</span><span class="o">=</span><span class="n">rngs</span><span class="p">,</span>
-            <span class="n">hidden_size</span><span class="o">=</span><span class="n">hidden_size</span><span class="p">,</span>
-            <span class="n">num_attention_heads</span><span class="o">=</span><span class="n">num_attention_heads</span><span class="p">,</span>
-            <span class="n">intermediate_size</span><span class="o">=</span><span class="n">intermediate_size</span><span class="p">,</span>
-            <span class="n">num_hidden_layers</span><span class="o">=</span><span class="n">num_hidden_layers</span><span class="p">,</span>
-            <span class="n">attention_dropout</span><span class="o">=</span><span class="n">attention_dropout</span><span class="p">,</span>
-            <span class="n">hidden_dropout</span><span class="o">=</span><span class="n">hidden_dropout</span><span class="p">,</span>
-            <span class="n">attention_bias</span><span class="o">=</span><span class="n">attention_bias</span><span class="p">,</span>
-            <span class="n">norm_eps</span><span class="o">=</span><span class="n">norm_eps</span><span class="p">,</span>
-            <span class="n">norm_bias</span><span class="o">=</span><span class="n">norm_bias</span><span class="p">,</span>
-            <span class="n">global_rope_theta</span><span class="o">=</span><span class="n">global_rope_theta</span><span class="p">,</span>
-            <span class="n">max_position_embeddings</span><span class="o">=</span><span class="n">max_position_embeddings</span><span class="p">,</span>
-            <span class="n">local_attention</span><span class="o">=</span><span class="n">local_attention</span><span class="p">,</span>
-            <span class="n">local_rope_theta</span><span class="o">=</span><span class="n">local_rope_theta</span><span class="p">,</span>
-            <span class="n">global_attn_every_n_layers</span><span class="o">=</span><span class="n">global_attn_every_n_layers</span><span class="p">,</span>
+            <span class="n">hidden_size</span><span class="o">=</span><span class="n">config</span><span class="o">.</span><span class="n">hidden_size</span><span class="p">,</span>
+            <span class="n">num_attention_heads</span><span class="o">=</span><span class="n">config</span><span class="o">.</span><span class="n">num_attention_heads</span><span class="p">,</span>
+            <span class="n">intermediate_size</span><span class="o">=</span><span class="n">config</span><span class="o">.</span><span class="n">intermediate_size</span><span class="p">,</span>
+            <span class="n">num_hidden_layers</span><span class="o">=</span><span class="n">config</span><span class="o">.</span><span class="n">num_hidden_layers</span><span class="p">,</span>
+            <span class="n">attention_dropout</span><span class="o">=</span><span class="n">config</span><span class="o">.</span><span class="n">attention_dropout</span><span class="p">,</span>
+            <span class="n">hidden_dropout</span><span class="o">=</span><span class="n">config</span><span class="o">.</span><span class="n">hidden_dropout</span><span class="p">,</span>
+            <span class="n">attention_bias</span><span class="o">=</span><span class="n">config</span><span class="o">.</span><span class="n">attention_bias</span><span class="p">,</span>
+            <span class="n">norm_eps</span><span class="o">=</span><span class="n">config</span><span class="o">.</span><span class="n">norm_eps</span><span class="p">,</span>
+            <span class="n">norm_bias</span><span class="o">=</span><span class="n">config</span><span class="o">.</span><span class="n">norm_bias</span><span class="p">,</span>
+            <span class="n">global_rope_theta</span><span class="o">=</span><span class="n">config</span><span class="o">.</span><span class="n">global_rope_theta</span><span class="p">,</span>
+            <span class="n">max_position_embeddings</span><span class="o">=</span><span class="n">config</span><span class="o">.</span><span class="n">max_position_embeddings</span><span class="p">,</span>
+            <span class="n">local_attention</span><span class="o">=</span><span class="n">config</span><span class="o">.</span><span class="n">local_attention</span><span class="p">,</span>
+            <span class="n">local_rope_theta</span><span class="o">=</span><span class="n">config</span><span class="o">.</span><span class="n">local_rope_theta</span><span class="p">,</span>
+            <span class="n">global_attn_every_n_layers</span><span class="o">=</span><span class="n">config</span><span class="o">.</span><span class="n">global_attn_every_n_layers</span><span class="p">,</span>
         <span class="p">)</span>
 
         <span class="c1"># Initialize MLM head</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">mlm_head</span> <span class="o">=</span> <span class="n">ModernBERTMLMHead</span><span class="p">(</span>
             <span class="n">rngs</span><span class="o">=</span><span class="n">rngs</span><span class="p">,</span>
-            <span class="n">hidden_size</span><span class="o">=</span><span class="n">hidden_size</span><span class="p">,</span>
-            <span class="n">vocab_size</span><span class="o">=</span><span class="n">vocab_size</span><span class="p">,</span>
-            <span class="n">norm_eps</span><span class="o">=</span><span class="n">norm_eps</span><span class="p">,</span>
-            <span class="n">norm_bias</span><span class="o">=</span><span class="n">norm_bias</span><span class="p">,</span>
+            <span class="n">hidden_size</span><span class="o">=</span><span class="n">config</span><span class="o">.</span><span class="n">hidden_size</span><span class="p">,</span>
+            <span class="n">vocab_size</span><span class="o">=</span><span class="n">config</span><span class="o">.</span><span class="n">vocab_size</span><span class="p">,</span>
+            <span class="n">norm_eps</span><span class="o">=</span><span class="n">config</span><span class="o">.</span><span class="n">norm_eps</span><span class="p">,</span>
+            <span class="n">norm_bias</span><span class="o">=</span><span class="n">config</span><span class="o">.</span><span class="n">norm_bias</span><span class="p">,</span>
         <span class="p">)</span></div>
 
 
