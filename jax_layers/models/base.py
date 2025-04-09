@@ -105,6 +105,9 @@ param_dtype: Data type in which params are stored.
 
         Args:
             model_path_to_params: Path to directory containing .safetensors files."""
+        if not os.path.isdir(path_to_model_weights):
+            raise ValueError(f"{path_to_model_weights} is not a valid directory.")
+
         safetensors_files = Path(path_to_model_weights).glob('*.safetensors')
 
         for file in safetensors_files:
