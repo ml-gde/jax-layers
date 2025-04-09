@@ -13,6 +13,7 @@ from safetensors import safe_open
 
 DEFAULT_PARAMS_FILE = "jaxgarden_state"
 
+
 @dataclass
 class BaseConfig:
     """Base configuration for all the models implemented in the JAXgarden library.
@@ -34,24 +35,27 @@ class BaseConfig:
             else:
                 self.extra[k] = v
 
+
 class BaseModel(nnx.Module):
     """Base class for all the models implemented in the JAXgarden library."""
 
-    def __init__(self,
-                 config: BaseConfig,
-                 *,
-                 dtype: jnp.dtype | None = None,
-                 param_dtype: jnp.dtype = jnp.float32,
-                 precision: jax.lax.Precision | str | None = None,
-                 rngs: nnx.Rngs):
+    def __init__(
+        self,
+        config: BaseConfig,
+        *,
+        dtype: jnp.dtype | None = None,
+        param_dtype: jnp.dtype = jnp.float32,
+        precision: jax.lax.Precision | str | None = None,
+        rngs: nnx.Rngs,
+    ):
         """Initialize the model.
 
-                Args:
-            config: config class for this model.
-            dtype: Data type in which computation is performed.
-param_dtype: Data type in which params are stored.
-            precision: Numerical precision.
-            rngs: Random number generators for param initialization etc.
+                        Args:
+                    config: config class for this model.
+                    dtype: Data type in which computation is performed.
+        param_dtype: Data type in which params are stored.
+                    precision: Numerical precision.
+                    rngs: Random number generators for param initialization etc.
         """
         self.config = config
         self.dtype = dtype
@@ -113,7 +117,7 @@ param_dtype: Data type in which params are stored.
         if not os.path.isdir(path_to_model_weights):
             raise ValueError(f"{path_to_model_weights} is not a valid directory.")
 
-        safetensors_files = Path(path_to_model_weights).glob('*.safetensors')
+        safetensors_files = Path(path_to_model_weights).glob("*.safetensors")
 
         for file in safetensors_files:
             with safe_open(file, framework="jax", device="cpu") as f:

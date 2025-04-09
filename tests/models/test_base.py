@@ -12,6 +12,7 @@ class TwoLayerMLPConfig(BaseConfig):
     dim: int = 4
     use_bias: bool = False
 
+
 class TwoLayerMLP(BaseModel):
     def __init__(self, config, rngs: nnx.Rngs):
         self.linear1 = nnx.Linear(config.dim, config.dim, rngs=rngs, use_bias=config.use_bias)
@@ -20,6 +21,7 @@ class TwoLayerMLP(BaseModel):
     def __call__(self, x):
         x = self.linear1(x)
         return self.linear2(x)
+
 
 def test_save_and_load():
     ckpt_dir = "/tmp/jaxgarden_test_ckpt"
