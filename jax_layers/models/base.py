@@ -16,7 +16,7 @@ DEFAULT_PARAMS_FILE = "jaxgarden_state"
 @dataclass
 class BaseConfig:
     """Base configuration for all the models implemented in the JAXgarden library.
-    
+
     Each model implemented in JAXgarden should subclass this class for configuration management.
     """
 
