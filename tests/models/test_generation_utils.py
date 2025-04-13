@@ -33,7 +33,11 @@ class MockModel(GenerationMixin):
             if attention_mask.ndim == 1:
                 current_length = jnp.sum(attention_mask)
             elif attention_mask.ndim == 2:
-                current_length = jnp.sum(attention_mask, axis=-1)
+                # Ensure current_length is scalar if attention_mask is [1, seq_len]
+                if attention_mask.shape[0] == 1:
+                    current_length = jnp.sum(attention_mask[0])
+                else:  # Handle [batch, seq_len]
+                    current_length = jnp.sum(attention_mask, axis=-1)
             else:
                 raise ValueError(f"Unexpected attention_mask ndim: {attention_mask.ndim}")
 
@@ -360,42 +364,39 @@ def test_generate_no_sample_rng_none(generation_setup):
     assert output_ids.shape == (input_ids.shape[0], max_length)
 
 
-# def test_generate_jax_compile():
-#     """Tests that jax.jit can be used with generate without error."""
-#     key = random.PRNGKey(42)
-#     vocab_size = 10
-#     eos_token_id = 9
-#     pad_token_id = 0
-#     model = MockModel(vocab_size, eos_token_id, pad_token_id)
-#     input_ids = jnp.array([[1, 2], [5, 6]], dtype=jnp.int32)
-#     max_length = 7
+def test_generate_jax_compile():
+    """Tests that jax.jit can be used with generate without error."""
+    vocab_size = 10
+    eos_token_id = 9
+    pad_token_id = 0
+    model = MockModel(vocab_size, eos_token_id, pad_token_id)
+    input_ids = jnp.array([[1, 2], [5, 6]], dtype=jnp.int32)
+    max_length = 7
 
-#     output_ids = jax.jit(model.generate)(
-#         input_ids,
-#         max_length=max_length,
-#         do_sample=False,
-#         eos_token_id=eos_token_id,
-#         pad_token_id=pad_token_id
-#     )
+    output_ids = model.generate(
+        input_ids,
+        max_length=max_length,
+        do_sample=False,
+        eos_token_id=eos_token_id,
+        pad_token_id=pad_token_id,
+        use_jit=True,
+    )
 
-#     assert output_ids.shape == (input_ids.shape[0], max_length)
+    assert output_ids.shape == (input_ids.shape[0], max_length)
 
-#     # Expected sequence based on mock model: next = (last + 1) % vocab_size
-#     # Batch 1: [1, 2] -> 3 -> 4 -> 5 -> 6 -> 7
-#     # Batch 2: [5, 6] -> 7 -> 8 -> 9 (EOS) -> 0 (PAD) -> 0 (PAD)
-#     expected_output = jnp.array(
-#         [[1, 2, 3, 4, 5, 6, 7],
-#          [5, 6, 7, 8, 9, 0, 0]],
-#         dtype=jnp.int32
-#     )
-#     assert jnp.array_equal(output_ids, expected_output) # Should match greedy output
+    # Expected sequence based on mock model: next = (last + 1) % vocab_size
+    # Batch 1: [1, 2] -> 3 -> 4 -> 5 -> 6 -> 7
+    # Batch 2: [5, 6] -> 7 -> 8 -> 9 (EOS) -> 0 (PAD) -> 0 (PAD)
+    expected_output = jnp.array([[1, 2, 3, 4, 5, 6, 7], [5, 6, 7, 8, 9, 0, 0]], dtype=jnp.int32)
+    assert jnp.array_equal(output_ids, expected_output)  # Should match greedy output
 
-#     # Test that jax.jit does not affect the output
-#     output_ids2 = jax.jit(model.generate)(
-#         input_ids,
-#         max_length=max_length,
-#         do_sample=False,
-#         eos_token_id=eos_token_id,
-#         pad_token_id=pad_token_id
-#     )
-#     assert jnp.array_equal(output_ids, output_ids2)
+    # Test that jax.jit does not affect the output
+    output_ids2 = model.generate(
+        input_ids,
+        max_length=max_length,
+        do_sample=False,
+        eos_token_id=eos_token_id,
+        pad_token_id=pad_token_id,
+        use_jit=True,
+    )
+    assert jnp.array_equal(output_ids, output_ids2)

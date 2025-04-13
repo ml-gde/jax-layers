@@ -1,3 +1,4 @@
+from functools import partial
 from typing import TYPE_CHECKING, Any, TypeVar, cast
 
 import jax
@@ -8,13 +9,14 @@ from jax_layers.models.base import BaseModel
 
 # TYPE_CHECKING to avoid circular imports at runtime
 if TYPE_CHECKING:
-    # Define a TypeVar for self in GenerationMixin, bounded by BaseModel
-    T = TypeVar("T", bound="BaseModel")
+    # Define a TypeVar for documenting the intended usage context,
+    # i.e., classes using this mixin should inherit from BaseModel.
+    T_BaseModel = TypeVar("T_BaseModel", bound="BaseModel")
     # Define a base class for type checking
     _Base = BaseModel
 else:
     # Runtime doesn't strictly need the bound, but define T anyway
-    T = TypeVar("T")
+    T_BaseModel = TypeVar("T_BaseModel")
     # Use object at runtime
     _Base = object
 
@@ -232,8 +234,134 @@ class GenerationMixin(_Base):
     including sampling with temperature, top-k, top-p,
     and min-probability filtering, for CausalLMs."""
 
+    def _generate_scan_logic(
+        self: "GenerationMixin",  # self is needed for model call
+        initial_input_ids: jnp.ndarray,
+        initial_finished_sequences: jnp.ndarray,
+        initial_rng: jax.Array,
+        initial_seq_len: int,
+        # --- Static arguments (used by JIT, must be passed regardless) ---
+        max_length: int,
+        temperature: float,
+        top_k: int | None,
+        top_p: float | None,
+        min_p: float | None,
+        do_sample: bool,
+        pad_token_id: int,
+        eos_token_id: int | None,
+    ) -> jnp.ndarray:
+        """The core autoregressive generation logic using lax.scan.
+        This function itself is NOT jitted here."""
+
+        batch_size = initial_input_ids.shape[0]
+        output_ids = jnp.full((batch_size, max_length), pad_token_id, dtype=initial_input_ids.dtype)
+        output_ids = output_ids.at[:, :initial_seq_len].set(initial_input_ids)
+
+        def scan_step(carry: dict, _: Any) -> tuple[dict, None]:
+            current_output_ids = carry["output_ids"]
+            current_length = carry["current_length"]
+            step_rng = carry["rng"]
+            current_finished = carry["finished"]
+
+            next_rng = step_rng
+            sampling_rng = step_rng
+            if do_sample:  # Relies on do_sample being static *when jitted*
+                sampling_rng, next_rng = jax.random.split(step_rng)
+
+            # This mask tells the model which tokens are valid.
+            attention_mask = (jnp.arange(max_length) < current_length).astype(jnp.int32)[None, :]
+
+            # Call the model, passing the attention mask
+            # Assume the model returns a dictionary with 'logits'
+            # Also assume the model should run deterministically during generation
+            logits = self(  # type: ignore[operator]
+                input_ids=current_output_ids,
+                attention_mask=attention_mask,
+                deterministic=True,  # Generation should be deterministic (no dropout)
+            )
+
+            # Get logits for the *next* token prediction (at index current_length - 1)
+            next_token_logits = jax.lax.dynamic_slice_in_dim(
+                logits, current_length - 1, 1, axis=1
+            ).squeeze(axis=1)
+
+            # Sample the next token
+            next_token = sample_logits(
+                logits=next_token_logits,
+                rng_key=sampling_rng,
+                temperature=temperature,
+                top_k=top_k,
+                top_p=top_p,
+                min_p=min_p,
+                do_sample=do_sample,
+            )
+            next_token = next_token.astype(current_output_ids.dtype)
+
+            # Determine the token to actually write (handling EOS and padding)
+            output_token = next_token  # Default
+            next_finished = current_finished
+            if eos_token_id is not None:  # Relies on eos_token_id being static *when jitted*
+                newly_finished = (next_token == eos_token_id) & (~current_finished)
+                next_finished = current_finished | newly_finished
+                # If already finished, write pad_token_id, otherwise write the sampled token
+                output_token = jnp.where(current_finished, pad_token_id, next_token)
+
+            # Update the output sequence
+            updated_output_ids = jax.lax.dynamic_update_slice_in_dim(
+                current_output_ids, output_token[:, None], current_length, axis=1
+            )
+
+            # Prepare carry for the next step
+            next_carry = {
+                "output_ids": updated_output_ids,
+                "current_length": current_length + 1,
+                "rng": next_rng,
+                "finished": next_finished,
+            }
+            return next_carry, None
+
+        initial_carry = {
+            "output_ids": output_ids,
+            "current_length": jnp.array(initial_seq_len),
+            "rng": initial_rng,
+            "finished": initial_finished_sequences,
+        }
+        num_steps_to_generate = max_length - initial_seq_len
+
+        # Run the scan only if needed
+        if num_steps_to_generate > 0:
+            final_carry, _ = jax.lax.scan(
+                scan_step, initial_carry, None, length=num_steps_to_generate
+            )
+            final_output_ids = final_carry["output_ids"]
+        else:
+            # If no steps needed (initial_seq_len == max_length), return initial output_ids
+            final_output_ids = output_ids
+
+        return cast(jnp.ndarray, final_output_ids)
+
+    # Define the compiled version of the scan logic
+    # This uses partial to pre-apply jax.jit with static arguments
+    # Note: Compiling happens when this method definition is executed.
+    _generate_compiled = partial(
+        jax.jit,
+        # Specify arguments that control the computation graph structure
+        static_argnames=(
+            "self",  # Need self for model call inside scan_step
+            "max_length",
+            "temperature",
+            "top_k",
+            "top_p",
+            "min_p",
+            "do_sample",
+            "pad_token_id",
+            "eos_token_id",
+            "initial_seq_len",
+        ),
+    )(_generate_scan_logic)  # Apply JIT to the core logic function
+
     def generate(
-        self: T,
+        self: "GenerationMixin",
         input_ids: jnp.ndarray,
         max_length: int = 20,
         temperature: float = 1.0,
@@ -244,6 +372,7 @@ class GenerationMixin(_Base):
         pad_token_id: int | None = None,
         eos_token_id: int | None = None,
         rng: jax.Array | None = None,
+        use_jit: bool = False,
     ) -> jnp.ndarray:
         """Generate tokens autoregressively with various sampling methods.
 
@@ -259,123 +388,126 @@ class GenerationMixin(_Base):
             pad_token_id: Token ID to use for padding.
             eos_token_id: Token ID that signals the end of generation.
             rng: Optional PRNG key for sampling.
+            use_jit: If True, use jax.jit to compile the generate function.
 
         Returns:
             Generated token IDs of shape [batch_size, max_length].
         """
 
-        if do_sample and rng is None:
-            rng = jax.random.PRNGKey(0)
-            print("Warning: No RNG key provided for sampling, using default key 0.")
-        elif not do_sample and rng is None:
-            rng = jax.random.PRNGKey(0)
+        if not isinstance(max_length, int) or max_length <= 0:
+            raise ValueError(f"max_length must be a positive integer, got {max_length}")
+        if not isinstance(temperature, (float, int)) or temperature <= 0:  # noqa: UP038
+            raise ValueError(f"temperature must be positive, got {temperature}")
+        if top_k is not None and (not isinstance(top_k, int) or top_k <= 0):
+            raise ValueError(f"top_k must be a positive integer, got {top_k}")
+        if top_p is not None and (not isinstance(top_p, float) or not 0 < top_p <= 1.0):
+            raise ValueError(f"top_p must be in (0, 1], got {top_p}")
+        _top_p = top_p if top_p != 1.0 else None  # Handle p=1.0 case internally
+        if min_p is not None and (not isinstance(min_p, float) or not 0 < min_p <= 1.0):
+            raise ValueError(f"min_p must be in (0, 1], got {min_p}")
+        if input_ids.ndim != 2:
+            raise ValueError(
+                f"input_ids must be 2D [batch_size, seq_len], got shape {input_ids.shape}"
+            )
+
+        # Handle RNG key
+        _rng = rng
+        if do_sample:
+            if _rng is None:
+                print("Warning: No RNG key provided for sampling, using default key 0.")
+                _rng = jax.random.PRNGKey(0)  # Use seed 0
+            # Ensure rng is a JAX key
+            if isinstance(_rng, int):
+                _rng = jax.random.PRNGKey(_rng)
+            elif not isinstance(_rng, jax.Array):
+                raise ValueError(f"Invalid rng provided: {_rng}. Expected JAX PRNGKey or seed.")
+        elif _rng is None:  # Provide a dummy key if not sampling and None was passed
+            _rng = jax.random.PRNGKey(0)
+        elif isinstance(_rng, int):  # Ensure key even if not sampling but seed provided
+            _rng = jax.random.PRNGKey(_rng)
+
+        # Resolve pad_token_id
+        _pad_token_id = pad_token_id
+        if _pad_token_id is None:
+            # Safely access config attribute
+            config = getattr(self, "config", None)
+            _pad_token_id = getattr(config, "pad_token_id", 0) if config else 0
+        if not isinstance(_pad_token_id, int):
+            raise ValueError(f"pad_token_id must be an integer, got {_pad_token_id}")
+
+        # Resolve eos_token_id
+        _eos_token_id = eos_token_id
+        if _eos_token_id is not None and not isinstance(_eos_token_id, int):
+            raise ValueError(f"eos_token_id must be an integer or None, got {_eos_token_id}")
 
         # Get initial sequence length and batch size
-        batch_size, seq_len = input_ids.shape
-
-        # If pad_token_id is not provided, try to get from config
-        if pad_token_id is None:
-            pad_token_id = getattr(self.config, "pad_token_id", 0)
-
-        # Initialize output with padding to max_length
-        output_ids = jnp.full((batch_size, max_length), pad_token_id, dtype=input_ids.dtype)
+        batch_size, initial_seq_len = input_ids.shape
 
         # Handle cases where input is already long enough
-        if seq_len >= max_length:
+        if initial_seq_len >= max_length:
+            print(f"""Warning: Initial sequence length ({initial_seq_len}) \
+                is >= max_length ({max_length}). \
+                Returning truncated input.""")
             return input_ids[:, :max_length]
-
-        # Copy input_ids to the beginning of output_ids
-        output_ids = output_ids.at[:, :seq_len].set(input_ids)
 
         # Track whether each sequence is finished
         finished_sequences = jnp.zeros((batch_size,), dtype=jnp.bool_)
 
-        if eos_token_id is not None:
-            finished_sequences = input_ids[:, -1] == eos_token_id
+        if _eos_token_id is not None:
+            # Check if the *last* token of the input is EOS
+            finished_sequences = jnp.where(
+                initial_seq_len > 0,
+                input_ids[:, -1] == _eos_token_id,
+                jnp.zeros_like(finished_sequences),  # Ensure correct shape if seq_len is 0
+            )
 
-        def scan_step(carry: dict, _: Any) -> tuple[dict, None]:
-            """Performs one step of token generation."""
-            # Unpack carry state
-            current_output_ids = carry["output_ids"]
-            current_length = carry["current_length"]
-            step_rng = carry["rng"]
-            current_finished = carry["finished"]
+        # --- Conditionally Call Jitted or Non-Jitted Core Logic ---
+        # common_args = {
+        #     "initial_input_ids": input_ids,
+        #     "initial_finished_sequences": finished_sequences,
+        #     "initial_rng": _rng,
+        #     "initial_seq_len": initial_seq_len, # Pass as static arg for JIT
+        #     "max_length": max_length,
+        #     "temperature": float(temperature), # Ensure float
+        #     "top_k": top_k,
+        #     "top_p": _top_p, # Use resolved top_p
+        #     "min_p": min_p,
+        #     "do_sample": do_sample,
+        #     "pad_token_id": _pad_token_id, # Use resolved pad id
+        #     "eos_token_id": _eos_token_id, # Use resolved eos id
+        # }
 
-            # Split RNG key for this step if sampling
-            next_rng = step_rng
-            # Assuming do_sample is a static argument for JIT compilation
-            if do_sample:
-                step_rng, next_rng = jax.random.split(step_rng)
-
-            # --- Prepare inputs for the model ---
-            # Create a mask indicating valid positions up to current_length.
-            position_indices = jnp.arange(max_length)
-            # Mask is 1 for valid positions, 0 for padding/future
-            attention_mask = (position_indices < current_length).astype(jnp.int32)
-
-            logits = self(input_ids=current_output_ids, attention_mask=attention_mask)  # type: ignore
-
-            # Get logits for the next token prediction (at index current_length - 1)
-            # Logits shape: [batch_size, max_length, vocab_size]
-            next_token_logits = logits[:, current_length - 1, :]
-
-            next_token = sample_logits(
-                logits=next_token_logits,
-                rng_key=step_rng,
-                temperature=temperature,
+        if use_jit:
+            # Call the pre-compiled method
+            final_output_ids = self._generate_compiled(
+                initial_input_ids=input_ids,
+                initial_finished_sequences=finished_sequences,
+                initial_rng=_rng,
+                initial_seq_len=initial_seq_len,
+                max_length=max_length,
+                temperature=float(temperature),
                 top_k=top_k,
-                top_p=top_p,
+                top_p=_top_p,
                 min_p=min_p,
                 do_sample=do_sample,
+                pad_token_id=_pad_token_id,
+                eos_token_id=_eos_token_id,
             )
-            next_token = next_token.astype(current_output_ids.dtype)  # Shape: (batch_size,)
-
-            # Update finished state and mask token
-            if eos_token_id is not None:
-                newly_finished = (next_token == eos_token_id) & (~current_finished)
-                next_finished = current_finished | newly_finished
-
-                # If a sequence was already finished, keep padding it.
-                # Otherwise, use the generated token (which might be EOS).
-                output_token = jnp.where(current_finished, pad_token_id, next_token)
-            else:
-                # No EOS handling, always use the generated token
-                next_finished = current_finished
-                output_token = next_token
-
-            # Write the potentially masked token at the current_length position
-            updated_output_ids = current_output_ids.at[:, current_length].set(output_token)
-
-            # Prepare carry for the next step
-            next_carry = {
-                "output_ids": updated_output_ids,
-                "current_length": current_length + 1,
-                "rng": next_rng,
-                "finished": next_finished,
-            }
-
-            # Return the updated carry. The second element (per-step output) is None.
-            return next_carry, None
-
-        # Initialize carry state for scan
-        initial_carry = {
-            "output_ids": output_ids,
-            "current_length": jnp.array(seq_len),
-            "rng": rng,
-            "finished": finished_sequences,
-        }
-
-        num_steps_to_generate = max_length - seq_len
-
-        # Run the scan loop
-        if num_steps_to_generate > 0:
-            final_carry, _ = jax.lax.scan(
-                scan_step, initial_carry, None, length=num_steps_to_generate
-            )
-            final_output_ids = final_carry["output_ids"]
         else:
-            # If input length was already >= max_length, we returned earlier.
-            # This case handles input_length == max_length exactly.
-            final_output_ids = output_ids
+            # Call the raw logic method directly
+            final_output_ids = self._generate_scan_logic(
+                initial_input_ids=input_ids,
+                initial_finished_sequences=finished_sequences,
+                initial_rng=_rng,
+                initial_seq_len=initial_seq_len,
+                max_length=max_length,
+                temperature=float(temperature),
+                top_k=top_k,
+                top_p=_top_p,
+                min_p=min_p,
+                do_sample=do_sample,
+                pad_token_id=_pad_token_id,
+                eos_token_id=_eos_token_id,
+            )
 
         return cast(jnp.ndarray, final_output_ids)
