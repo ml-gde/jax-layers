@@ -1,6 +1,22 @@
+from typing import TYPE_CHECKING, Any, TypeVar, cast
+
 import jax
 import jax.numpy as jnp
 from flax import nnx
+
+from jax_layers.models.base import BaseModel
+
+# TYPE_CHECKING to avoid circular imports at runtime
+if TYPE_CHECKING:
+    # Define a TypeVar for self in GenerationMixin, bounded by BaseModel
+    T = TypeVar("T", bound="BaseModel")
+    # Define a base class for type checking
+    _Base = BaseModel
+else:
+    # Runtime doesn't strictly need the bound, but define T anyway
+    T = TypeVar("T")
+    # Use object at runtime
+    _Base = object
 
 # Constants for numerical stability
 EPSILON = 1e-9
@@ -130,7 +146,7 @@ def min_p_logits(logits: jnp.ndarray, p: float) -> jnp.ndarray:
 
 def sample_logits(
     logits: jnp.ndarray,
-    rng_key: jax.random.PRNGKey,
+    rng_key: jax.Array,
     temperature: float = 1.0,
     top_k: int | None = None,
     top_p: float | None = None,
@@ -211,13 +227,13 @@ def create_causal_mask(seq_len: int) -> jnp.ndarray:
     return mask
 
 
-class GenerationMixin:
+class GenerationMixin(_Base):
     """Mixin that adds text generation capabilities,
     including sampling with temperature, top-k, top-p,
     and min-probability filtering, for CausalLMs."""
 
     def generate(
-        self,
+        self: T,
         input_ids: jnp.ndarray,
         max_length: int = 20,
         temperature: float = 1.0,
@@ -227,7 +243,7 @@ class GenerationMixin:
         do_sample: bool = True,
         pad_token_id: int | None = None,
         eos_token_id: int | None = None,
-        rng: jax.random.PRNGKey = None,
+        rng: jax.Array | None = None,
     ) -> jnp.ndarray:
         """Generate tokens autoregressively with various sampling methods.
 
@@ -259,7 +275,7 @@ class GenerationMixin:
 
         # If pad_token_id is not provided, try to get from config
         if pad_token_id is None:
-            pad_token_id = self.config.get("pad_token_id", 0)
+            pad_token_id = getattr(self.config, "pad_token_id", 0)
 
         # Initialize output with padding to max_length
         output_ids = jnp.full((batch_size, max_length), pad_token_id, dtype=input_ids.dtype)
@@ -277,7 +293,7 @@ class GenerationMixin:
         if eos_token_id is not None:
             finished_sequences = input_ids[:, -1] == eos_token_id
 
-        def scan_step(carry, _):
+        def scan_step(carry: dict, _: Any) -> tuple[dict, None]:
             """Performs one step of token generation."""
             # Unpack carry state
             current_output_ids = carry["output_ids"]
@@ -297,7 +313,7 @@ class GenerationMixin:
             # Mask is 1 for valid positions, 0 for padding/future
             attention_mask = (position_indices < current_length).astype(jnp.int32)
 
-            logits = self(input_ids=current_output_ids, attention_mask=attention_mask)
+            logits = self(input_ids=current_output_ids, attention_mask=attention_mask)  # type: ignore
 
             # Get logits for the next token prediction (at index current_length - 1)
             # Logits shape: [batch_size, max_length, vocab_size]
@@ -362,4 +378,4 @@ class GenerationMixin:
             # This case handles input_length == max_length exactly.
             final_output_ids = output_ids
 
-        return final_output_ids
+        return cast(jnp.ndarray, final_output_ids)
