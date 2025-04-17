@@ -3,7 +3,7 @@
 [![Doc](https://github.com/ml-gde/jax-layers/actions/workflows/docs.yml/badge.svg)](https://github.com/ml-gde/jax-layers/actions/workflows/docs.yml)
 [![Tests](https://github.com/ml-gde/jax-layers/actions/workflows/tests.yml/badge.svg)](https://github.com/ml-gde/jax-layers/actions/workflows/tests.yml)
 
-![Logo](./assets/logo.jpg)
+![Logo](./assets/logo.png)
 
 A reusable collection of high-performance neural network layers and models in JAX, aiming to match and exceed the capabilities available in the PyTorch ecosystem.
 
