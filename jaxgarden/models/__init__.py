@@ -1,6 +1,6 @@
-from jax_layers.models.base import BaseConfig, BaseModel
-from jax_layers.models.generation_utils import GenerationMixin
-from jax_layers.models.modernbert import (
+from jaxgarden.models.base import BaseConfig, BaseModel
+from jaxgarden.models.generation_utils import GenerationMixin
+from jaxgarden.models.modernbert import (
     ModernBertAttention,
     ModernBertEmbeddings,
     ModernBERTEncoder,

@@ -7,9 +7,9 @@ import sys
 sys.path.insert(0, os.path.abspath(".."))
 
 # Project information
-project = "JAX Layers"
-copyright = "2025, JAX Layers Contributors"
-author = "JAX Layers Contributors"
+project = "JAXgarden"
+copyright = "2025, JAXgarden Contributors"
+author = "JAXgarden Contributors"
 
 # The full version, including alpha/beta/rc tags
 release = "0.1.0"

@@ -1,15 +1,15 @@
-# JAX Layers
+# JAXgarden
 
 [![Doc](https://github.com/ml-gde/jax-layers/actions/workflows/docs.yml/badge.svg)](https://github.com/ml-gde/jax-layers/actions/workflows/docs.yml)
 [![Tests](https://github.com/ml-gde/jax-layers/actions/workflows/tests.yml/badge.svg)](https://github.com/ml-gde/jax-layers/actions/workflows/tests.yml)
 
-![Logo](./assets/logo.jpg)
+![Logo](./assets/logo.png)
 
-A reusable collection of high-performance neural network layers and models for JAX, aiming to match and exceed the capabilities available in the PyTorch ecosystem.
+A reusable collection of high-performance neural network layers and models in JAX, aiming to match and exceed the capabilities available in the PyTorch ecosystem.
 
 ## Motivation
 
-JAX Layers was created to provide the JAX ecosystem with a comprehensive library of well-documented, thoroughly tested, and numerically accurate implementations of neural network layers and models. The project aims to:
+JAXgarden was created to provide the JAX ecosystem with a comprehensive library of well-documented, thoroughly tested, and numerically accurate implementations of neural network layers and models. The project aims to:
 
 - Provide both functional APIs and Flax NNX wrappers for maximum flexibility
 - Ensure seamless integration with the broader JAX ecosystem, especially Flax
@@ -71,7 +71,7 @@ output = attention(x, mask=mask)
 ```python
 import jax
 import jax.numpy as jnp
-from jax_layers.functional import dot_product_attention
+from jaxgarden.functional import dot_product_attention
 
 # Create random query, key, value tensors
 key = jax.random.PRNGKey(0)
@@ -131,7 +131,7 @@ The project maintains a comprehensive test suite to ensure correctness and numer
 pytest
 
 # Run tests with coverage
-pytest tests/ --cov=jax_layers
+pytest tests/ --cov=jaxgarden
 
 # Run specific test file
 pytest tests/test_multi_head_attention.py
@@ -146,7 +146,7 @@ We maintain high code quality standards through automated checks:
 ruff check .
 
 # Run type checking
-mypy jax_layers
+mypy jaxgarden
 
 # Run tests
 pytest

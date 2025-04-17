@@ -1,10 +1,10 @@
-"""JAX Layers - High-performance neural network layers for JAX."""
+"""JAXgarden - High-performance neural network layers for JAX."""
 
-from jax_layers.attention.multi_head_attention import MultiHeadAttention
-from jax_layers.functional.attention import dot_product_attention
-from jax_layers.models.base import BaseConfig, BaseModel
-from jax_layers.models.generation_utils import GenerationMixin
-from jax_layers.models.modernbert import (
+from jaxgarden.attention.multi_head_attention import MultiHeadAttention
+from jaxgarden.functional.attention import dot_product_attention
+from jaxgarden.models.base import BaseConfig, BaseModel
+from jaxgarden.models.generation_utils import GenerationMixin
+from jaxgarden.models.modernbert import (
     ModernBertAttention,
     ModernBertEmbeddings,
     ModernBERTEncoder,
@@ -32,4 +32,4 @@ __all__ = [
     "dot_product_attention",
 ]
 
-__version__ = "0.1.0"
+__version__ = "0.2.0"

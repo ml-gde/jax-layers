@@ -6,7 +6,7 @@ import flax.nnx as nnx
 import jax
 import jax.numpy as jnp
 
-from jax_layers.attention import MultiHeadAttention
+from jaxgarden.attention import MultiHeadAttention
 
 
 def benchmark_attention(implementation=None, batch_size=2, seq_len=1024, num_heads=8, head_dim=64):

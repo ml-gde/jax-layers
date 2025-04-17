@@ -8,7 +8,7 @@ import jax
 import jax.numpy as jnp
 from flax.nnx.nn.linear import default_kernel_init
 
-from jax_layers.functional.attention import dot_product_attention
+from jaxgarden.functional.attention import dot_product_attention
 
 
 class MultiHeadAttention(nnx.MultiHeadAttention):

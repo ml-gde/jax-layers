@@ -14,7 +14,7 @@ import flax.nnx as nnx
 import jax
 import jax.numpy as jnp
 
-from jax_layers.models.base import BaseConfig, BaseModel
+from jaxgarden.models.base import BaseConfig, BaseModel
 
 
 class Identity(nnx.Module):

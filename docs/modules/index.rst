@@ -11,7 +11,7 @@ API Documentation
 Attention Modules
 ---------------
 
-.. automodule:: jax_layers.attention
+.. automodule:: jaxgarden.attention
    :members:
    :undoc-members:
    :show-inheritance:
@@ -19,7 +19,7 @@ Attention Modules
 Functional Interfaces
 ------------------
 
-.. automodule:: jax_layers.functional
+.. automodule:: jaxgarden.functional
    :members:
    :undoc-members:
    :show-inheritance: 
@@ -27,7 +27,7 @@ Functional Interfaces
 Models
 ------------------
 
-.. automodule:: jax_layers.models
+.. automodule:: jaxgarden.models
    :members:
    :undoc-members:
    :show-inheritance: 

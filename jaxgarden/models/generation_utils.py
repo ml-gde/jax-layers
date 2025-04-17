@@ -5,7 +5,7 @@ import jax
 import jax.numpy as jnp
 from flax import nnx
 
-from jax_layers.models.base import BaseModel
+from jaxgarden.models.base import BaseModel
 
 # TYPE_CHECKING to avoid circular imports at runtime
 if TYPE_CHECKING:

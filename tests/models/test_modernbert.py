@@ -9,7 +9,7 @@ import torch
 import torch.nn as nn
 import torch.nn.functional as F  # noqa: N812
 
-from jax_layers.models.modernbert import (
+from jaxgarden.models.modernbert import (
     Identity,
     ModernBertAttention,
     ModernBERTConfig,

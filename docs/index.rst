@@ -1,7 +1,7 @@
-Welcome to JAX Layers's documentation!
+Welcome to JAXgarden documentation!
 =====================================
 
-JAX Layers provides high-performance neural network layers for JAX, including optimized implementations like FlashAttention.
+JAXgarden provides high-performance and hackable neural network model implementations in JAX, leveraging optimized kernals and layers like FlashAttention.
 
 .. toctree::
    :maxdepth: 2
