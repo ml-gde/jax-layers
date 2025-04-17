@@ -43,7 +43,7 @@ pip install -e .
 import jax
 import jax.numpy as jnp
 import flax.nnx as nnx
-from jax_layers.attention import MultiHeadAttention
+from jaxgarden.attention import MultiHeadAttention
 
 # Create a MultiHeadAttention module with Flash Attention support
 attention = MultiHeadAttention(
