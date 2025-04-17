@@ -5,7 +5,7 @@
 <head>
   <meta charset="utf-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>jax_layers.models.generation_utils &mdash; JAX Layers 0.1.0 documentation</title>
+  <title>jaxgarden.models.generation_utils &mdash; JAXgarden 0.1.0 documentation</title>
       <link rel="stylesheet" type="text/css" href="../../../_static/pygments.css?v=b86133f3" />
       <link rel="stylesheet" type="text/css" href="../../../_static/css/theme.css?v=e59714d7" />
 
@@ -29,7 +29,7 @@
           
           
           <a href="../../../index.html" class="icon icon-home">
-            JAX Layers
+            JAXgarden
           </a>
 <div role="search">
   <form id="rtd-search-form" class="wy-form" action="../../../search.html" method="get">
@@ -50,7 +50,7 @@
 
     <section data-toggle="wy-nav-shift" class="wy-nav-content-wrap"><nav class="wy-nav-top" aria-label="Mobile navigation menu" >
           <i data-toggle="wy-nav-top" class="fa fa-bars"></i>
-          <a href="../../../index.html">JAX Layers</a>
+          <a href="../../../index.html">JAXgarden</a>
       </nav>
 
       <div class="wy-nav-content">
@@ -59,7 +59,7 @@
   <ul class="wy-breadcrumbs">
       <li><a href="../../../index.html" class="icon icon-home" aria-label="Home"></a></li>
           <li class="breadcrumb-item"><a href="../../index.html">Module code</a></li>
-      <li class="breadcrumb-item active">jax_layers.models.generation_utils</li>
+      <li class="breadcrumb-item active">jaxgarden.models.generation_utils</li>
       <li class="wy-breadcrumbs-aside">
       </li>
   </ul>
@@ -68,7 +68,7 @@
           <div role="main" class="document" itemscope="itemscope" itemtype="http://schema.org/Article">
            <div itemprop="articleBody">
              
-  <h1>Source code for jax_layers.models.generation_utils</h1><div class="highlight"><pre>
+  <h1>Source code for jaxgarden.models.generation_utils</h1><div class="highlight"><pre>
 <span></span><span class="kn">from</span><span class="w"> </span><span class="nn">functools</span><span class="w"> </span><span class="kn">import</span> <span class="n">partial</span>
 <span class="kn">from</span><span class="w"> </span><span class="nn">typing</span><span class="w"> </span><span class="kn">import</span> <span class="n">TYPE_CHECKING</span><span class="p">,</span> <span class="n">Any</span><span class="p">,</span> <span class="n">TypeVar</span><span class="p">,</span> <span class="n">cast</span>
 
@@ -76,7 +76,7 @@
 <span class="kn">import</span><span class="w"> </span><span class="nn">jax.numpy</span><span class="w"> </span><span class="k">as</span><span class="w"> </span><span class="nn">jnp</span>
 <span class="kn">from</span><span class="w"> </span><span class="nn">flax</span><span class="w"> </span><span class="kn">import</span> <span class="n">nnx</span>
 
-<span class="kn">from</span><span class="w"> </span><span class="nn">jax_layers.models.base</span><span class="w"> </span><span class="kn">import</span> <span class="n">BaseModel</span>
+<span class="kn">from</span><span class="w"> </span><span class="nn">jaxgarden.models.base</span><span class="w"> </span><span class="kn">import</span> <span class="n">BaseModel</span>
 
 <span class="c1"># TYPE_CHECKING to avoid circular imports at runtime</span>
 <span class="k">if</span> <span class="n">TYPE_CHECKING</span><span class="p">:</span>
@@ -301,7 +301,7 @@
 
 
 <div class="viewcode-block" id="GenerationMixin">
-<a class="viewcode-back" href="../../../modules/index.html#jax_layers.models.GenerationMixin">[docs]</a>
+<a class="viewcode-back" href="../../../modules/index.html#jaxgarden.models.GenerationMixin">[docs]</a>
 <span class="k">class</span><span class="w"> </span><span class="nc">GenerationMixin</span><span class="p">(</span><span class="n">_Base</span><span class="p">):</span>
 <span class="w">    </span><span class="sd">&quot;&quot;&quot;Mixin that adds text generation capabilities,</span>
 <span class="sd">    including sampling with temperature, top-k, top-p,</span>
@@ -434,7 +434,7 @@
     <span class="p">)(</span><span class="n">_generate_scan_logic</span><span class="p">)</span>  <span class="c1"># Apply JIT to the core logic function</span>
 
 <div class="viewcode-block" id="GenerationMixin.generate">
-<a class="viewcode-back" href="../../../modules/index.html#jax_layers.models.GenerationMixin.generate">[docs]</a>
+<a class="viewcode-back" href="../../../modules/index.html#jaxgarden.models.GenerationMixin.generate">[docs]</a>
     <span class="k">def</span><span class="w"> </span><span class="nf">generate</span><span class="p">(</span>
         <span class="bp">self</span><span class="p">:</span> <span class="s2">&quot;GenerationMixin&quot;</span><span class="p">,</span>
         <span class="n">input_ids</span><span class="p">:</span> <span class="n">jnp</span><span class="o">.</span><span class="n">ndarray</span><span class="p">,</span>
@@ -597,7 +597,7 @@
   <hr/>
 
   <div role="contentinfo">
-    <p>&#169; Copyright 2025, JAX Layers Contributors.</p>
+    <p>&#169; Copyright 2025, JAXgarden Contributors.</p>
   </div>
 
   Built with <a href="https://www.sphinx-doc.org/">Sphinx</a> using a

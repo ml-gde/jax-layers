@@ -5,7 +5,7 @@
 <head>
   <meta charset="utf-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>jax_layers.models.base &mdash; JAX Layers 0.1.0 documentation</title>
+  <title>jaxgarden.models.base &mdash; JAXgarden 0.1.0 documentation</title>
       <link rel="stylesheet" type="text/css" href="../../../_static/pygments.css?v=b86133f3" />
       <link rel="stylesheet" type="text/css" href="../../../_static/css/theme.css?v=e59714d7" />
 
@@ -29,7 +29,7 @@
           
           
           <a href="../../../index.html" class="icon icon-home">
-            JAX Layers
+            JAXgarden
           </a>
 <div role="search">
   <form id="rtd-search-form" class="wy-form" action="../../../search.html" method="get">
@@ -50,7 +50,7 @@
 
     <section data-toggle="wy-nav-shift" class="wy-nav-content-wrap"><nav class="wy-nav-top" aria-label="Mobile navigation menu" >
           <i data-toggle="wy-nav-top" class="fa fa-bars"></i>
-          <a href="../../../index.html">JAX Layers</a>
+          <a href="../../../index.html">JAXgarden</a>
       </nav>
 
       <div class="wy-nav-content">
@@ -59,7 +59,7 @@
   <ul class="wy-breadcrumbs">
       <li><a href="../../../index.html" class="icon icon-home" aria-label="Home"></a></li>
           <li class="breadcrumb-item"><a href="../../index.html">Module code</a></li>
-      <li class="breadcrumb-item active">jax_layers.models.base</li>
+      <li class="breadcrumb-item active">jaxgarden.models.base</li>
       <li class="wy-breadcrumbs-aside">
       </li>
   </ul>
@@ -68,7 +68,7 @@
           <div role="main" class="document" itemscope="itemscope" itemtype="http://schema.org/Article">
            <div itemprop="articleBody">
              
-  <h1>Source code for jax_layers.models.base</h1><div class="highlight"><pre>
+  <h1>Source code for jaxgarden.models.base</h1><div class="highlight"><pre>
 <span></span><span class="kn">import</span><span class="w"> </span><span class="nn">os</span>
 <span class="kn">from</span><span class="w"> </span><span class="nn">collections.abc</span><span class="w"> </span><span class="kn">import</span> <span class="n">Iterator</span>
 <span class="kn">from</span><span class="w"> </span><span class="nn">dataclasses</span><span class="w"> </span><span class="kn">import</span> <span class="n">dataclass</span><span class="p">,</span> <span class="n">field</span>
@@ -86,7 +86,7 @@
 
 
 <div class="viewcode-block" id="BaseConfig">
-<a class="viewcode-back" href="../../../modules/index.html#jax_layers.models.BaseConfig">[docs]</a>
+<a class="viewcode-back" href="../../../modules/index.html#jaxgarden.models.BaseConfig">[docs]</a>
 <span class="nd">@dataclass</span>
 <span class="k">class</span><span class="w"> </span><span class="nc">BaseConfig</span><span class="p">:</span>
 <span class="w">    </span><span class="sd">&quot;&quot;&quot;Base configuration for all the models implemented in the JAXgarden library.</span>
@@ -99,13 +99,13 @@
     <span class="n">extra</span><span class="p">:</span> <span class="nb">dict</span><span class="p">[</span><span class="nb">str</span><span class="p">,</span> <span class="n">Any</span><span class="p">]</span> <span class="o">=</span> <span class="n">field</span><span class="p">(</span><span class="n">default_factory</span><span class="o">=</span><span class="nb">dict</span><span class="p">)</span>
 
 <div class="viewcode-block" id="BaseConfig.to_dict">
-<a class="viewcode-back" href="../../../modules/index.html#jax_layers.models.BaseConfig.to_dict">[docs]</a>
+<a class="viewcode-back" href="../../../modules/index.html#jaxgarden.models.BaseConfig.to_dict">[docs]</a>
     <span class="k">def</span><span class="w"> </span><span class="nf">to_dict</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">dict</span><span class="p">[</span><span class="nb">str</span><span class="p">,</span> <span class="n">Any</span><span class="p">]:</span>
         <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="vm">__dict__</span></div>
 
 
 <div class="viewcode-block" id="BaseConfig.update">
-<a class="viewcode-back" href="../../../modules/index.html#jax_layers.models.BaseConfig.update">[docs]</a>
+<a class="viewcode-back" href="../../../modules/index.html#jaxgarden.models.BaseConfig.update">[docs]</a>
     <span class="k">def</span><span class="w"> </span><span class="nf">update</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">:</span> <span class="nb">dict</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="kc">None</span><span class="p">:</span>
         <span class="k">for</span> <span class="n">k</span><span class="p">,</span> <span class="n">v</span> <span class="ow">in</span> <span class="n">kwargs</span><span class="o">.</span><span class="n">items</span><span class="p">():</span>
             <span class="k">if</span> <span class="nb">hasattr</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">k</span><span class="p">):</span>
@@ -117,12 +117,12 @@
 
 
 <div class="viewcode-block" id="BaseModel">
-<a class="viewcode-back" href="../../../modules/index.html#jax_layers.models.BaseModel">[docs]</a>
+<a class="viewcode-back" href="../../../modules/index.html#jaxgarden.models.BaseModel">[docs]</a>
 <span class="k">class</span><span class="w"> </span><span class="nc">BaseModel</span><span class="p">(</span><span class="n">nnx</span><span class="o">.</span><span class="n">Module</span><span class="p">):</span>
 <span class="w">    </span><span class="sd">&quot;&quot;&quot;Base class for all the models implemented in the JAXgarden library.&quot;&quot;&quot;</span>
 
 <div class="viewcode-block" id="BaseModel.__init__">
-<a class="viewcode-back" href="../../../modules/index.html#jax_layers.models.BaseModel.__init__">[docs]</a>
+<a class="viewcode-back" href="../../../modules/index.html#jaxgarden.models.BaseModel.__init__">[docs]</a>
     <span class="k">def</span><span class="w"> </span><span class="fm">__init__</span><span class="p">(</span>
         <span class="bp">self</span><span class="p">,</span>
         <span class="n">config</span><span class="p">:</span> <span class="n">BaseConfig</span><span class="p">,</span>
@@ -158,7 +158,7 @@
         <span class="k">return</span> <span class="n">pure_dict_state</span>
 
 <div class="viewcode-block" id="BaseModel.save">
-<a class="viewcode-back" href="../../../modules/index.html#jax_layers.models.BaseModel.save">[docs]</a>
+<a class="viewcode-back" href="../../../modules/index.html#jaxgarden.models.BaseModel.save">[docs]</a>
     <span class="k">def</span><span class="w"> </span><span class="nf">save</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">path</span><span class="p">:</span> <span class="nb">str</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="kc">None</span><span class="p">:</span>
 <span class="w">        </span><span class="sd">&quot;&quot;&quot;Saves the model state to a directory.</span>
 
@@ -172,7 +172,7 @@
 
 
 <div class="viewcode-block" id="BaseModel.load">
-<a class="viewcode-back" href="../../../modules/index.html#jax_layers.models.BaseModel.load">[docs]</a>
+<a class="viewcode-back" href="../../../modules/index.html#jaxgarden.models.BaseModel.load">[docs]</a>
     <span class="k">def</span><span class="w"> </span><span class="nf">load</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">path</span><span class="p">:</span> <span class="nb">str</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">nnx</span><span class="o">.</span><span class="n">Module</span><span class="p">:</span>
 <span class="w">        </span><span class="sd">&quot;&quot;&quot;Loads the model state from a directory.</span>
 
@@ -188,7 +188,7 @@
 
 
 <div class="viewcode-block" id="BaseModel.download_from_hf">
-<a class="viewcode-back" href="../../../modules/index.html#jax_layers.models.BaseModel.download_from_hf">[docs]</a>
+<a class="viewcode-back" href="../../../modules/index.html#jaxgarden.models.BaseModel.download_from_hf">[docs]</a>
     <span class="nd">@staticmethod</span>
     <span class="k">def</span><span class="w"> </span><span class="nf">download_from_hf</span><span class="p">(</span><span class="n">repo_id</span><span class="p">:</span> <span class="nb">str</span><span class="p">,</span> <span class="n">local_dir</span><span class="p">:</span> <span class="nb">str</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="kc">None</span><span class="p">:</span>
 <span class="w">        </span><span class="sd">&quot;&quot;&quot;Downloads the model from the Hugging Face Hub.</span>
@@ -201,7 +201,7 @@
 
 
 <div class="viewcode-block" id="BaseModel.load_safetensors">
-<a class="viewcode-back" href="../../../modules/index.html#jax_layers.models.BaseModel.load_safetensors">[docs]</a>
+<a class="viewcode-back" href="../../../modules/index.html#jaxgarden.models.BaseModel.load_safetensors">[docs]</a>
     <span class="nd">@staticmethod</span>
     <span class="k">def</span><span class="w"> </span><span class="nf">load_safetensors</span><span class="p">(</span><span class="n">path_to_model_weights</span><span class="p">:</span> <span class="nb">str</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">Iterator</span><span class="p">[</span><span class="nb">tuple</span><span class="p">[</span><span class="n">Any</span><span class="p">,</span> <span class="n">Any</span><span class="p">]]:</span>
 <span class="w">        </span><span class="sd">&quot;&quot;&quot;Helper function to lazily load params from safetensors file.</span>
@@ -230,7 +230,7 @@
   <hr/>
 
   <div role="contentinfo">
-    <p>&#169; Copyright 2025, JAX Layers Contributors.</p>
+    <p>&#169; Copyright 2025, JAXgarden Contributors.</p>
   </div>
 
   Built with <a href="https://www.sphinx-doc.org/">Sphinx</a> using a

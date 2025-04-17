@@ -5,7 +5,7 @@
 <head>
   <meta charset="utf-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>jax_layers.attention.multi_head_attention &mdash; JAX Layers 0.1.0 documentation</title>
+  <title>jaxgarden.attention.multi_head_attention &mdash; JAXgarden 0.1.0 documentation</title>
       <link rel="stylesheet" type="text/css" href="../../../_static/pygments.css?v=b86133f3" />
       <link rel="stylesheet" type="text/css" href="../../../_static/css/theme.css?v=e59714d7" />
 
@@ -29,7 +29,7 @@
           
           
           <a href="../../../index.html" class="icon icon-home">
-            JAX Layers
+            JAXgarden
           </a>
 <div role="search">
   <form id="rtd-search-form" class="wy-form" action="../../../search.html" method="get">
@@ -50,7 +50,7 @@
 
     <section data-toggle="wy-nav-shift" class="wy-nav-content-wrap"><nav class="wy-nav-top" aria-label="Mobile navigation menu" >
           <i data-toggle="wy-nav-top" class="fa fa-bars"></i>
-          <a href="../../../index.html">JAX Layers</a>
+          <a href="../../../index.html">JAXgarden</a>
       </nav>
 
       <div class="wy-nav-content">
@@ -59,7 +59,7 @@
   <ul class="wy-breadcrumbs">
       <li><a href="../../../index.html" class="icon icon-home" aria-label="Home"></a></li>
           <li class="breadcrumb-item"><a href="../../index.html">Module code</a></li>
-      <li class="breadcrumb-item active">jax_layers.attention.multi_head_attention</li>
+      <li class="breadcrumb-item active">jaxgarden.attention.multi_head_attention</li>
       <li class="wy-breadcrumbs-aside">
       </li>
   </ul>
@@ -68,7 +68,7 @@
           <div role="main" class="document" itemscope="itemscope" itemtype="http://schema.org/Article">
            <div itemprop="articleBody">
              
-  <h1>Source code for jax_layers.attention.multi_head_attention</h1><div class="highlight"><pre>
+  <h1>Source code for jaxgarden.attention.multi_head_attention</h1><div class="highlight"><pre>
 <span></span><span class="sd">&quot;&quot;&quot;MultiHeadAttention implementation with Flash Attention support for JAX Layers.&quot;&quot;&quot;</span>
 
 <span class="kn">from</span><span class="w"> </span><span class="nn">collections.abc</span><span class="w"> </span><span class="kn">import</span> <span class="n">Callable</span>
@@ -79,11 +79,11 @@
 <span class="kn">import</span><span class="w"> </span><span class="nn">jax.numpy</span><span class="w"> </span><span class="k">as</span><span class="w"> </span><span class="nn">jnp</span>
 <span class="kn">from</span><span class="w"> </span><span class="nn">flax.nnx.nn.linear</span><span class="w"> </span><span class="kn">import</span> <span class="n">default_kernel_init</span>
 
-<span class="kn">from</span><span class="w"> </span><span class="nn">jax_layers.functional.attention</span><span class="w"> </span><span class="kn">import</span> <span class="n">dot_product_attention</span>
+<span class="kn">from</span><span class="w"> </span><span class="nn">jaxgarden.functional.attention</span><span class="w"> </span><span class="kn">import</span> <span class="n">dot_product_attention</span>
 
 
 <div class="viewcode-block" id="MultiHeadAttention">
-<a class="viewcode-back" href="../../../modules/index.html#jax_layers.attention.MultiHeadAttention">[docs]</a>
+<a class="viewcode-back" href="../../../modules/index.html#jaxgarden.attention.MultiHeadAttention">[docs]</a>
 <span class="k">class</span><span class="w"> </span><span class="nc">MultiHeadAttention</span><span class="p">(</span><span class="n">nnx</span><span class="o">.</span><span class="n">MultiHeadAttention</span><span class="p">):</span>
 <span class="w">    </span><span class="sd">&quot;&quot;&quot;Multi-head attention with support for Flash Attention.</span>
 
@@ -119,7 +119,7 @@
 <span class="sd">    &quot;&quot;&quot;</span>
 
 <div class="viewcode-block" id="MultiHeadAttention.__init__">
-<a class="viewcode-back" href="../../../modules/index.html#jax_layers.attention.MultiHeadAttention.__init__">[docs]</a>
+<a class="viewcode-back" href="../../../modules/index.html#jaxgarden.attention.MultiHeadAttention.__init__">[docs]</a>
     <span class="k">def</span><span class="w"> </span><span class="fm">__init__</span><span class="p">(</span>
         <span class="bp">self</span><span class="p">,</span>
         <span class="n">num_heads</span><span class="p">:</span> <span class="nb">int</span><span class="p">,</span>
@@ -241,7 +241,7 @@
   <hr/>
 
   <div role="contentinfo">
-    <p>&#169; Copyright 2025, JAX Layers Contributors.</p>
+    <p>&#169; Copyright 2025, JAXgarden Contributors.</p>
   </div>
 
   Built with <a href="https://www.sphinx-doc.org/">Sphinx</a> using a

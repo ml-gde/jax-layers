@@ -5,7 +5,7 @@
 <head>
   <meta charset="utf-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>jax_layers.models.modernbert &mdash; JAX Layers 0.1.0 documentation</title>
+  <title>jaxgarden.models.modernbert &mdash; JAXgarden 0.1.0 documentation</title>
       <link rel="stylesheet" type="text/css" href="../../../_static/pygments.css?v=b86133f3" />
       <link rel="stylesheet" type="text/css" href="../../../_static/css/theme.css?v=e59714d7" />
 
@@ -29,7 +29,7 @@
           
           
           <a href="../../../index.html" class="icon icon-home">
-            JAX Layers
+            JAXgarden
           </a>
 <div role="search">
   <form id="rtd-search-form" class="wy-form" action="../../../search.html" method="get">
@@ -50,7 +50,7 @@
 
     <section data-toggle="wy-nav-shift" class="wy-nav-content-wrap"><nav class="wy-nav-top" aria-label="Mobile navigation menu" >
           <i data-toggle="wy-nav-top" class="fa fa-bars"></i>
-          <a href="../../../index.html">JAX Layers</a>
+          <a href="../../../index.html">JAXgarden</a>
       </nav>
 
       <div class="wy-nav-content">
@@ -59,7 +59,7 @@
   <ul class="wy-breadcrumbs">
       <li><a href="../../../index.html" class="icon icon-home" aria-label="Home"></a></li>
           <li class="breadcrumb-item"><a href="../../index.html">Module code</a></li>
-      <li class="breadcrumb-item active">jax_layers.models.modernbert</li>
+      <li class="breadcrumb-item active">jaxgarden.models.modernbert</li>
       <li class="wy-breadcrumbs-aside">
       </li>
   </ul>
@@ -68,7 +68,7 @@
           <div role="main" class="document" itemscope="itemscope" itemtype="http://schema.org/Article">
            <div itemprop="articleBody">
              
-  <h1>Source code for jax_layers.models.modernbert</h1><div class="highlight"><pre>
+  <h1>Source code for jaxgarden.models.modernbert</h1><div class="highlight"><pre>
 <span></span><span class="sd">&quot;&quot;&quot;ModernBERT implementation in JAX using Flax NNX.</span>
 
 <span class="sd">This module implements the ModernBERT architecture as described in the paper</span>
@@ -85,7 +85,7 @@
 <span class="kn">import</span><span class="w"> </span><span class="nn">jax</span>
 <span class="kn">import</span><span class="w"> </span><span class="nn">jax.numpy</span><span class="w"> </span><span class="k">as</span><span class="w"> </span><span class="nn">jnp</span>
 
-<span class="kn">from</span><span class="w"> </span><span class="nn">jax_layers.models.base</span><span class="w"> </span><span class="kn">import</span> <span class="n">BaseConfig</span><span class="p">,</span> <span class="n">BaseModel</span>
+<span class="kn">from</span><span class="w"> </span><span class="nn">jaxgarden.models.base</span><span class="w"> </span><span class="kn">import</span> <span class="n">BaseConfig</span><span class="p">,</span> <span class="n">BaseModel</span>
 
 
 <span class="k">class</span><span class="w"> </span><span class="nc">Identity</span><span class="p">(</span><span class="n">nnx</span><span class="o">.</span><span class="n">Module</span><span class="p">):</span>
@@ -242,7 +242,7 @@
 
 
 <div class="viewcode-block" id="ModernBertAttention">
-<a class="viewcode-back" href="../../../modules/index.html#jax_layers.models.ModernBertAttention">[docs]</a>
+<a class="viewcode-back" href="../../../modules/index.html#jaxgarden.models.ModernBertAttention">[docs]</a>
 <span class="k">class</span><span class="w"> </span><span class="nc">ModernBertAttention</span><span class="p">(</span><span class="n">nnx</span><span class="o">.</span><span class="n">Module</span><span class="p">):</span>
 <span class="w">    </span><span class="sd">&quot;&quot;&quot;Multi-headed self attention implementation.</span>
 
@@ -251,7 +251,7 @@
 <span class="sd">    &quot;&quot;&quot;</span>
 
 <div class="viewcode-block" id="ModernBertAttention.__init__">
-<a class="viewcode-back" href="../../../modules/index.html#jax_layers.models.ModernBertAttention.__init__">[docs]</a>
+<a class="viewcode-back" href="../../../modules/index.html#jaxgarden.models.ModernBertAttention.__init__">[docs]</a>
     <span class="k">def</span><span class="w"> </span><span class="fm">__init__</span><span class="p">(</span>
         <span class="bp">self</span><span class="p">,</span>
         <span class="n">rngs</span><span class="p">:</span> <span class="n">nnx</span><span class="o">.</span><span class="n">Rngs</span><span class="p">,</span>
@@ -334,7 +334,7 @@
 
 
 <div class="viewcode-block" id="ModernBertAttention.__call__">
-<a class="viewcode-back" href="../../../modules/index.html#jax_layers.models.ModernBertAttention.__call__">[docs]</a>
+<a class="viewcode-back" href="../../../modules/index.html#jaxgarden.models.ModernBertAttention.__call__">[docs]</a>
     <span class="k">def</span><span class="w"> </span><span class="fm">__call__</span><span class="p">(</span>
         <span class="bp">self</span><span class="p">,</span>
         <span class="n">hidden_states</span><span class="p">:</span> <span class="n">jax</span><span class="o">.</span><span class="n">Array</span><span class="p">,</span>
@@ -456,7 +456,7 @@
 
 
 <div class="viewcode-block" id="ModernBertLayer">
-<a class="viewcode-back" href="../../../modules/index.html#jax_layers.models.ModernBertLayer">[docs]</a>
+<a class="viewcode-back" href="../../../modules/index.html#jaxgarden.models.ModernBertLayer">[docs]</a>
 <span class="k">class</span><span class="w"> </span><span class="nc">ModernBertLayer</span><span class="p">(</span><span class="n">nnx</span><span class="o">.</span><span class="n">Module</span><span class="p">):</span>
 <span class="w">    </span><span class="sd">&quot;&quot;&quot;ModernBERT transformer layer with pre-LayerNorm architecture.</span>
 
@@ -467,7 +467,7 @@
 <span class="sd">    &quot;&quot;&quot;</span>
 
 <div class="viewcode-block" id="ModernBertLayer.__init__">
-<a class="viewcode-back" href="../../../modules/index.html#jax_layers.models.ModernBertLayer.__init__">[docs]</a>
+<a class="viewcode-back" href="../../../modules/index.html#jaxgarden.models.ModernBertLayer.__init__">[docs]</a>
     <span class="k">def</span><span class="w"> </span><span class="fm">__init__</span><span class="p">(</span>
         <span class="bp">self</span><span class="p">,</span>
         <span class="n">rngs</span><span class="p">:</span> <span class="n">nnx</span><span class="o">.</span><span class="n">Rngs</span><span class="p">,</span>
@@ -556,7 +556,7 @@
 
 
 <div class="viewcode-block" id="ModernBertLayer.__call__">
-<a class="viewcode-back" href="../../../modules/index.html#jax_layers.models.ModernBertLayer.__call__">[docs]</a>
+<a class="viewcode-back" href="../../../modules/index.html#jaxgarden.models.ModernBertLayer.__call__">[docs]</a>
     <span class="k">def</span><span class="w"> </span><span class="fm">__call__</span><span class="p">(</span>
         <span class="bp">self</span><span class="p">,</span>
         <span class="n">hidden_states</span><span class="p">:</span> <span class="n">jax</span><span class="o">.</span><span class="n">Array</span><span class="p">,</span>
@@ -608,12 +608,12 @@
 
 
 <div class="viewcode-block" id="ModernBERTEncoder">
-<a class="viewcode-back" href="../../../modules/index.html#jax_layers.models.ModernBERTEncoder">[docs]</a>
+<a class="viewcode-back" href="../../../modules/index.html#jaxgarden.models.ModernBERTEncoder">[docs]</a>
 <span class="k">class</span><span class="w"> </span><span class="nc">ModernBERTEncoder</span><span class="p">(</span><span class="n">nnx</span><span class="o">.</span><span class="n">Module</span><span class="p">):</span>
 <span class="w">    </span><span class="sd">&quot;&quot;&quot;ModernBERT encoder consisting of multiple transformer layers.&quot;&quot;&quot;</span>
 
 <div class="viewcode-block" id="ModernBERTEncoder.__init__">
-<a class="viewcode-back" href="../../../modules/index.html#jax_layers.models.ModernBERTEncoder.__init__">[docs]</a>
+<a class="viewcode-back" href="../../../modules/index.html#jaxgarden.models.ModernBERTEncoder.__init__">[docs]</a>
     <span class="k">def</span><span class="w"> </span><span class="fm">__init__</span><span class="p">(</span>
         <span class="bp">self</span><span class="p">,</span>
         <span class="n">rngs</span><span class="p">:</span> <span class="n">nnx</span><span class="o">.</span><span class="n">Rngs</span><span class="p">,</span>
@@ -687,7 +687,7 @@
 
 
 <div class="viewcode-block" id="ModernBERTEncoder.__call__">
-<a class="viewcode-back" href="../../../modules/index.html#jax_layers.models.ModernBERTEncoder.__call__">[docs]</a>
+<a class="viewcode-back" href="../../../modules/index.html#jaxgarden.models.ModernBERTEncoder.__call__">[docs]</a>
     <span class="k">def</span><span class="w"> </span><span class="fm">__call__</span><span class="p">(</span>
         <span class="bp">self</span><span class="p">,</span>
         <span class="n">hidden_states</span><span class="p">:</span> <span class="n">jnp</span><span class="o">.</span><span class="n">ndarray</span><span class="p">,</span>
@@ -872,7 +872,7 @@
 
 
 <div class="viewcode-block" id="ModernBERTForMaskedLM">
-<a class="viewcode-back" href="../../../modules/index.html#jax_layers.models.ModernBERTForMaskedLM">[docs]</a>
+<a class="viewcode-back" href="../../../modules/index.html#jaxgarden.models.ModernBERTForMaskedLM">[docs]</a>
 <span class="k">class</span><span class="w"> </span><span class="nc">ModernBERTForMaskedLM</span><span class="p">(</span><span class="n">BaseModel</span><span class="p">):</span>
 <span class="w">    </span><span class="sd">&quot;&quot;&quot;ModernBERT model with masked language modeling head.</span>
 
@@ -888,7 +888,7 @@
 <span class="sd">    &quot;&quot;&quot;</span>
 
 <div class="viewcode-block" id="ModernBERTForMaskedLM.__init__">
-<a class="viewcode-back" href="../../../modules/index.html#jax_layers.models.ModernBERTForMaskedLM.__init__">[docs]</a>
+<a class="viewcode-back" href="../../../modules/index.html#jaxgarden.models.ModernBERTForMaskedLM.__init__">[docs]</a>
     <span class="k">def</span><span class="w"> </span><span class="fm">__init__</span><span class="p">(</span>
         <span class="bp">self</span><span class="p">,</span>
         <span class="n">config</span><span class="p">:</span> <span class="n">ModernBERTConfig</span><span class="p">,</span>
@@ -952,7 +952,7 @@
 
 
 <div class="viewcode-block" id="ModernBERTForMaskedLM.__call__">
-<a class="viewcode-back" href="../../../modules/index.html#jax_layers.models.ModernBERTForMaskedLM.__call__">[docs]</a>
+<a class="viewcode-back" href="../../../modules/index.html#jaxgarden.models.ModernBERTForMaskedLM.__call__">[docs]</a>
     <span class="k">def</span><span class="w"> </span><span class="fm">__call__</span><span class="p">(</span>
         <span class="bp">self</span><span class="p">,</span>
         <span class="n">input_ids</span><span class="p">:</span> <span class="n">jnp</span><span class="o">.</span><span class="n">ndarray</span><span class="p">,</span>
@@ -1027,7 +1027,7 @@
 
 
 <div class="viewcode-block" id="ModernBertEmbeddings">
-<a class="viewcode-back" href="../../../modules/index.html#jax_layers.models.ModernBertEmbeddings">[docs]</a>
+<a class="viewcode-back" href="../../../modules/index.html#jaxgarden.models.ModernBertEmbeddings">[docs]</a>
 <span class="k">class</span><span class="w"> </span><span class="nc">ModernBertEmbeddings</span><span class="p">(</span><span class="n">nnx</span><span class="o">.</span><span class="n">Module</span><span class="p">):</span>
 <span class="w">    </span><span class="sd">&quot;&quot;&quot;Token embeddings with normalization and dropout.</span>
 
@@ -1035,7 +1035,7 @@
 <span class="sd">    &quot;&quot;&quot;</span>
 
 <div class="viewcode-block" id="ModernBertEmbeddings.__init__">
-<a class="viewcode-back" href="../../../modules/index.html#jax_layers.models.ModernBertEmbeddings.__init__">[docs]</a>
+<a class="viewcode-back" href="../../../modules/index.html#jaxgarden.models.ModernBertEmbeddings.__init__">[docs]</a>
     <span class="k">def</span><span class="w"> </span><span class="fm">__init__</span><span class="p">(</span>
         <span class="bp">self</span><span class="p">,</span>
         <span class="n">rngs</span><span class="p">:</span> <span class="n">nnx</span><span class="o">.</span><span class="n">Rngs</span><span class="p">,</span>
@@ -1086,7 +1086,7 @@
 
 
 <div class="viewcode-block" id="ModernBertEmbeddings.__call__">
-<a class="viewcode-back" href="../../../modules/index.html#jax_layers.models.ModernBertEmbeddings.__call__">[docs]</a>
+<a class="viewcode-back" href="../../../modules/index.html#jaxgarden.models.ModernBertEmbeddings.__call__">[docs]</a>
     <span class="k">def</span><span class="w"> </span><span class="fm">__call__</span><span class="p">(</span>
         <span class="bp">self</span><span class="p">,</span>
         <span class="n">input_ids</span><span class="p">:</span> <span class="n">jnp</span><span class="o">.</span><span class="n">ndarray</span><span class="p">,</span>
@@ -1127,7 +1127,7 @@
 
 
 <div class="viewcode-block" id="ModernBertMLP">
-<a class="viewcode-back" href="../../../modules/index.html#jax_layers.models.ModernBertMLP">[docs]</a>
+<a class="viewcode-back" href="../../../modules/index.html#jaxgarden.models.ModernBertMLP">[docs]</a>
 <span class="k">class</span><span class="w"> </span><span class="nc">ModernBertMLP</span><span class="p">(</span><span class="n">nnx</span><span class="o">.</span><span class="n">Module</span><span class="p">):</span>
 <span class="w">    </span><span class="sd">&quot;&quot;&quot;MLP with gated linear units.</span>
 
@@ -1135,7 +1135,7 @@
 <span class="sd">    &quot;&quot;&quot;</span>
 
 <div class="viewcode-block" id="ModernBertMLP.__init__">
-<a class="viewcode-back" href="../../../modules/index.html#jax_layers.models.ModernBertMLP.__init__">[docs]</a>
+<a class="viewcode-back" href="../../../modules/index.html#jaxgarden.models.ModernBertMLP.__init__">[docs]</a>
     <span class="k">def</span><span class="w"> </span><span class="fm">__init__</span><span class="p">(</span>
         <span class="bp">self</span><span class="p">,</span>
         <span class="n">rngs</span><span class="p">:</span> <span class="n">nnx</span><span class="o">.</span><span class="n">Rngs</span><span class="p">,</span>
@@ -1179,7 +1179,7 @@
 
 
 <div class="viewcode-block" id="ModernBertMLP.__call__">
-<a class="viewcode-back" href="../../../modules/index.html#jax_layers.models.ModernBertMLP.__call__">[docs]</a>
+<a class="viewcode-back" href="../../../modules/index.html#jaxgarden.models.ModernBertMLP.__call__">[docs]</a>
     <span class="k">def</span><span class="w"> </span><span class="fm">__call__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">hidden_states</span><span class="p">:</span> <span class="n">jnp</span><span class="o">.</span><span class="n">ndarray</span><span class="p">,</span> <span class="n">deterministic</span><span class="p">:</span> <span class="nb">bool</span> <span class="o">=</span> <span class="kc">True</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">jnp</span><span class="o">.</span><span class="n">ndarray</span><span class="p">:</span>
 <span class="w">        </span><span class="sd">&quot;&quot;&quot;Apply MLP module.</span>
 
@@ -1218,7 +1218,7 @@
   <hr/>
 
   <div role="contentinfo">
-    <p>&#169; Copyright 2025, JAX Layers Contributors.</p>
+    <p>&#169; Copyright 2025, JAXgarden Contributors.</p>
   </div>
 
   Built with <a href="https://www.sphinx-doc.org/">Sphinx</a> using a
