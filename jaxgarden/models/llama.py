@@ -38,6 +38,7 @@ class LlamaConfig(BaseConfig):
         norm_eps: Epsilon for layer normalization
         rope_theta: Base for rotary position embeddings
     """
+
     dim: int = 2048
     n_layers: int = 16
     n_heads: int = 32
@@ -52,18 +53,19 @@ class LlamaConfig(BaseConfig):
 
 class LlamaRMSNorm(nnx.Module):
     """Root Mean Square Layer Normalization.
-    
+
     This implementation follows the RMSNorm paper: https://arxiv.org/abs/1910.07467
     Instead of using mean and variance like traditional LayerNorm, RMSNorm only uses
     the root mean square of the inputs for normalization.
-    
+
     Attributes:
         norm_weights: The learned scale parameters
         norm_eps: Small constant for numerical stability
     """
+
     def __init__(self, dim: int, norm_eps: float = 1e-05, rngs: nnx.Rngs | None = None):
         """Initialize RMSNorm module.
-        
+
         Args:
             dim: Dimension of the input tensor
             norm_eps: Small constant for numerical stability
@@ -76,10 +78,10 @@ class LlamaRMSNorm(nnx.Module):
     @nnx.jit()
     def __call__(self, hidden_states):
         """Apply RMS normalization to input tensor.
-        
+
         Args:
             hidden_states: Input tensor of shape [..., dim]
-            
+
         Returns:
             Normalized tensor with same shape as input
         """
@@ -92,16 +94,17 @@ class LlamaRMSNorm(nnx.Module):
 
 class LlamaRotaryEmbedding(nnx.Module):
     """Rotary Position Embedding (RoPE) implementation for LLama.
-    
+
     Based on: https://arxiv.org/abs/2104.09864
-    
+
     Attributes:
         dim: Dimension of the embeddings
         base: Base for the sinusoidal functions
     """
+
     def __init__(self, dim: int, base: int = 10000, rngs: nnx.Rngs | None = None):
         """Initialize RoPE module.
-        
+
         Args:
             dim: Dimension of the embeddings (must be even)
             base: Base for the sinusoidal functions
@@ -114,10 +117,10 @@ class LlamaRotaryEmbedding(nnx.Module):
     @nnx.jit()
     def __call__(self, position_ids):
         """Generate rotary embeddings from position ids.
-        
+
         Args:
             position_ids: Position indices of shape [batch_size, seq_len]
-            
+
         Returns:
             Tuple of (cos, sin) tensors for rotary embeddings
         """
@@ -133,10 +136,10 @@ class LlamaRotaryEmbedding(nnx.Module):
 
 class LlamaAttention(nnx.Module):
     """Multi-headed attention with support for Group Query Attention (GQA).
-    
+
     This implements the LLama attention mechanism with rotary position embeddings (RoPE)
     and support for fewer key-value heads than query heads (GQA).
-    
+
     Attributes:
         q_proj: Linear projection for queries
         k_proj: Linear projection for keys
@@ -147,6 +150,7 @@ class LlamaAttention(nnx.Module):
         n_heads: Number of attention heads
         n_kv_heads: Number of key/value heads
     """
+
     def __init__(
         self,
         layer_idx: int,
@@ -158,7 +162,7 @@ class LlamaAttention(nnx.Module):
         rngs: nnx.Rngs | None = None,
     ):
         """Initialize attention module.
-        
+
         Args:
             layer_idx: Index of the layer
             dim: Size of hidden states
@@ -188,14 +192,14 @@ class LlamaAttention(nnx.Module):
 
     def apply_rotary_pos_emb(self, q, k, cos, sin, unsqueeze_dim=1):
         """Apply rotary position embeddings to query and key tensors.
-        
+
         Args:
             q: Query tensor
             k: Key tensor
             cos: Cosine component of rotary embeddings
             sin: Sine component of rotary embeddings
             unsqueeze_dim: Dimension to unsqueeze cosine and sine components
-            
+
         Returns:
             Tuple of (rotated_q, rotated_k)
         """
@@ -207,10 +211,10 @@ class LlamaAttention(nnx.Module):
 
     def rotate_half(self, x):
         """Rotate half the hidden dims of the input.
-        
+
         Args:
             x: Input tensor
-            
+
         Returns:
             Tensor with half the dimensions rotated
         """
@@ -220,14 +224,14 @@ class LlamaAttention(nnx.Module):
 
     def repeat_kv(self, hidden_states, n_repeat):
         """Repeat key/value heads to match the number of query heads.
-        
+
         When using GQA, we need to repeat each key/value head to match
         the number of query heads.
-        
+
         Args:
             hidden_states: Key or value tensor of shape [batch, n_kv_heads, seq_len, head_dim]
             n_repeat: Number of times to repeat each key/value head
-            
+
         Returns:
             Tensor with repeated key/value heads
         """
@@ -240,11 +244,11 @@ class LlamaAttention(nnx.Module):
     @nnx.jit()
     def __call__(self, x, position_ids):
         """Apply self-attention using queries, keys, and values derived from input x.
-        
+
         Args:
             x: Input tensor of shape [batch_size, seq_len, dim]
             position_ids: Position indices of shape [batch_size, seq_len]
-            
+
         Returns:
             Output tensor of shape [batch_size, seq_len, dim]
         """
@@ -287,20 +291,21 @@ class LlamaAttention(nnx.Module):
 
 class LlamaMLP(nnx.Module):
     """LLama's MLP implementation with SwiGLU activation.
-    
+
     This implements the SwiGLU MLP used in LLama models:
     down_proj(silu(gate_proj(x)) * up_proj(x))
-    
+
     Attributes:
         gate_proj: Linear projection for gate
         up_proj: Linear projection for up-projection
         down_proj: Linear projection for down-projection
     """
+
     def __init__(
         self, layer_idx: int, dim: int, intermediate_size: int, rngs: nnx.Rngs | None = None
     ):
         """Initialize MLP module.
-        
+
         Args:
             layer_idx: Index of the layer
             dim: Size of hidden states
@@ -320,10 +325,10 @@ class LlamaMLP(nnx.Module):
     @nnx.jit()
     def __call__(self, x):
         """Apply SwiGLU MLP to input tensor.
-        
+
         Args:
             x: Input tensor of shape [batch_size, seq_len, dim]
-            
+
         Returns:
             Output tensor of shape [batch_size, seq_len, dim]
         """
@@ -332,16 +337,17 @@ class LlamaMLP(nnx.Module):
 
 class LlamaTransformerBlock(nnx.Module):
     """LLama transformer block implementation.
-    
+
     This implements a single layer of the LLama transformer, consisting of
     attention, layer normalization, and MLP components.
-    
+
     Attributes:
         input_layernorm: Layer normalization before attention
         attention: Multi-headed attention
         post_attention_layernorm: Layer normalization after attention
         mlp: MLP block
     """
+
     def __init__(
         self,
         layer_idx: int,
@@ -355,7 +361,7 @@ class LlamaTransformerBlock(nnx.Module):
         rngs: nnx.Rngs | None = None,
     ):
         """Initialize transformer block.
-        
+
         Args:
             layer_idx: Index of the layer
             dim: Size of hidden states
@@ -385,11 +391,11 @@ class LlamaTransformerBlock(nnx.Module):
     @nnx.jit()
     def __call__(self, x, position_ids):
         """Apply transformer block to input tensor.
-        
+
         Args:
             x: Input tensor of shape [batch_size, seq_len, dim]
             position_ids: Position indices of shape [batch_size, seq_len]
-            
+
         Returns:
             Output tensor of shape [batch_size, seq_len, dim]
         """
@@ -407,16 +413,17 @@ class LlamaTransformerBlock(nnx.Module):
 
 class LlamaForCausalLM(BaseModel, GenerationMixin):
     """LLama model for causal language modeling.
-    
+
     This implements the full LLama model for generating text.
     It consists of token embeddings, transformer layers, and language modeling head.
-    
+
     Attributes:
         token_embed: Token embedding layer
         layers: List of transformer blocks
         lm_head: Linear layer for language modeling
         norm: Final layer normalization
     """
+
     def __init__(
         self,
         config: LlamaConfig,
@@ -427,7 +434,7 @@ class LlamaForCausalLM(BaseModel, GenerationMixin):
         rngs: nnx.Rngs,
     ):
         """Initialize LlamaForCausalLM.
-        
+
         Args:
             config: Model configuration
             dtype: Data type for computation
@@ -468,11 +475,11 @@ class LlamaForCausalLM(BaseModel, GenerationMixin):
     @nnx.jit()
     def __call__(self, input_ids, position_ids):
         """Forward pass of the LLama model.
-        
+
         Args:
             input_ids: Input token ids of shape [batch_size, seq_len]
             position_ids: Position indices of shape [batch_size, seq_len]
-            
+
         Returns:
             Logits for next token prediction of shape [batch_size, seq_len, vocab_size]
         """
