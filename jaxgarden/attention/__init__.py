@@ -1,4 +1,4 @@
-"""Attention modules for JAX Layers."""
+"""Attention modules for JAXgarden."""
 
 from jaxgarden.attention.multi_head_attention import MultiHeadAttention
 
