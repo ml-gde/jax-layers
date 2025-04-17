@@ -69,7 +69,7 @@ class LlamaRMSNorm(nnx.Module):
             norm_eps: Small constant for numerical stability
             rngs: PRNG key collection
         """
-        super().__init__(rngs=rngs)
+        super().__init__()
         self.norm_weights = nnx.Param(jnp.zeros((dim,), dtype=jnp.bfloat16))
         self.norm_eps = norm_eps
 
@@ -107,7 +107,7 @@ class LlamaRotaryEmbedding(nnx.Module):
             base: Base for the sinusoidal functions
             rngs: PRNG key collection
         """
-        super().__init__(rngs=rngs)
+        super().__init__()
         self.dim = dim
         self.base = base
 
@@ -463,7 +463,7 @@ class LlamaForCausalLM(BaseModel, GenerationMixin):
         self.lm_head = nnx.Linear(
             config.dim, config.vocab_size, use_bias=False, rngs=rngs, param_dtype=param_dtype
         )
-        self.norm = LlamaRMSNorm(dim=config.head_dim, rngs=rngs)
+        self.norm = LlamaRMSNorm(dim=config.dim, rngs=rngs)
 
     @nnx.jit()
     def __call__(self, input_ids, position_ids):
