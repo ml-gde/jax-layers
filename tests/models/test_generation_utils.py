@@ -3,7 +3,7 @@ import jax.numpy as jnp
 import pytest
 from jax import random
 
-from jax_layers.models.generation_utils import GenerationMixin
+from jaxgarden.models.generation_utils import GenerationMixin
 
 # --- Mock Model for GenerationMixin Tests ---
 

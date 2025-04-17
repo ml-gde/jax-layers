@@ -5,7 +5,7 @@ from unittest.mock import MagicMock
 import jax
 import jax.numpy as jnp
 
-from jax_layers.functional import dot_product_attention
+from jaxgarden.functional import dot_product_attention
 
 
 def test_dot_product_attention():

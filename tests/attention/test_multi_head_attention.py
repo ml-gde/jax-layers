@@ -4,7 +4,7 @@ import flax.nnx as nnx
 import jax
 import jax.numpy as jnp
 
-from jax_layers.attention import MultiHeadAttention
+from jaxgarden.attention import MultiHeadAttention
 
 
 def test_multi_head_attention():

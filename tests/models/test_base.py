@@ -5,7 +5,7 @@ import jax
 import numpy as np
 from flax import nnx
 
-from jax_layers.models.base import BaseConfig, BaseModel
+from jaxgarden.models.base import BaseConfig, BaseModel
 
 
 class TwoLayerMLPConfig(BaseConfig):

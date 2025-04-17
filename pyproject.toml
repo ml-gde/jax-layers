@@ -3,14 +3,14 @@ requires = ["setuptools>=42", "wheel"]
 build-backend = "setuptools.build_meta"
 
 [project]
-name = "jax-layers"
+name = "jaxgarden"
 version = "0.1.0"
-description = "High-performance neural network layers for JAX"
+description = "High-performance model implementations in JAX"
 readme = "README.md"
 requires-python = ">=3.10"
 license = {file = "LICENSE"}
 authors = [
-    {name = "JAX Layers Contributors"}
+    {name = "JAXgarden Contributors"}
 ]
 classifiers = [
     "Development Status :: 3 - Alpha",
@@ -52,7 +52,7 @@ dev = [
 "Bug Tracker" = "https://github.com/yourusername/jax-layers/issues"
 
 [tool.setuptools]
-packages = ["jax_layers"]
+packages = ["jaxgarden"]
 
 [tool.ruff]
 line-length = 100
