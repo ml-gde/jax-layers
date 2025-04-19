@@ -32,8 +32,8 @@ def test_save_and_load():
     model = TwoLayerMLP(config, rngs=nnx.Rngs(0))
     x = jax.random.normal(jax.random.key(42), (3, 4))
     assert model(x).shape == (3, 4)
-    state = model.state
+    state = model.state_dict
     model.save(ckpt_dir)
     model_restored = TwoLayerMLP(config, rngs=nnx.Rngs(1)).load(ckpt_dir)
-    state_restored = model_restored.state
+    state_restored = model_restored.state_dict
     jax.tree.map(np.testing.assert_array_equal, state, state_restored)
