@@ -1,3 +1,4 @@
+# type: ignore
 """Provides utility class for tokenization tasks such as encoding and decoding"""
 
 import json

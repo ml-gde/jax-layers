@@ -65,7 +65,7 @@ class LlamaRMSNorm(nnx.Module):
         norm_eps: Small constant for numerical stability
     """
 
-    def __init__(self, dim: int, norm_eps: float = 1e-05, rngs: nnx.Rngs | None = None):
+    def __init__(self, dim: int, *, norm_eps: float = 1e-05, rngs: nnx.Rngs):
         """Initialize RMSNorm module.
 
         Args:
@@ -78,7 +78,7 @@ class LlamaRMSNorm(nnx.Module):
         self.norm_eps = norm_eps
 
     @nnx.jit()
-    def __call__(self, hidden_states):
+    def __call__(self, hidden_states: jnp.ndarray) -> jnp.ndarray:
         """Apply RMS normalization to input tensor.
 
         Args:
@@ -104,7 +104,7 @@ class LlamaRotaryEmbedding(nnx.Module):
         base: Base for the sinusoidal functions
     """
 
-    def __init__(self, dim: int, base: int = 10000, rngs: nnx.Rngs | None = None):
+    def __init__(self, dim: int, *, base: float = 10000.0, rngs: nnx.Rngs):
         """Initialize RoPE module.
 
         Args:
@@ -117,7 +117,7 @@ class LlamaRotaryEmbedding(nnx.Module):
         self.base = base
 
     @nnx.jit()
-    def __call__(self, position_ids):
+    def __call__(self, position_ids: jnp.ndarray) -> tuple[jnp.ndarray, jnp.ndarray]:
         """Generate rotary embeddings from position ids.
 
         Args:
@@ -161,7 +161,8 @@ class LlamaAttention(nnx.Module):
         n_kv_heads: int,
         head_dim: int,
         rope_theta: float,
-        rngs: nnx.Rngs | None = None,
+        *,
+        rngs: nnx.Rngs,
     ):
         """Initialize attention module.
 
@@ -192,7 +193,7 @@ class LlamaAttention(nnx.Module):
         self.n_heads = n_heads
         self.n_kv_heads = n_kv_heads
 
-    def apply_rotary_pos_emb(self, q, k, cos, sin, unsqueeze_dim=1):
+    def apply_rotary_pos_emb(self, q: jnp.ndarray, k: jnp.ndarray, cos: jnp.ndarray, sin: jnp.ndarray, unsqueeze_dim: int = 1) -> tuple[jnp.ndarray, jnp.ndarray]:
         """Apply rotary position embeddings to query and key tensors.
 
         Args:
@@ -211,7 +212,7 @@ class LlamaAttention(nnx.Module):
         k_embed = (k * cos) + (self.rotate_half(k) * sin)
         return q_embed, k_embed
 
-    def rotate_half(self, x):
+    def rotate_half(self, x: jnp.ndarray) -> jnp.ndarray:
         """Rotate half the hidden dims of the input.
 
         Args:
@@ -224,7 +225,7 @@ class LlamaAttention(nnx.Module):
         x2 = x[..., x.shape[-1] // 2 :]
         return jnp.concatenate([-x2, x1], axis=-1)
 
-    def repeat_kv(self, hidden_states, n_repeat):
+    def repeat_kv(self, hidden_states: jnp.ndarray, n_repeat: int) -> jnp.ndarray:
         """Repeat key/value heads to match the number of query heads.
 
         When using GQA, we need to repeat each key/value head to match
@@ -307,7 +308,7 @@ class LlamaMLP(nnx.Module):
     """
 
     def __init__(
-        self, layer_idx: int, dim: int, intermediate_size: int, rngs: nnx.Rngs | None = None
+        self, layer_idx: int, dim: int, intermediate_size: int, *, rngs: nnx.Rngs
     ):
         """Initialize MLP module.
 
@@ -328,7 +329,7 @@ class LlamaMLP(nnx.Module):
         )
 
     @nnx.jit()
-    def __call__(self, x):
+    def __call__(self, x: jnp.ndarray) -> jnp.ndarray:
         """Apply SwiGLU MLP to input tensor.
 
         Args:
@@ -362,8 +363,9 @@ class LlamaTransformerBlock(nnx.Module):
         head_dim: int,
         rope_theta: float,
         intermediate_size: int,
+        *,
         norm_eps: float = 1e-05,
-        rngs: nnx.Rngs | None = None,
+        rngs: nnx.Rngs,
     ):
         """Initialize transformer block.
 
@@ -394,7 +396,7 @@ class LlamaTransformerBlock(nnx.Module):
         )
 
     @nnx.jit()
-    def __call__(self, x: jnp.ndarray, position_ids: jnp.ndarray, attention_mask: jnp.ndarray):
+    def __call__(self, x: jnp.ndarray, position_ids: jnp.ndarray, attention_mask: jnp.ndarray) -> jnp.ndarray:
         """Apply transformer block to input tensor.
 
         Args:
@@ -483,12 +485,12 @@ class LlamaForCausalLM(BaseModel, GenerationMixin):
         input_ids: jnp.ndarray,
         attention_mask: jnp.ndarray | None = None,
         deterministic: bool = True,
-    ):
+    ) -> jnp.ndarray:
         """Forward pass of the LLama model.
 
         Args:
             input_ids: Input token ids of shape [batch_size, seq_len]
-            position_ids: Position indices of shape [batch_size, seq_len]
+            attention_mask: Boolean attention mask of shape [batch_size, seq_len]
 
         Returns:
             Logits for next token prediction of shape [batch_size, seq_len, vocab_size]
@@ -504,7 +506,7 @@ class LlamaForCausalLM(BaseModel, GenerationMixin):
         logits = self.lm_head(x)
         return logits
 
-    def convert_weights_from_hf(self, state: nnx.State, weights: Iterator[tuple[Any, Any]]) -> None:
+    def convert_weights_from_hf(self, state: nnx.State | dict[str, jnp.ndarray], weights: Iterator[tuple[Any, Any]]) -> None:
         for wholekey, tensor in weights:
             keys = wholekey.split(".")
             if keys[1] == "layers":
@@ -513,16 +515,16 @@ class LlamaForCausalLM(BaseModel, GenerationMixin):
                 if (keys[1] == "layers" and keys[3] == "attention") or (
                     keys[1] == "layers" and keys[3] == "mlp"
                 ):
-                    state["layers"][int(keys[2])][keys[3]][keys[4]]["kernel"].value = tensor.T
+                    state["layers"][int(keys[2])][keys[3]][keys[4]]["kernel"].value = tensor.T # type: ignore
                 elif (keys[1] == "layers" and keys[3] == "input_layernorm") or (
                     keys[1] == "layers" and keys[3] == "post_attention_layernorm"
                 ):
-                    state["layers"][int(keys[2])][keys[3]]["norm_weights"].value = tensor
+                    state["layers"][int(keys[2])][keys[3]]["norm_weights"].value = tensor # type: ignore
             elif keys[1] == "embed_tokens":
-                state["token_embed"].embedding.value = tensor
-                state["lm_head"].kernel.value = tensor.T
+                state["token_embed"].embedding.value = tensor # type: ignore
+                state["lm_head"].kernel.value = tensor.T # type: ignore
             elif keys[1] == "norm":
-                state["norm"].norm_weights.value = tensor
+                state["norm"].norm_weights.value = tensor # type: ignore
 
 
 if __name__ == "__main__":
