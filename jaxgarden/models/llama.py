@@ -7,7 +7,9 @@ group query attention (GQA), and SwiGLU activation function in the feed-forward 
 See: https://arxiv.org/abs/2302.13971
 """
 
+from collections.abc import Iterator
 from dataclasses import dataclass
+from typing import Any
 
 import jax
 import jax.numpy as jnp
@@ -242,7 +244,7 @@ class LlamaAttention(nnx.Module):
         return hidden_states.reshape(batch, n_kv_heads * n_repeat, seq_len, head_dim)
 
     @nnx.jit()
-    def __call__(self, x, position_ids):
+    def __call__(self, x: jnp.ndarray, position_ids: jnp.ndarray, attention_mask: jnp.ndarray) -> jnp.ndarray:
         """Apply self-attention using queries, keys, and values derived from input x.
 
         Args:
@@ -279,6 +281,7 @@ class LlamaAttention(nnx.Module):
         attn_weights = (attn_weights.astype(jnp.float32) / jnp.sqrt(self.head_dim)).astype(
             jnp.bfloat16
         )
+        attn_weights = attn_weights + attention_mask
         attn_weights = jax.nn.softmax(attn_weights.astype(jnp.float32), axis=-1).astype(
             jnp.bfloat16
         )
@@ -389,7 +392,7 @@ class LlamaTransformerBlock(nnx.Module):
         )
 
     @nnx.jit()
-    def __call__(self, x, position_ids):
+    def __call__(self, x: jnp.ndarray, position_ids: jnp.ndarray, attention_mask: jnp.ndarray):
         """Apply transformer block to input tensor.
 
         Args:
@@ -401,7 +404,7 @@ class LlamaTransformerBlock(nnx.Module):
         """
         residual = x
         x = self.input_layernorm(x)
-        x = self.attention(x, position_ids)
+        x = self.attention(x, position_ids, attention_mask)
         x = residual + x
 
         residual = x
@@ -473,7 +476,7 @@ class LlamaForCausalLM(BaseModel, GenerationMixin):
         self.norm = LlamaRMSNorm(dim=config.dim, rngs=rngs)
 
     @nnx.jit()
-    def __call__(self, input_ids, position_ids):
+    def __call__(self, input_ids: jnp.ndarray, attention_mask: jnp.ndarray|None = None, deterministic: bool = True):
         """Forward pass of the LLama model.
 
         Args:
@@ -484,9 +487,43 @@ class LlamaForCausalLM(BaseModel, GenerationMixin):
             Logits for next token prediction of shape [batch_size, seq_len, vocab_size]
         """
         assert input_ids.shape[0] == 1, "Only batch size 1 is supported"
+        print(input_ids.shape)
+        position_ids = jnp.arange(input_ids.shape[-1])[None, :].astype(jnp.int32)
+        attention_mask = jnp.where(attention_mask, 0.0, -jnp.inf)[None, None, ...]
         x = self.token_embed(input_ids)
         for layer in self.layers:
-            x = layer(x, position_ids)
+            x = layer(x, position_ids, attention_mask)
         x = self.norm(x)
         logits = self.lm_head(x)
         return logits
+
+    def convert_weights_from_hf(self, state: nnx.State, weights: Iterator[tuple[Any, Any]]) -> None:
+        for wholekey, tensor in weights:
+            keys = wholekey.split(".")
+            if keys[1] == "layers":
+                if keys[3] == "self_attn":
+                    keys[3] = "attention"
+                if (keys[1] == "layers" and keys[3] == "attention") or (keys[1] == "layers" and keys[3] == "mlp"):
+                    state["layers"][int(keys[2])][keys[3]][keys[4]]["kernel"].value = tensor.T
+                elif (keys[1] == "layers" and keys[3] == "input_layernorm") or (keys[1] == "layers" and keys[3] == "post_attention_layernorm"):
+                    state["layers"][int(keys[2])][keys[3]]["norm_weights"].value = tensor
+            elif keys[1] == "embed_tokens":
+                state["token_embed"].embedding.value = tensor
+                state["lm_head"].kernel.value = tensor.T
+            elif keys[1] == "norm":
+                state["norm"].norm_weights.value = tensor
+
+if __name__ == "__main__":
+    from jaxgarden.tokenization import Tokenizer
+    config = LlamaConfig()
+    model = LlamaForCausalLM(config, rngs=nnx.Rngs(0))
+    model_id = "meta-llama/Llama-3.2-1B"
+    model.from_hf(model_id, force_download=True)
+    tokenizer = Tokenizer.from_pretrained(model_id)
+    text = "The meaning of life is"
+    model_inputs = tokenizer.encode(text)
+    output = model.generate(**model_inputs, max_length=20, do_sample=True)
+    output_text = tokenizer.decode(output)
+    print(output, output.shape)
+    print(output_text)
+    

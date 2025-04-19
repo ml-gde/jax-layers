@@ -363,6 +363,7 @@ class GenerationMixin(_Base):
     def generate(
         self: "GenerationMixin",
         input_ids: jnp.ndarray,
+        attention_mask: jnp.ndarray|None = None,
         max_length: int = 20,
         temperature: float = 1.0,
         top_k: int | None = None,
