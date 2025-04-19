@@ -1,10 +1,10 @@
-import shutil
+import logging
 import os
+import shutil
 from collections.abc import Iterator
 from dataclasses import dataclass, field
 from pathlib import Path
 from typing import Any
-import logging
 
 import jax
 import jax.numpy as jnp
@@ -88,7 +88,7 @@ class BaseModel(nnx.Module):
         Args:
             path: The directory path to save the model state to.
         """
-        state = self.state
+        state = self.state_dict
         checkpointer = ocp.StandardCheckpointer()
         checkpointer.save(os.path.join(path, DEFAULT_PARAMS_FILE), state)
         checkpointer.wait_until_finished()
@@ -107,7 +107,9 @@ class BaseModel(nnx.Module):
         return nnx.merge(graphdef, abstract_state)
 
     @staticmethod
-    def download_from_hf(repo_id: str, local_dir: str, token: str | None = None, force_download: bool = False) -> None:
+    def download_from_hf(
+        repo_id: str, local_dir: str, token: str | None = None, force_download: bool = False
+    ) -> None:
         """Downloads the model from the Hugging Face Hub.
 
         Args:
@@ -116,7 +118,9 @@ class BaseModel(nnx.Module):
         """
         logger.info(f"Attempting to download {repo_id} from Hugging Face Hub to {local_dir}.")
         try:
-            snapshot_download(repo_id, local_dir=local_dir, token=token, force_download=force_download)
+            snapshot_download(
+                repo_id, local_dir=local_dir, token=token, force_download=force_download
+            )
             logger.info(f"Successfully downloaded {repo_id} to {local_dir}.")
         except Exception as e:
             logger.error(f"Failed to download {repo_id}: {e}")
@@ -137,10 +141,17 @@ class BaseModel(nnx.Module):
 
         for file in safetensors_files:
             with safe_open(file, framework="jax", device="cpu") as f:
-                for key in f.keys():
+                for key in f.keys(): # noqa: SIM118
                     yield (key, f.get_tensor(key))
 
-    def from_hf(self, model_repo_or_id: str, token: str | None = None, force_download: bool = False, save_in_orbax: bool = True, remove_hf_after_conversion: bool = True) -> None:
+    def from_hf(
+        self,
+        model_repo_or_id: str,
+        token: str | None = None,
+        force_download: bool = False,
+        save_in_orbax: bool = True,
+        remove_hf_after_conversion: bool = True,
+    ) -> None:
         """Downloads the model from the Hugging Face Hub and returns a new instance of the model.
 
         It can also save the converted weights in an Orbax checkpoint
@@ -150,11 +161,12 @@ class BaseModel(nnx.Module):
             model_repo_or_id: The repository ID or name of the model to download.
             token: The token to use for authentication with the Hugging Face Hub.
             save_in_orbax: Whether to save the converted weights in an Orbax checkpoint.
-            remove_hf_after_conversion: Whether to remove the downloaded HuggingFace checkpoint after conversion.
+            remove_hf_after_conversion: Whether to remove the downloaded HuggingFace checkpoint
+                after conversion.
         """
         logger.info(f"Starting from_hf process for model: {model_repo_or_id}")
         local_dir = os.path.join(
-            os.path.expanduser("~"), ".jaxgarden", "hf_models", *model_repo_or_id.split('/')
+            os.path.expanduser("~"), ".jaxgarden", "hf_models", *model_repo_or_id.split("/")
         )
         save_dir = local_dir.replace("hf_models", "models")
         if os.path.exists(save_dir):
@@ -162,11 +174,16 @@ class BaseModel(nnx.Module):
                 logger.warn(f"Removing {save_dir} because force_download is set to True")
                 shutil.rmtree(save_dir)
             else:
-                raise RuntimeError(f"Path {save_dir} already exists. Set force_download to Tru to run conversion again.")
-                
+                raise RuntimeError(
+                    f"Path {save_dir} already exists."
+                    + " Set force_download to Tru to run conversion again."
+                )
+
         logger.debug(f"Local Hugging Face model directory set to: {local_dir}")
 
-        BaseModel.download_from_hf(model_repo_or_id, local_dir, token=token, force_download=force_download)
+        BaseModel.download_from_hf(
+            model_repo_or_id, local_dir, token=token, force_download=force_download
+        )
         logger.info(f"Initiating weight iteration from safetensors in {local_dir}")
         weights = BaseModel.iter_safetensors(local_dir)
         state = self.state
@@ -179,7 +196,7 @@ class BaseModel(nnx.Module):
         if remove_hf_after_conversion:
             logger.warn(f"Removing HuggingFace checkpoint from {local_dir}...")
             shutil.rmtree(local_dir)
-        
+
         if save_in_orbax:
             logger.warn(f")Saving Orbax checkpoint in {save_dir}.")
             self.save(save_dir)

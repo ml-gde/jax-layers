@@ -244,7 +244,9 @@ class LlamaAttention(nnx.Module):
         return hidden_states.reshape(batch, n_kv_heads * n_repeat, seq_len, head_dim)
 
     @nnx.jit()
-    def __call__(self, x: jnp.ndarray, position_ids: jnp.ndarray, attention_mask: jnp.ndarray) -> jnp.ndarray:
+    def __call__(
+        self, x: jnp.ndarray, position_ids: jnp.ndarray, attention_mask: jnp.ndarray
+    ) -> jnp.ndarray:
         """Apply self-attention using queries, keys, and values derived from input x.
 
         Args:
@@ -476,7 +478,12 @@ class LlamaForCausalLM(BaseModel, GenerationMixin):
         self.norm = LlamaRMSNorm(dim=config.dim, rngs=rngs)
 
     @nnx.jit()
-    def __call__(self, input_ids: jnp.ndarray, attention_mask: jnp.ndarray|None = None, deterministic: bool = True):
+    def __call__(
+        self,
+        input_ids: jnp.ndarray,
+        attention_mask: jnp.ndarray | None = None,
+        deterministic: bool = True,
+    ):
         """Forward pass of the LLama model.
 
         Args:
@@ -503,9 +510,13 @@ class LlamaForCausalLM(BaseModel, GenerationMixin):
             if keys[1] == "layers":
                 if keys[3] == "self_attn":
                     keys[3] = "attention"
-                if (keys[1] == "layers" and keys[3] == "attention") or (keys[1] == "layers" and keys[3] == "mlp"):
+                if (keys[1] == "layers" and keys[3] == "attention") or (
+                    keys[1] == "layers" and keys[3] == "mlp"
+                ):
                     state["layers"][int(keys[2])][keys[3]][keys[4]]["kernel"].value = tensor.T
-                elif (keys[1] == "layers" and keys[3] == "input_layernorm") or (keys[1] == "layers" and keys[3] == "post_attention_layernorm"):
+                elif (keys[1] == "layers" and keys[3] == "input_layernorm") or (
+                    keys[1] == "layers" and keys[3] == "post_attention_layernorm"
+                ):
                     state["layers"][int(keys[2])][keys[3]]["norm_weights"].value = tensor
             elif keys[1] == "embed_tokens":
                 state["token_embed"].embedding.value = tensor
@@ -513,8 +524,10 @@ class LlamaForCausalLM(BaseModel, GenerationMixin):
             elif keys[1] == "norm":
                 state["norm"].norm_weights.value = tensor
 
+
 if __name__ == "__main__":
     from jaxgarden.tokenization import Tokenizer
+
     config = LlamaConfig()
     model = LlamaForCausalLM(config, rngs=nnx.Rngs(0))
     model_id = "meta-llama/Llama-3.2-1B"
@@ -526,4 +539,3 @@ if __name__ == "__main__":
     output_text = tokenizer.decode(output)
     print(output, output.shape)
     print(output_text)
-    
