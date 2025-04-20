@@ -380,15 +380,17 @@ wheels = [
 ]
 
 [[package]]
-name = "jax-layers"
-version = "0.1.0"
+name = "jaxgarden"
+version = "0.2.0"
 source = { editable = "." }
 dependencies = [
     { name = "flax" },
     { name = "huggingface-hub" },
     { name = "jax" },
+    { name = "jinja2" },
     { name = "orbax" },
     { name = "safetensors" },
+    { name = "tokenizers" },
 ]
 
 [package.optional-dependencies]
@@ -413,6 +415,7 @@ requires-dist = [
     { name = "flax", specifier = ">=0.10.4" },
     { name = "huggingface-hub", specifier = ">=0.30.2" },
     { name = "jax", specifier = "==0.5.1" },
+    { name = "jinja2", specifier = ">=3.1.6" },
     { name = "mypy", marker = "extra == 'dev'", specifier = ">=1.0.0" },
     { name = "myst-parser", marker = "extra == 'dev'" },
     { name = "orbax", specifier = ">=0.1.9" },
@@ -423,6 +426,7 @@ requires-dist = [
     { name = "safetensors", specifier = ">=0.5.3" },
     { name = "sphinx", marker = "extra == 'dev'" },
     { name = "sphinx-rtd-theme", marker = "extra == 'dev'" },
+    { name = "tokenizers", specifier = ">=0.21.1" },
     { name = "torch", marker = "extra == 'dev'" },
     { name = "torchaudio", marker = "extra == 'dev'" },
     { name = "torchvision", marker = "extra == 'dev'" },
