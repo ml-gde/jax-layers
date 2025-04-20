@@ -193,7 +193,14 @@ class LlamaAttention(nnx.Module):
         self.n_heads = n_heads
         self.n_kv_heads = n_kv_heads
 
-    def apply_rotary_pos_emb(self, q: jnp.ndarray, k: jnp.ndarray, cos: jnp.ndarray, sin: jnp.ndarray, unsqueeze_dim: int = 1) -> tuple[jnp.ndarray, jnp.ndarray]:
+    def apply_rotary_pos_emb(
+        self,
+        q: jnp.ndarray,
+        k: jnp.ndarray,
+        cos: jnp.ndarray,
+        sin: jnp.ndarray,
+        unsqueeze_dim: int = 1,
+    ) -> tuple[jnp.ndarray, jnp.ndarray]:
         """Apply rotary position embeddings to query and key tensors.
 
         Args:
@@ -253,6 +260,8 @@ class LlamaAttention(nnx.Module):
         Args:
             x: Input tensor of shape [batch_size, seq_len, dim]
             position_ids: Position indices of shape [batch_size, seq_len]
+            attention_mask: Additive attention mask of shape (batch_size, 1, q_len, kv_len)
+                or a shape that can be broadcasted to this shape.
 
         Returns:
             Output tensor of shape [batch_size, seq_len, dim]
@@ -307,9 +316,7 @@ class LlamaMLP(nnx.Module):
         down_proj: Linear projection for down-projection
     """
 
-    def __init__(
-        self, layer_idx: int, dim: int, intermediate_size: int, *, rngs: nnx.Rngs
-    ):
+    def __init__(self, layer_idx: int, dim: int, intermediate_size: int, *, rngs: nnx.Rngs):
         """Initialize MLP module.
 
         Args:
@@ -396,12 +403,16 @@ class LlamaTransformerBlock(nnx.Module):
         )
 
     @nnx.jit()
-    def __call__(self, x: jnp.ndarray, position_ids: jnp.ndarray, attention_mask: jnp.ndarray) -> jnp.ndarray:
+    def __call__(
+        self, x: jnp.ndarray, position_ids: jnp.ndarray, attention_mask: jnp.ndarray
+    ) -> jnp.ndarray:
         """Apply transformer block to input tensor.
 
         Args:
             x: Input tensor of shape [batch_size, seq_len, dim]
             position_ids: Position indices of shape [batch_size, seq_len]
+            attention_mask: Additive attention mask of shape (batch_size, 1, q_len, kv_len)
+                or another shape that can be broadcasted to this shape.
 
         Returns:
             Output tensor of shape [batch_size, seq_len, dim]
@@ -506,7 +517,9 @@ class LlamaForCausalLM(BaseModel, GenerationMixin):
         logits = self.lm_head(x)
         return logits
 
-    def convert_weights_from_hf(self, state: nnx.State | dict[str, jnp.ndarray], weights: Iterator[tuple[Any, Any]]) -> None:
+    def convert_weights_from_hf(
+        self, state: nnx.State | dict[str, jnp.ndarray], weights: Iterator[tuple[Any, Any]]
+    ) -> None:
         for wholekey, tensor in weights:
             keys = wholekey.split(".")
             if keys[1] == "layers":
@@ -515,29 +528,13 @@ class LlamaForCausalLM(BaseModel, GenerationMixin):
                 if (keys[1] == "layers" and keys[3] == "attention") or (
                     keys[1] == "layers" and keys[3] == "mlp"
                 ):
-                    state["layers"][int(keys[2])][keys[3]][keys[4]]["kernel"].value = tensor.T # type: ignore
+                    state["layers"][int(keys[2])][keys[3]][keys[4]]["kernel"].value = tensor.T  # type: ignore
                 elif (keys[1] == "layers" and keys[3] == "input_layernorm") or (
                     keys[1] == "layers" and keys[3] == "post_attention_layernorm"
                 ):
-                    state["layers"][int(keys[2])][keys[3]]["norm_weights"].value = tensor # type: ignore
+                    state["layers"][int(keys[2])][keys[3]]["norm_weights"].value = tensor  # type: ignore
             elif keys[1] == "embed_tokens":
-                state["token_embed"].embedding.value = tensor # type: ignore
-                state["lm_head"].kernel.value = tensor.T # type: ignore
+                state["token_embed"].embedding.value = tensor  # type: ignore
+                state["lm_head"].kernel.value = tensor.T  # type: ignore
             elif keys[1] == "norm":
-                state["norm"].norm_weights.value = tensor # type: ignore
-
-
-if __name__ == "__main__":
-    from jaxgarden.tokenization import Tokenizer
-
-    config = LlamaConfig()
-    model = LlamaForCausalLM(config, rngs=nnx.Rngs(0))
-    model_id = "meta-llama/Llama-3.2-1B"
-    model.from_hf(model_id, force_download=True)
-    tokenizer = Tokenizer.from_pretrained(model_id)
-    text = "The meaning of life is"
-    model_inputs = tokenizer.encode(text)
-    output = model.generate(**model_inputs, max_length=20, do_sample=True)
-    output_text = tokenizer.decode(output)
-    print(output, output.shape)
-    print(output_text)
+                state["norm"].norm_weights.value = tensor  # type: ignore

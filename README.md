@@ -37,6 +37,39 @@ pip install -e .
 
 ## Usage
 
+### LLaMA inference
+
+```python
+from jaxgarden import LlamaConfig, LlamaForCausalLM, Tokenizer
+from flax import nnx
+
+
+# HF repo id of the LLaMA variant that you want to use
+model_id = "meta-llama/Llama-3.2-1B"
+
+# initialize the LLaMA architecture
+config = LlamaConfig()
+model = LlamaForCausalLM(config, rngs=nnx.Rngs(0))
+
+# This is a one-liner to download HF checkpoint from HuggingFace Hub,
+# convert it to jaxgarden format,
+# save it in an Orbax checkpoint,
+# and then remove the HF checkpoint.
+model.from_hf(model_id)
+
+# this works just like `transformers.AutoTokenizer`,
+# but without the dependency of the whole `transformers` library.
+# Instead, we simply extend `tokenizers` package and add some cnvenience code for JAX.
+tokenizer = Tokenizer.from_pretrained(model_id)
+    
+text = "The meaning of life is"
+model_inputs = tokenizer.encode(text)
+output = model.generate(**model_inputs, max_length=20, do_sample=True)
+output_text = tokenizer.decode(output)
+print(output_text)
+```
+
+
 ### MultiHeadAttention Module (Flax NNX)
 
 ```python

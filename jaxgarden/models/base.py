@@ -141,7 +141,7 @@ class BaseModel(nnx.Module):
 
         for file in safetensors_files:
             with safe_open(file, framework="jax", device="cpu") as f:
-                for key in f.keys(): # noqa: SIM118
+                for key in f.keys():  # noqa: SIM118
                     yield (key, f.get_tensor(key))
 
     def from_hf(
