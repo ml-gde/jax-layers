@@ -1,5 +1,6 @@
-from jaxgarden import LlamaConfig, LlamaForCausalLM, Tokenizer
 from flax import nnx
+
+from jaxgarden import LlamaConfig, LlamaForCausalLM, Tokenizer
 
 if __name__ == "__main__":
     # initialize a config object (with defaults for 1B varient)
@@ -20,7 +21,7 @@ if __name__ == "__main__":
     # but without the dependency of the whole `transformers` library.
     # Instead, we simply extend `tokenizers` package and add some cnvenience code for JAX.
     tokenizer = Tokenizer.from_pretrained(model_id)
-    
+
     text = "The meaning of life is"
     model_inputs = tokenizer.encode(text)
     output = model.generate(**model_inputs, max_length=20, do_sample=True)

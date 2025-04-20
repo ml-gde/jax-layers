@@ -21,7 +21,6 @@ from jaxgarden.models.modernbert import (
     ModernBertLayer,
     ModernBertMLP,
 )
-
 from jaxgarden.tokenization import Tokenizer
 
 __all__ = [
@@ -46,10 +45,10 @@ __all__ = [
     "ModernBertMLP",
     # Attention modules
     "MultiHeadAttention",
-    # Functional interfaces
-    "dot_product_attention",
     # tokenization
     "Tokenizer",
+    # Functional interfaces
+    "dot_product_attention",
 ]
 
 __version__ = "0.2.0"
