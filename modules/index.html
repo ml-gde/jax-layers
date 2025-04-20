@@ -66,15 +66,98 @@
 </li>
 <li class="toctree-l3"><a class="reference internal" href="#jaxgarden.models.BaseModel"><code class="docutils literal notranslate"><span class="pre">BaseModel</span></code></a><ul>
 <li class="toctree-l4"><a class="reference internal" href="#jaxgarden.models.BaseModel.__init__"><code class="docutils literal notranslate"><span class="pre">BaseModel.__init__()</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="#jaxgarden.models.BaseModel.convert_weights_from_hf"><code class="docutils literal notranslate"><span class="pre">BaseModel.convert_weights_from_hf()</span></code></a></li>
 <li class="toctree-l4"><a class="reference internal" href="#jaxgarden.models.BaseModel.download_from_hf"><code class="docutils literal notranslate"><span class="pre">BaseModel.download_from_hf()</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="#jaxgarden.models.BaseModel.from_hf"><code class="docutils literal notranslate"><span class="pre">BaseModel.from_hf()</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="#jaxgarden.models.BaseModel.iter_safetensors"><code class="docutils literal notranslate"><span class="pre">BaseModel.iter_safetensors()</span></code></a></li>
 <li class="toctree-l4"><a class="reference internal" href="#jaxgarden.models.BaseModel.load"><code class="docutils literal notranslate"><span class="pre">BaseModel.load()</span></code></a></li>
-<li class="toctree-l4"><a class="reference internal" href="#jaxgarden.models.BaseModel.load_safetensors"><code class="docutils literal notranslate"><span class="pre">BaseModel.load_safetensors()</span></code></a></li>
 <li class="toctree-l4"><a class="reference internal" href="#jaxgarden.models.BaseModel.save"><code class="docutils literal notranslate"><span class="pre">BaseModel.save()</span></code></a></li>
 <li class="toctree-l4"><a class="reference internal" href="#jaxgarden.models.BaseModel.state"><code class="docutils literal notranslate"><span class="pre">BaseModel.state</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="#jaxgarden.models.BaseModel.state_dict"><code class="docutils literal notranslate"><span class="pre">BaseModel.state_dict</span></code></a></li>
 </ul>
 </li>
 <li class="toctree-l3"><a class="reference internal" href="#jaxgarden.models.GenerationMixin"><code class="docutils literal notranslate"><span class="pre">GenerationMixin</span></code></a><ul>
 <li class="toctree-l4"><a class="reference internal" href="#jaxgarden.models.GenerationMixin.generate"><code class="docutils literal notranslate"><span class="pre">GenerationMixin.generate()</span></code></a></li>
+</ul>
+</li>
+<li class="toctree-l3"><a class="reference internal" href="#jaxgarden.models.LlamaAttention"><code class="docutils literal notranslate"><span class="pre">LlamaAttention</span></code></a><ul>
+<li class="toctree-l4"><a class="reference internal" href="#jaxgarden.models.LlamaAttention.q_proj"><code class="docutils literal notranslate"><span class="pre">LlamaAttention.q_proj</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="#jaxgarden.models.LlamaAttention.k_proj"><code class="docutils literal notranslate"><span class="pre">LlamaAttention.k_proj</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="#jaxgarden.models.LlamaAttention.v_proj"><code class="docutils literal notranslate"><span class="pre">LlamaAttention.v_proj</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="#jaxgarden.models.LlamaAttention.o_proj"><code class="docutils literal notranslate"><span class="pre">LlamaAttention.o_proj</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="#jaxgarden.models.LlamaAttention.rotary_emb"><code class="docutils literal notranslate"><span class="pre">LlamaAttention.rotary_emb</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="#jaxgarden.models.LlamaAttention.head_dim"><code class="docutils literal notranslate"><span class="pre">LlamaAttention.head_dim</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="#jaxgarden.models.LlamaAttention.n_heads"><code class="docutils literal notranslate"><span class="pre">LlamaAttention.n_heads</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="#jaxgarden.models.LlamaAttention.n_kv_heads"><code class="docutils literal notranslate"><span class="pre">LlamaAttention.n_kv_heads</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="#jaxgarden.models.LlamaAttention.__call__"><code class="docutils literal notranslate"><span class="pre">LlamaAttention.__call__()</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="#jaxgarden.models.LlamaAttention.__init__"><code class="docutils literal notranslate"><span class="pre">LlamaAttention.__init__()</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="#jaxgarden.models.LlamaAttention.apply_rotary_pos_emb"><code class="docutils literal notranslate"><span class="pre">LlamaAttention.apply_rotary_pos_emb()</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="#jaxgarden.models.LlamaAttention.repeat_kv"><code class="docutils literal notranslate"><span class="pre">LlamaAttention.repeat_kv()</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="#jaxgarden.models.LlamaAttention.rotate_half"><code class="docutils literal notranslate"><span class="pre">LlamaAttention.rotate_half()</span></code></a></li>
+</ul>
+</li>
+<li class="toctree-l3"><a class="reference internal" href="#jaxgarden.models.LlamaConfig"><code class="docutils literal notranslate"><span class="pre">LlamaConfig</span></code></a><ul>
+<li class="toctree-l4"><a class="reference internal" href="#jaxgarden.models.LlamaConfig.dim"><code class="docutils literal notranslate"><span class="pre">LlamaConfig.dim</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="#jaxgarden.models.LlamaConfig.n_layers"><code class="docutils literal notranslate"><span class="pre">LlamaConfig.n_layers</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="#jaxgarden.models.LlamaConfig.n_heads"><code class="docutils literal notranslate"><span class="pre">LlamaConfig.n_heads</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="#jaxgarden.models.LlamaConfig.n_kv_heads"><code class="docutils literal notranslate"><span class="pre">LlamaConfig.n_kv_heads</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="#jaxgarden.models.LlamaConfig.head_dim"><code class="docutils literal notranslate"><span class="pre">LlamaConfig.head_dim</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="#jaxgarden.models.LlamaConfig.intermediate_size"><code class="docutils literal notranslate"><span class="pre">LlamaConfig.intermediate_size</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="#jaxgarden.models.LlamaConfig.vocab_size"><code class="docutils literal notranslate"><span class="pre">LlamaConfig.vocab_size</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="#jaxgarden.models.LlamaConfig.multiple_of"><code class="docutils literal notranslate"><span class="pre">LlamaConfig.multiple_of</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="#jaxgarden.models.LlamaConfig.norm_eps"><code class="docutils literal notranslate"><span class="pre">LlamaConfig.norm_eps</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="#jaxgarden.models.LlamaConfig.rope_theta"><code class="docutils literal notranslate"><span class="pre">LlamaConfig.rope_theta</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="#id0"><code class="docutils literal notranslate"><span class="pre">LlamaConfig.dim</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="#id9"><code class="docutils literal notranslate"><span class="pre">LlamaConfig.head_dim</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="#id10"><code class="docutils literal notranslate"><span class="pre">LlamaConfig.intermediate_size</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="#id11"><code class="docutils literal notranslate"><span class="pre">LlamaConfig.multiple_of</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="#id12"><code class="docutils literal notranslate"><span class="pre">LlamaConfig.n_heads</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="#id13"><code class="docutils literal notranslate"><span class="pre">LlamaConfig.n_kv_heads</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="#id14"><code class="docutils literal notranslate"><span class="pre">LlamaConfig.n_layers</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="#id15"><code class="docutils literal notranslate"><span class="pre">LlamaConfig.norm_eps</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="#id16"><code class="docutils literal notranslate"><span class="pre">LlamaConfig.rope_theta</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="#id17"><code class="docutils literal notranslate"><span class="pre">LlamaConfig.vocab_size</span></code></a></li>
+</ul>
+</li>
+<li class="toctree-l3"><a class="reference internal" href="#jaxgarden.models.LlamaForCausalLM"><code class="docutils literal notranslate"><span class="pre">LlamaForCausalLM</span></code></a><ul>
+<li class="toctree-l4"><a class="reference internal" href="#jaxgarden.models.LlamaForCausalLM.token_embed"><code class="docutils literal notranslate"><span class="pre">LlamaForCausalLM.token_embed</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="#jaxgarden.models.LlamaForCausalLM.layers"><code class="docutils literal notranslate"><span class="pre">LlamaForCausalLM.layers</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="#jaxgarden.models.LlamaForCausalLM.lm_head"><code class="docutils literal notranslate"><span class="pre">LlamaForCausalLM.lm_head</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="#jaxgarden.models.LlamaForCausalLM.norm"><code class="docutils literal notranslate"><span class="pre">LlamaForCausalLM.norm</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="#jaxgarden.models.LlamaForCausalLM.__call__"><code class="docutils literal notranslate"><span class="pre">LlamaForCausalLM.__call__()</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="#jaxgarden.models.LlamaForCausalLM.__init__"><code class="docutils literal notranslate"><span class="pre">LlamaForCausalLM.__init__()</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="#jaxgarden.models.LlamaForCausalLM.convert_weights_from_hf"><code class="docutils literal notranslate"><span class="pre">LlamaForCausalLM.convert_weights_from_hf()</span></code></a></li>
+</ul>
+</li>
+<li class="toctree-l3"><a class="reference internal" href="#jaxgarden.models.LlamaMLP"><code class="docutils literal notranslate"><span class="pre">LlamaMLP</span></code></a><ul>
+<li class="toctree-l4"><a class="reference internal" href="#jaxgarden.models.LlamaMLP.gate_proj"><code class="docutils literal notranslate"><span class="pre">LlamaMLP.gate_proj</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="#jaxgarden.models.LlamaMLP.up_proj"><code class="docutils literal notranslate"><span class="pre">LlamaMLP.up_proj</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="#jaxgarden.models.LlamaMLP.down_proj"><code class="docutils literal notranslate"><span class="pre">LlamaMLP.down_proj</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="#jaxgarden.models.LlamaMLP.__call__"><code class="docutils literal notranslate"><span class="pre">LlamaMLP.__call__()</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="#jaxgarden.models.LlamaMLP.__init__"><code class="docutils literal notranslate"><span class="pre">LlamaMLP.__init__()</span></code></a></li>
+</ul>
+</li>
+<li class="toctree-l3"><a class="reference internal" href="#jaxgarden.models.LlamaRMSNorm"><code class="docutils literal notranslate"><span class="pre">LlamaRMSNorm</span></code></a><ul>
+<li class="toctree-l4"><a class="reference internal" href="#jaxgarden.models.LlamaRMSNorm.norm_weights"><code class="docutils literal notranslate"><span class="pre">LlamaRMSNorm.norm_weights</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="#jaxgarden.models.LlamaRMSNorm.norm_eps"><code class="docutils literal notranslate"><span class="pre">LlamaRMSNorm.norm_eps</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="#jaxgarden.models.LlamaRMSNorm.__call__"><code class="docutils literal notranslate"><span class="pre">LlamaRMSNorm.__call__()</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="#jaxgarden.models.LlamaRMSNorm.__init__"><code class="docutils literal notranslate"><span class="pre">LlamaRMSNorm.__init__()</span></code></a></li>
+</ul>
+</li>
+<li class="toctree-l3"><a class="reference internal" href="#jaxgarden.models.LlamaRotaryEmbedding"><code class="docutils literal notranslate"><span class="pre">LlamaRotaryEmbedding</span></code></a><ul>
+<li class="toctree-l4"><a class="reference internal" href="#jaxgarden.models.LlamaRotaryEmbedding.dim"><code class="docutils literal notranslate"><span class="pre">LlamaRotaryEmbedding.dim</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="#jaxgarden.models.LlamaRotaryEmbedding.base"><code class="docutils literal notranslate"><span class="pre">LlamaRotaryEmbedding.base</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="#jaxgarden.models.LlamaRotaryEmbedding.__call__"><code class="docutils literal notranslate"><span class="pre">LlamaRotaryEmbedding.__call__()</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="#jaxgarden.models.LlamaRotaryEmbedding.__init__"><code class="docutils literal notranslate"><span class="pre">LlamaRotaryEmbedding.__init__()</span></code></a></li>
+</ul>
+</li>
+<li class="toctree-l3"><a class="reference internal" href="#jaxgarden.models.LlamaTransformerBlock"><code class="docutils literal notranslate"><span class="pre">LlamaTransformerBlock</span></code></a><ul>
+<li class="toctree-l4"><a class="reference internal" href="#jaxgarden.models.LlamaTransformerBlock.input_layernorm"><code class="docutils literal notranslate"><span class="pre">LlamaTransformerBlock.input_layernorm</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="#jaxgarden.models.LlamaTransformerBlock.attention"><code class="docutils literal notranslate"><span class="pre">LlamaTransformerBlock.attention</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="#jaxgarden.models.LlamaTransformerBlock.post_attention_layernorm"><code class="docutils literal notranslate"><span class="pre">LlamaTransformerBlock.post_attention_layernorm</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="#jaxgarden.models.LlamaTransformerBlock.mlp"><code class="docutils literal notranslate"><span class="pre">LlamaTransformerBlock.mlp</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="#jaxgarden.models.LlamaTransformerBlock.__call__"><code class="docutils literal notranslate"><span class="pre">LlamaTransformerBlock.__call__()</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="#jaxgarden.models.LlamaTransformerBlock.__init__"><code class="docutils literal notranslate"><span class="pre">LlamaTransformerBlock.__init__()</span></code></a></li>
 </ul>
 </li>
 <li class="toctree-l3"><a class="reference internal" href="#jaxgarden.models.ModernBERTEncoder"><code class="docutils literal notranslate"><span class="pre">ModernBERTEncoder</span></code></a><ul>
@@ -320,8 +403,16 @@ rngs: Random number generators for param initialization etc.</p>
 </dd></dl>
 
 <dl class="py method">
+<dt class="sig sig-object py" id="jaxgarden.models.BaseModel.convert_weights_from_hf">
+<span class="sig-name descname"><span class="pre">convert_weights_from_hf</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">state</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><a class="reference external" href="https://flax.readthedocs.io/en/latest/api_reference/flax.nnx/state.html#flax.nnx.State" title="(in Flax)"><span class="pre">State</span></a></span></em>, <em class="sig-param"><span class="n"><span class="pre">weights</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><a class="reference external" href="https://docs.python.org/3/library/collections.abc.html#collections.abc.Iterator" title="(in Python v3.13)"><span class="pre">Iterator</span></a><span class="p"><span class="pre">[</span></span><a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#tuple" title="(in Python v3.13)"><span class="pre">tuple</span></a><span class="p"><span class="pre">[</span></span><a class="reference external" href="https://docs.python.org/3/library/typing.html#typing.Any" title="(in Python v3.13)"><span class="pre">Any</span></a><span class="p"><span class="pre">,</span></span><span class="w"> </span><a class="reference external" href="https://docs.python.org/3/library/typing.html#typing.Any" title="(in Python v3.13)"><span class="pre">Any</span></a><span class="p"><span class="pre">]</span></span><span class="p"><span class="pre">]</span></span></span></em><span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><a class="reference external" href="https://docs.python.org/3/library/constants.html#None" title="(in Python v3.13)"><span class="pre">None</span></a></span></span><a class="reference internal" href="../_modules/jaxgarden/models/base.html#BaseModel.convert_weights_from_hf"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#jaxgarden.models.BaseModel.convert_weights_from_hf" title="Link to this definition"></a></dt>
+<dd><p>Convert weights from Hugging Face Hub to the model’s state.</p>
+<p>This method should be implemented in downstream classes
+to support conversion from HuggingFace format.</p>
+</dd></dl>
+
+<dl class="py method">
 <dt class="sig sig-object py" id="jaxgarden.models.BaseModel.download_from_hf">
-<em class="property"><span class="pre">static</span><span class="w"> </span></em><span class="sig-name descname"><span class="pre">download_from_hf</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">repo_id</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#str" title="(in Python v3.13)"><span class="pre">str</span></a></span></em>, <em class="sig-param"><span class="n"><span class="pre">local_dir</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#str" title="(in Python v3.13)"><span class="pre">str</span></a></span></em><span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><a class="reference external" href="https://docs.python.org/3/library/constants.html#None" title="(in Python v3.13)"><span class="pre">None</span></a></span></span><a class="reference internal" href="../_modules/jaxgarden/models/base.html#BaseModel.download_from_hf"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#jaxgarden.models.BaseModel.download_from_hf" title="Link to this definition"></a></dt>
+<em class="property"><span class="pre">static</span><span class="w"> </span></em><span class="sig-name descname"><span class="pre">download_from_hf</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">repo_id</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#str" title="(in Python v3.13)"><span class="pre">str</span></a></span></em>, <em class="sig-param"><span class="n"><span class="pre">local_dir</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#str" title="(in Python v3.13)"><span class="pre">str</span></a></span></em>, <em class="sig-param"><span class="n"><span class="pre">token</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#str" title="(in Python v3.13)"><span class="pre">str</span></a><span class="w"> </span><span class="p"><span class="pre">|</span></span><span class="w"> </span><a class="reference external" href="https://docs.python.org/3/library/constants.html#None" title="(in Python v3.13)"><span class="pre">None</span></a></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">force_download</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><a class="reference external" href="https://docs.python.org/3/library/functions.html#bool" title="(in Python v3.13)"><span class="pre">bool</span></a></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">False</span></span></em><span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><a class="reference external" href="https://docs.python.org/3/library/constants.html#None" title="(in Python v3.13)"><span class="pre">None</span></a></span></span><a class="reference internal" href="../_modules/jaxgarden/models/base.html#BaseModel.download_from_hf"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#jaxgarden.models.BaseModel.download_from_hf" title="Link to this definition"></a></dt>
 <dd><p>Downloads the model from the Hugging Face Hub.</p>
 <dl class="field-list simple">
 <dt class="field-odd">Parameters<span class="colon">:</span></dt>
@@ -334,24 +425,45 @@ rngs: Random number generators for param initialization etc.</p>
 </dd></dl>
 
 <dl class="py method">
+<dt class="sig sig-object py" id="jaxgarden.models.BaseModel.from_hf">
+<span class="sig-name descname"><span class="pre">from_hf</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">model_repo_or_id</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#str" title="(in Python v3.13)"><span class="pre">str</span></a></span></em>, <em class="sig-param"><span class="n"><span class="pre">token</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#str" title="(in Python v3.13)"><span class="pre">str</span></a><span class="w"> </span><span class="p"><span class="pre">|</span></span><span class="w"> </span><a class="reference external" href="https://docs.python.org/3/library/constants.html#None" title="(in Python v3.13)"><span class="pre">None</span></a></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">force_download</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><a class="reference external" href="https://docs.python.org/3/library/functions.html#bool" title="(in Python v3.13)"><span class="pre">bool</span></a></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">False</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">save_in_orbax</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><a class="reference external" href="https://docs.python.org/3/library/functions.html#bool" title="(in Python v3.13)"><span class="pre">bool</span></a></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">True</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">remove_hf_after_conversion</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><a class="reference external" href="https://docs.python.org/3/library/functions.html#bool" title="(in Python v3.13)"><span class="pre">bool</span></a></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">True</span></span></em><span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><a class="reference external" href="https://docs.python.org/3/library/constants.html#None" title="(in Python v3.13)"><span class="pre">None</span></a></span></span><a class="reference internal" href="../_modules/jaxgarden/models/base.html#BaseModel.from_hf"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#jaxgarden.models.BaseModel.from_hf" title="Link to this definition"></a></dt>
+<dd><p>Downloads the model from the Hugging Face Hub and returns a new instance of the model.</p>
+<dl class="simple">
+<dt>It can also save the converted weights in an Orbax checkpoint</dt><dd><p>and removes the original HF checkpoint after conversion.</p>
+</dd>
+</dl>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>model_repo_or_id</strong> – The repository ID or name of the model to download.</p></li>
+<li><p><strong>token</strong> – The token to use for authentication with the Hugging Face Hub.</p></li>
+<li><p><strong>save_in_orbax</strong> – Whether to save the converted weights in an Orbax checkpoint.</p></li>
+<li><p><strong>remove_hf_after_conversion</strong> – Whether to remove the downloaded HuggingFace checkpoint
+after conversion.</p></li>
+</ul>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="jaxgarden.models.BaseModel.iter_safetensors">
+<em class="property"><span class="pre">static</span><span class="w"> </span></em><span class="sig-name descname"><span class="pre">iter_safetensors</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">path_to_model_weights</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#str" title="(in Python v3.13)"><span class="pre">str</span></a></span></em><span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><a class="reference external" href="https://docs.python.org/3/library/collections.abc.html#collections.abc.Iterator" title="(in Python v3.13)"><span class="pre">Iterator</span></a><span class="p"><span class="pre">[</span></span><a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#tuple" title="(in Python v3.13)"><span class="pre">tuple</span></a><span class="p"><span class="pre">[</span></span><a class="reference external" href="https://docs.python.org/3/library/typing.html#typing.Any" title="(in Python v3.13)"><span class="pre">Any</span></a><span class="p"><span class="pre">,</span></span><span class="w"> </span><a class="reference external" href="https://docs.python.org/3/library/typing.html#typing.Any" title="(in Python v3.13)"><span class="pre">Any</span></a><span class="p"><span class="pre">]</span></span><span class="p"><span class="pre">]</span></span></span></span><a class="reference internal" href="../_modules/jaxgarden/models/base.html#BaseModel.iter_safetensors"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#jaxgarden.models.BaseModel.iter_safetensors" title="Link to this definition"></a></dt>
+<dd><p>Helper function to lazily load params from safetensors file.</p>
+<p>Use this static method to iterate over weights for conversion tasks.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><p><strong>model_path_to_params</strong> – Path to directory containing .safetensors files.</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py method">
 <dt class="sig sig-object py" id="jaxgarden.models.BaseModel.load">
 <span class="sig-name descname"><span class="pre">load</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">path</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#str" title="(in Python v3.13)"><span class="pre">str</span></a></span></em><span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><a class="reference external" href="https://flax.readthedocs.io/en/latest/api_reference/flax.nnx/module.html#flax.nnx.Module" title="(in Flax)"><span class="pre">Module</span></a></span></span><a class="reference internal" href="../_modules/jaxgarden/models/base.html#BaseModel.load"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#jaxgarden.models.BaseModel.load" title="Link to this definition"></a></dt>
 <dd><p>Loads the model state from a directory.</p>
 <dl class="field-list simple">
 <dt class="field-odd">Parameters<span class="colon">:</span></dt>
 <dd class="field-odd"><p><strong>path</strong> – The directory path to load the model state from.</p>
-</dd>
-</dl>
-</dd></dl>
-
-<dl class="py method">
-<dt class="sig sig-object py" id="jaxgarden.models.BaseModel.load_safetensors">
-<em class="property"><span class="pre">static</span><span class="w"> </span></em><span class="sig-name descname"><span class="pre">load_safetensors</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">path_to_model_weights</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#str" title="(in Python v3.13)"><span class="pre">str</span></a></span></em><span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><a class="reference external" href="https://docs.python.org/3/library/collections.abc.html#collections.abc.Iterator" title="(in Python v3.13)"><span class="pre">Iterator</span></a><span class="p"><span class="pre">[</span></span><a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#tuple" title="(in Python v3.13)"><span class="pre">tuple</span></a><span class="p"><span class="pre">[</span></span><a class="reference external" href="https://docs.python.org/3/library/typing.html#typing.Any" title="(in Python v3.13)"><span class="pre">Any</span></a><span class="p"><span class="pre">,</span></span><span class="w"> </span><a class="reference external" href="https://docs.python.org/3/library/typing.html#typing.Any" title="(in Python v3.13)"><span class="pre">Any</span></a><span class="p"><span class="pre">]</span></span><span class="p"><span class="pre">]</span></span></span></span><a class="reference internal" href="../_modules/jaxgarden/models/base.html#BaseModel.load_safetensors"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#jaxgarden.models.BaseModel.load_safetensors" title="Link to this definition"></a></dt>
-<dd><p>Helper function to lazily load params from safetensors file.</p>
-<p>Use this static method to load weights for conversion tasks.</p>
-<dl class="field-list simple">
-<dt class="field-odd">Parameters<span class="colon">:</span></dt>
-<dd class="field-odd"><p><strong>model_path_to_params</strong> – Path to directory containing .safetensors files.</p>
 </dd>
 </dl>
 </dd></dl>
@@ -369,8 +481,14 @@ rngs: Random number generators for param initialization etc.</p>
 
 <dl class="py property">
 <dt class="sig sig-object py" id="jaxgarden.models.BaseModel.state">
-<em class="property"><span class="pre">property</span><span class="w"> </span></em><span class="sig-name descname"><span class="pre">state</span></span><em class="property"><span class="p"><span class="pre">:</span></span><span class="w"> </span><a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#dict" title="(in Python v3.13)"><span class="pre">dict</span></a><span class="p"><span class="pre">[</span></span><a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#str" title="(in Python v3.13)"><span class="pre">str</span></a><span class="p"><span class="pre">,</span></span><span class="w"> </span><a class="reference external" href="https://docs.jax.dev/en/latest/_autosummary/jax.Array.html#jax.Array" title="(in JAX)"><span class="pre">Array</span></a><span class="p"><span class="pre">]</span></span></em><a class="headerlink" href="#jaxgarden.models.BaseModel.state" title="Link to this definition"></a></dt>
-<dd><p>Splits state from the graph and returns it.</p>
+<em class="property"><span class="pre">property</span><span class="w"> </span></em><span class="sig-name descname"><span class="pre">state</span></span><em class="property"><span class="p"><span class="pre">:</span></span><span class="w"> </span><a class="reference external" href="https://flax.readthedocs.io/en/latest/api_reference/flax.nnx/state.html#flax.nnx.State" title="(in Flax)"><span class="pre">State</span></a></em><a class="headerlink" href="#jaxgarden.models.BaseModel.state" title="Link to this definition"></a></dt>
+<dd><p>Splits state from the graph and returns it</p>
+</dd></dl>
+
+<dl class="py property">
+<dt class="sig sig-object py" id="jaxgarden.models.BaseModel.state_dict">
+<em class="property"><span class="pre">property</span><span class="w"> </span></em><span class="sig-name descname"><span class="pre">state_dict</span></span><em class="property"><span class="p"><span class="pre">:</span></span><span class="w"> </span><a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#dict" title="(in Python v3.13)"><span class="pre">dict</span></a><span class="p"><span class="pre">[</span></span><a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#str" title="(in Python v3.13)"><span class="pre">str</span></a><span class="p"><span class="pre">,</span></span><span class="w"> </span><a class="reference external" href="https://docs.jax.dev/en/latest/_autosummary/jax.Array.html#jax.Array" title="(in JAX)"><span class="pre">Array</span></a><span class="p"><span class="pre">]</span></span></em><a class="headerlink" href="#jaxgarden.models.BaseModel.state_dict" title="Link to this definition"></a></dt>
+<dd><p>Splits state from the graph and returns it as a dictionary.</p>
 <p>It can be used for serialization with orbax.</p>
 </dd></dl>
 
@@ -385,7 +503,7 @@ including sampling with temperature, top-k, top-p,
 and min-probability filtering, for CausalLMs.</p>
 <dl class="py method">
 <dt class="sig sig-object py" id="jaxgarden.models.GenerationMixin.generate">
-<span class="sig-name descname"><span class="pre">generate</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">input_ids</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><a class="reference external" href="https://docs.jax.dev/en/latest/_autosummary/jax.Array.html#jax.Array" title="(in JAX)"><span class="pre">Array</span></a></span></em>, <em class="sig-param"><span class="n"><span class="pre">max_length</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><a class="reference external" href="https://docs.python.org/3/library/functions.html#int" title="(in Python v3.13)"><span class="pre">int</span></a></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">20</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">temperature</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><a class="reference external" href="https://docs.python.org/3/library/functions.html#float" title="(in Python v3.13)"><span class="pre">float</span></a></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">1.0</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">top_k</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><a class="reference external" href="https://docs.python.org/3/library/functions.html#int" title="(in Python v3.13)"><span class="pre">int</span></a><span class="w"> </span><span class="p"><span class="pre">|</span></span><span class="w"> </span><a class="reference external" href="https://docs.python.org/3/library/constants.html#None" title="(in Python v3.13)"><span class="pre">None</span></a></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">top_p</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><a class="reference external" href="https://docs.python.org/3/library/functions.html#float" title="(in Python v3.13)"><span class="pre">float</span></a><span class="w"> </span><span class="p"><span class="pre">|</span></span><span class="w"> </span><a class="reference external" href="https://docs.python.org/3/library/constants.html#None" title="(in Python v3.13)"><span class="pre">None</span></a></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">min_p</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><a class="reference external" href="https://docs.python.org/3/library/functions.html#float" title="(in Python v3.13)"><span class="pre">float</span></a><span class="w"> </span><span class="p"><span class="pre">|</span></span><span class="w"> </span><a class="reference external" href="https://docs.python.org/3/library/constants.html#None" title="(in Python v3.13)"><span class="pre">None</span></a></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">do_sample</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><a class="reference external" href="https://docs.python.org/3/library/functions.html#bool" title="(in Python v3.13)"><span class="pre">bool</span></a></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">True</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">pad_token_id</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><a class="reference external" href="https://docs.python.org/3/library/functions.html#int" title="(in Python v3.13)"><span class="pre">int</span></a><span class="w"> </span><span class="p"><span class="pre">|</span></span><span class="w"> </span><a class="reference external" href="https://docs.python.org/3/library/constants.html#None" title="(in Python v3.13)"><span class="pre">None</span></a></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">eos_token_id</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><a class="reference external" href="https://docs.python.org/3/library/functions.html#int" title="(in Python v3.13)"><span class="pre">int</span></a><span class="w"> </span><span class="p"><span class="pre">|</span></span><span class="w"> </span><a class="reference external" href="https://docs.python.org/3/library/constants.html#None" title="(in Python v3.13)"><span class="pre">None</span></a></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">rng</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><a class="reference external" href="https://docs.jax.dev/en/latest/_autosummary/jax.Array.html#jax.Array" title="(in JAX)"><span class="pre">Array</span></a><span class="w"> </span><span class="p"><span class="pre">|</span></span><span class="w"> </span><a class="reference external" href="https://docs.python.org/3/library/constants.html#None" title="(in Python v3.13)"><span class="pre">None</span></a></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">use_jit</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><a class="reference external" href="https://docs.python.org/3/library/functions.html#bool" title="(in Python v3.13)"><span class="pre">bool</span></a></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">False</span></span></em><span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><a class="reference external" href="https://docs.jax.dev/en/latest/_autosummary/jax.Array.html#jax.Array" title="(in JAX)"><span class="pre">Array</span></a></span></span><a class="reference internal" href="../_modules/jaxgarden/models/generation_utils.html#GenerationMixin.generate"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#jaxgarden.models.GenerationMixin.generate" title="Link to this definition"></a></dt>
+<span class="sig-name descname"><span class="pre">generate</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">input_ids</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><a class="reference external" href="https://docs.jax.dev/en/latest/_autosummary/jax.Array.html#jax.Array" title="(in JAX)"><span class="pre">Array</span></a></span></em>, <em class="sig-param"><span class="n"><span class="pre">attention_mask</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><a class="reference external" href="https://docs.jax.dev/en/latest/_autosummary/jax.Array.html#jax.Array" title="(in JAX)"><span class="pre">Array</span></a><span class="w"> </span><span class="p"><span class="pre">|</span></span><span class="w"> </span><a class="reference external" href="https://docs.python.org/3/library/constants.html#None" title="(in Python v3.13)"><span class="pre">None</span></a></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">max_length</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><a class="reference external" href="https://docs.python.org/3/library/functions.html#int" title="(in Python v3.13)"><span class="pre">int</span></a></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">20</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">temperature</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><a class="reference external" href="https://docs.python.org/3/library/functions.html#float" title="(in Python v3.13)"><span class="pre">float</span></a></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">1.0</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">top_k</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><a class="reference external" href="https://docs.python.org/3/library/functions.html#int" title="(in Python v3.13)"><span class="pre">int</span></a><span class="w"> </span><span class="p"><span class="pre">|</span></span><span class="w"> </span><a class="reference external" href="https://docs.python.org/3/library/constants.html#None" title="(in Python v3.13)"><span class="pre">None</span></a></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">top_p</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><a class="reference external" href="https://docs.python.org/3/library/functions.html#float" title="(in Python v3.13)"><span class="pre">float</span></a><span class="w"> </span><span class="p"><span class="pre">|</span></span><span class="w"> </span><a class="reference external" href="https://docs.python.org/3/library/constants.html#None" title="(in Python v3.13)"><span class="pre">None</span></a></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">min_p</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><a class="reference external" href="https://docs.python.org/3/library/functions.html#float" title="(in Python v3.13)"><span class="pre">float</span></a><span class="w"> </span><span class="p"><span class="pre">|</span></span><span class="w"> </span><a class="reference external" href="https://docs.python.org/3/library/constants.html#None" title="(in Python v3.13)"><span class="pre">None</span></a></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">do_sample</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><a class="reference external" href="https://docs.python.org/3/library/functions.html#bool" title="(in Python v3.13)"><span class="pre">bool</span></a></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">True</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">pad_token_id</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><a class="reference external" href="https://docs.python.org/3/library/functions.html#int" title="(in Python v3.13)"><span class="pre">int</span></a><span class="w"> </span><span class="p"><span class="pre">|</span></span><span class="w"> </span><a class="reference external" href="https://docs.python.org/3/library/constants.html#None" title="(in Python v3.13)"><span class="pre">None</span></a></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">eos_token_id</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><a class="reference external" href="https://docs.python.org/3/library/functions.html#int" title="(in Python v3.13)"><span class="pre">int</span></a><span class="w"> </span><span class="p"><span class="pre">|</span></span><span class="w"> </span><a class="reference external" href="https://docs.python.org/3/library/constants.html#None" title="(in Python v3.13)"><span class="pre">None</span></a></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">rng</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><a class="reference external" href="https://docs.jax.dev/en/latest/_autosummary/jax.Array.html#jax.Array" title="(in JAX)"><span class="pre">Array</span></a><span class="w"> </span><span class="p"><span class="pre">|</span></span><span class="w"> </span><a class="reference external" href="https://docs.python.org/3/library/constants.html#None" title="(in Python v3.13)"><span class="pre">None</span></a></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">use_jit</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><a class="reference external" href="https://docs.python.org/3/library/functions.html#bool" title="(in Python v3.13)"><span class="pre">bool</span></a></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">False</span></span></em><span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><a class="reference external" href="https://docs.jax.dev/en/latest/_autosummary/jax.Array.html#jax.Array" title="(in JAX)"><span class="pre">Array</span></a></span></span><a class="reference internal" href="../_modules/jaxgarden/models/generation_utils.html#GenerationMixin.generate"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#jaxgarden.models.GenerationMixin.generate" title="Link to this definition"></a></dt>
 <dd><p>Generate tokens autoregressively with various sampling methods.</p>
 <dl class="field-list simple">
 <dt class="field-odd">Parameters<span class="colon">:</span></dt>
@@ -406,6 +524,629 @@ whose cumulative probability exceeds p.</p></li>
 </dd>
 <dt class="field-even">Returns<span class="colon">:</span></dt>
 <dd class="field-even"><p>Generated token IDs of shape [batch_size, max_length].</p>
+</dd>
+</dl>
+</dd></dl>
+
+</dd></dl>
+
+<dl class="py class">
+<dt class="sig sig-object py" id="jaxgarden.models.LlamaAttention">
+<em class="property"><span class="pre">class</span><span class="w"> </span></em><span class="sig-prename descclassname"><span class="pre">jaxgarden.models.</span></span><span class="sig-name descname"><span class="pre">LlamaAttention</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="o"><span class="pre">*</span></span><span class="n"><span class="pre">args</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">Any</span></span></em>, <em class="sig-param"><span class="o"><span class="pre">**</span></span><span class="n"><span class="pre">kwargs</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">Any</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/jaxgarden/models/llama.html#LlamaAttention"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#jaxgarden.models.LlamaAttention" title="Link to this definition"></a></dt>
+<dd><p>Bases: <a class="reference external" href="https://flax.readthedocs.io/en/latest/api_reference/flax.nnx/module.html#flax.nnx.Module" title="(in Flax)"><code class="xref py py-class docutils literal notranslate"><span class="pre">Module</span></code></a></p>
+<p>Multi-headed attention with support for Group Query Attention (GQA).</p>
+<p>This implements the LLama attention mechanism with rotary position embeddings (RoPE)
+and support for fewer key-value heads than query heads (GQA).</p>
+<dl class="py attribute">
+<dt class="sig sig-object py" id="jaxgarden.models.LlamaAttention.q_proj">
+<span class="sig-name descname"><span class="pre">q_proj</span></span><a class="headerlink" href="#jaxgarden.models.LlamaAttention.q_proj" title="Link to this definition"></a></dt>
+<dd><p>Linear projection for queries</p>
+</dd></dl>
+
+<dl class="py attribute">
+<dt class="sig sig-object py" id="jaxgarden.models.LlamaAttention.k_proj">
+<span class="sig-name descname"><span class="pre">k_proj</span></span><a class="headerlink" href="#jaxgarden.models.LlamaAttention.k_proj" title="Link to this definition"></a></dt>
+<dd><p>Linear projection for keys</p>
+</dd></dl>
+
+<dl class="py attribute">
+<dt class="sig sig-object py" id="jaxgarden.models.LlamaAttention.v_proj">
+<span class="sig-name descname"><span class="pre">v_proj</span></span><a class="headerlink" href="#jaxgarden.models.LlamaAttention.v_proj" title="Link to this definition"></a></dt>
+<dd><p>Linear projection for values</p>
+</dd></dl>
+
+<dl class="py attribute">
+<dt class="sig sig-object py" id="jaxgarden.models.LlamaAttention.o_proj">
+<span class="sig-name descname"><span class="pre">o_proj</span></span><a class="headerlink" href="#jaxgarden.models.LlamaAttention.o_proj" title="Link to this definition"></a></dt>
+<dd><p>Linear projection for output</p>
+</dd></dl>
+
+<dl class="py attribute">
+<dt class="sig sig-object py" id="jaxgarden.models.LlamaAttention.rotary_emb">
+<span class="sig-name descname"><span class="pre">rotary_emb</span></span><a class="headerlink" href="#jaxgarden.models.LlamaAttention.rotary_emb" title="Link to this definition"></a></dt>
+<dd><p>Rotary position embeddings</p>
+</dd></dl>
+
+<dl class="py attribute">
+<dt class="sig sig-object py" id="jaxgarden.models.LlamaAttention.head_dim">
+<span class="sig-name descname"><span class="pre">head_dim</span></span><a class="headerlink" href="#jaxgarden.models.LlamaAttention.head_dim" title="Link to this definition"></a></dt>
+<dd><p>Dimension of each attention head</p>
+</dd></dl>
+
+<dl class="py attribute">
+<dt class="sig sig-object py" id="jaxgarden.models.LlamaAttention.n_heads">
+<span class="sig-name descname"><span class="pre">n_heads</span></span><a class="headerlink" href="#jaxgarden.models.LlamaAttention.n_heads" title="Link to this definition"></a></dt>
+<dd><p>Number of attention heads</p>
+</dd></dl>
+
+<dl class="py attribute">
+<dt class="sig sig-object py" id="jaxgarden.models.LlamaAttention.n_kv_heads">
+<span class="sig-name descname"><span class="pre">n_kv_heads</span></span><a class="headerlink" href="#jaxgarden.models.LlamaAttention.n_kv_heads" title="Link to this definition"></a></dt>
+<dd><p>Number of key/value heads</p>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="jaxgarden.models.LlamaAttention.__call__">
+<span class="sig-name descname"><span class="pre">__call__</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">x</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><a class="reference external" href="https://docs.jax.dev/en/latest/_autosummary/jax.Array.html#jax.Array" title="(in JAX)"><span class="pre">Array</span></a></span></em>, <em class="sig-param"><span class="n"><span class="pre">position_ids</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><a class="reference external" href="https://docs.jax.dev/en/latest/_autosummary/jax.Array.html#jax.Array" title="(in JAX)"><span class="pre">Array</span></a></span></em>, <em class="sig-param"><span class="n"><span class="pre">attention_mask</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><a class="reference external" href="https://docs.jax.dev/en/latest/_autosummary/jax.Array.html#jax.Array" title="(in JAX)"><span class="pre">Array</span></a></span></em><span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><a class="reference external" href="https://docs.jax.dev/en/latest/_autosummary/jax.Array.html#jax.Array" title="(in JAX)"><span class="pre">Array</span></a></span></span><a class="reference internal" href="../_modules/jaxgarden/models/llama.html#LlamaAttention.__call__"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#jaxgarden.models.LlamaAttention.__call__" title="Link to this definition"></a></dt>
+<dd><p>Apply self-attention using queries, keys, and values derived from input x.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>x</strong> – Input tensor of shape [batch_size, seq_len, dim]</p></li>
+<li><p><strong>position_ids</strong> – Position indices of shape [batch_size, seq_len]</p></li>
+<li><p><strong>attention_mask</strong> – Additive attention mask of shape (batch_size, 1, q_len, kv_len)
+or a shape that can be broadcasted to this shape.</p></li>
+</ul>
+</dd>
+<dt class="field-even">Returns<span class="colon">:</span></dt>
+<dd class="field-even"><p>Output tensor of shape [batch_size, seq_len, dim]</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="jaxgarden.models.LlamaAttention.__init__">
+<span class="sig-name descname"><span class="pre">__init__</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">layer_idx</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><a class="reference external" href="https://docs.python.org/3/library/functions.html#int" title="(in Python v3.13)"><span class="pre">int</span></a></span></em>, <em class="sig-param"><span class="n"><span class="pre">dim</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><a class="reference external" href="https://docs.python.org/3/library/functions.html#int" title="(in Python v3.13)"><span class="pre">int</span></a></span></em>, <em class="sig-param"><span class="n"><span class="pre">n_heads</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><a class="reference external" href="https://docs.python.org/3/library/functions.html#int" title="(in Python v3.13)"><span class="pre">int</span></a></span></em>, <em class="sig-param"><span class="n"><span class="pre">n_kv_heads</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><a class="reference external" href="https://docs.python.org/3/library/functions.html#int" title="(in Python v3.13)"><span class="pre">int</span></a></span></em>, <em class="sig-param"><span class="n"><span class="pre">head_dim</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><a class="reference external" href="https://docs.python.org/3/library/functions.html#int" title="(in Python v3.13)"><span class="pre">int</span></a></span></em>, <em class="sig-param"><span class="n"><span class="pre">rope_theta</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><a class="reference external" href="https://docs.python.org/3/library/functions.html#float" title="(in Python v3.13)"><span class="pre">float</span></a></span></em>, <em class="sig-param"><span class="o"><span class="pre">*</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">rngs</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><a class="reference external" href="https://flax.readthedocs.io/en/latest/api_reference/flax.nnx/rnglib.html#flax.nnx.Rngs" title="(in Flax)"><span class="pre">Rngs</span></a></span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/jaxgarden/models/llama.html#LlamaAttention.__init__"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#jaxgarden.models.LlamaAttention.__init__" title="Link to this definition"></a></dt>
+<dd><p>Initialize attention module.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>layer_idx</strong> – Index of the layer</p></li>
+<li><p><strong>dim</strong> – Size of hidden states</p></li>
+<li><p><strong>n_heads</strong> – Number of attention heads</p></li>
+<li><p><strong>n_kv_heads</strong> – Number of key/value heads</p></li>
+<li><p><strong>head_dim</strong> – Dimension of each attention head</p></li>
+<li><p><strong>rope_theta</strong> – Base for rotary position embeddings</p></li>
+<li><p><strong>rngs</strong> – PRNG key collection</p></li>
+</ul>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="jaxgarden.models.LlamaAttention.apply_rotary_pos_emb">
+<span class="sig-name descname"><span class="pre">apply_rotary_pos_emb</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">q</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><a class="reference external" href="https://docs.jax.dev/en/latest/_autosummary/jax.Array.html#jax.Array" title="(in JAX)"><span class="pre">Array</span></a></span></em>, <em class="sig-param"><span class="n"><span class="pre">k</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><a class="reference external" href="https://docs.jax.dev/en/latest/_autosummary/jax.Array.html#jax.Array" title="(in JAX)"><span class="pre">Array</span></a></span></em>, <em class="sig-param"><span class="n"><span class="pre">cos</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><a class="reference external" href="https://docs.jax.dev/en/latest/_autosummary/jax.Array.html#jax.Array" title="(in JAX)"><span class="pre">Array</span></a></span></em>, <em class="sig-param"><span class="n"><span class="pre">sin</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><a class="reference external" href="https://docs.jax.dev/en/latest/_autosummary/jax.Array.html#jax.Array" title="(in JAX)"><span class="pre">Array</span></a></span></em>, <em class="sig-param"><span class="n"><span class="pre">unsqueeze_dim</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><a class="reference external" href="https://docs.python.org/3/library/functions.html#int" title="(in Python v3.13)"><span class="pre">int</span></a></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">1</span></span></em><span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#tuple" title="(in Python v3.13)"><span class="pre">tuple</span></a><span class="p"><span class="pre">[</span></span><a class="reference external" href="https://docs.jax.dev/en/latest/_autosummary/jax.Array.html#jax.Array" title="(in JAX)"><span class="pre">Array</span></a><span class="p"><span class="pre">,</span></span><span class="w"> </span><a class="reference external" href="https://docs.jax.dev/en/latest/_autosummary/jax.Array.html#jax.Array" title="(in JAX)"><span class="pre">Array</span></a><span class="p"><span class="pre">]</span></span></span></span><a class="reference internal" href="../_modules/jaxgarden/models/llama.html#LlamaAttention.apply_rotary_pos_emb"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#jaxgarden.models.LlamaAttention.apply_rotary_pos_emb" title="Link to this definition"></a></dt>
+<dd><p>Apply rotary position embeddings to query and key tensors.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>q</strong> – Query tensor</p></li>
+<li><p><strong>k</strong> – Key tensor</p></li>
+<li><p><strong>cos</strong> – Cosine component of rotary embeddings</p></li>
+<li><p><strong>sin</strong> – Sine component of rotary embeddings</p></li>
+<li><p><strong>unsqueeze_dim</strong> – Dimension to unsqueeze cosine and sine components</p></li>
+</ul>
+</dd>
+<dt class="field-even">Returns<span class="colon">:</span></dt>
+<dd class="field-even"><p>Tuple of (rotated_q, rotated_k)</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="jaxgarden.models.LlamaAttention.repeat_kv">
+<span class="sig-name descname"><span class="pre">repeat_kv</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">hidden_states</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><a class="reference external" href="https://docs.jax.dev/en/latest/_autosummary/jax.Array.html#jax.Array" title="(in JAX)"><span class="pre">Array</span></a></span></em>, <em class="sig-param"><span class="n"><span class="pre">n_repeat</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><a class="reference external" href="https://docs.python.org/3/library/functions.html#int" title="(in Python v3.13)"><span class="pre">int</span></a></span></em><span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><a class="reference external" href="https://docs.jax.dev/en/latest/_autosummary/jax.Array.html#jax.Array" title="(in JAX)"><span class="pre">Array</span></a></span></span><a class="reference internal" href="../_modules/jaxgarden/models/llama.html#LlamaAttention.repeat_kv"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#jaxgarden.models.LlamaAttention.repeat_kv" title="Link to this definition"></a></dt>
+<dd><p>Repeat key/value heads to match the number of query heads.</p>
+<p>When using GQA, we need to repeat each key/value head to match
+the number of query heads.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>hidden_states</strong> – Key or value tensor of shape [batch, n_kv_heads, seq_len, head_dim]</p></li>
+<li><p><strong>n_repeat</strong> – Number of times to repeat each key/value head</p></li>
+</ul>
+</dd>
+<dt class="field-even">Returns<span class="colon">:</span></dt>
+<dd class="field-even"><p>Tensor with repeated key/value heads</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="jaxgarden.models.LlamaAttention.rotate_half">
+<span class="sig-name descname"><span class="pre">rotate_half</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">x</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><a class="reference external" href="https://docs.jax.dev/en/latest/_autosummary/jax.Array.html#jax.Array" title="(in JAX)"><span class="pre">Array</span></a></span></em><span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><a class="reference external" href="https://docs.jax.dev/en/latest/_autosummary/jax.Array.html#jax.Array" title="(in JAX)"><span class="pre">Array</span></a></span></span><a class="reference internal" href="../_modules/jaxgarden/models/llama.html#LlamaAttention.rotate_half"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#jaxgarden.models.LlamaAttention.rotate_half" title="Link to this definition"></a></dt>
+<dd><p>Rotate half the hidden dims of the input.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><p><strong>x</strong> – Input tensor</p>
+</dd>
+<dt class="field-even">Returns<span class="colon">:</span></dt>
+<dd class="field-even"><p>Tensor with half the dimensions rotated</p>
+</dd>
+</dl>
+</dd></dl>
+
+</dd></dl>
+
+<dl class="py class">
+<dt class="sig sig-object py" id="jaxgarden.models.LlamaConfig">
+<em class="property"><span class="pre">class</span><span class="w"> </span></em><span class="sig-prename descclassname"><span class="pre">jaxgarden.models.</span></span><span class="sig-name descname"><span class="pre">LlamaConfig</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">seed:</span> <span class="pre">int</span> <span class="pre">=</span> <span class="pre">42</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">log_level:</span> <span class="pre">str</span> <span class="pre">=</span> <span class="pre">'info'</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">extra:</span> <span class="pre">dict[str</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">~typing.Any]</span> <span class="pre">=</span> <span class="pre">&lt;factory&gt;</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">dim:</span> <span class="pre">int</span> <span class="pre">=</span> <span class="pre">2048</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">n_layers:</span> <span class="pre">int</span> <span class="pre">=</span> <span class="pre">16</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">n_heads:</span> <span class="pre">int</span> <span class="pre">=</span> <span class="pre">32</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">n_kv_heads:</span> <span class="pre">int</span> <span class="pre">=</span> <span class="pre">8</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">head_dim:</span> <span class="pre">int</span> <span class="pre">=</span> <span class="pre">64</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">intermediate_size:</span> <span class="pre">int</span> <span class="pre">=</span> <span class="pre">14336</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">vocab_size:</span> <span class="pre">int</span> <span class="pre">=</span> <span class="pre">128256</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">multiple_of:</span> <span class="pre">int</span> <span class="pre">=</span> <span class="pre">256</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">norm_eps:</span> <span class="pre">float</span> <span class="pre">=</span> <span class="pre">1e-05</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">rope_theta:</span> <span class="pre">float</span> <span class="pre">=</span> <span class="pre">500000.0</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/jaxgarden/models/llama.html#LlamaConfig"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#jaxgarden.models.LlamaConfig" title="Link to this definition"></a></dt>
+<dd><p>Bases: <a class="reference internal" href="#jaxgarden.models.BaseConfig" title="jaxgarden.models.base.BaseConfig"><code class="xref py py-class docutils literal notranslate"><span class="pre">BaseConfig</span></code></a></p>
+<p>Configuration for LLama model.</p>
+<p>This configuration class extends BaseConfig and contains all the parameters
+required to initialize a LLama model. It includes settings for model architecture,
+attention mechanisms, and other hyperparameters.</p>
+<dl class="py attribute">
+<dt class="sig sig-object py" id="jaxgarden.models.LlamaConfig.dim">
+<span class="sig-name descname"><span class="pre">dim</span></span><a class="headerlink" href="#jaxgarden.models.LlamaConfig.dim" title="Link to this definition"></a></dt>
+<dd><p>Size of hidden states</p>
+<dl class="field-list simple">
+<dt class="field-odd">Type<span class="colon">:</span></dt>
+<dd class="field-odd"><p><a class="reference external" href="https://docs.python.org/3/library/functions.html#int" title="(in Python v3.13)">int</a></p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py attribute">
+<dt class="sig sig-object py" id="jaxgarden.models.LlamaConfig.n_layers">
+<span class="sig-name descname"><span class="pre">n_layers</span></span><a class="headerlink" href="#jaxgarden.models.LlamaConfig.n_layers" title="Link to this definition"></a></dt>
+<dd><p>Number of transformer layers</p>
+<dl class="field-list simple">
+<dt class="field-odd">Type<span class="colon">:</span></dt>
+<dd class="field-odd"><p><a class="reference external" href="https://docs.python.org/3/library/functions.html#int" title="(in Python v3.13)">int</a></p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py attribute">
+<dt class="sig sig-object py" id="jaxgarden.models.LlamaConfig.n_heads">
+<span class="sig-name descname"><span class="pre">n_heads</span></span><a class="headerlink" href="#jaxgarden.models.LlamaConfig.n_heads" title="Link to this definition"></a></dt>
+<dd><p>Number of attention heads</p>
+<dl class="field-list simple">
+<dt class="field-odd">Type<span class="colon">:</span></dt>
+<dd class="field-odd"><p><a class="reference external" href="https://docs.python.org/3/library/functions.html#int" title="(in Python v3.13)">int</a></p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py attribute">
+<dt class="sig sig-object py" id="jaxgarden.models.LlamaConfig.n_kv_heads">
+<span class="sig-name descname"><span class="pre">n_kv_heads</span></span><a class="headerlink" href="#jaxgarden.models.LlamaConfig.n_kv_heads" title="Link to this definition"></a></dt>
+<dd><p>Number of key/value heads (for group query attention)</p>
+<dl class="field-list simple">
+<dt class="field-odd">Type<span class="colon">:</span></dt>
+<dd class="field-odd"><p><a class="reference external" href="https://docs.python.org/3/library/functions.html#int" title="(in Python v3.13)">int</a></p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py attribute">
+<dt class="sig sig-object py" id="jaxgarden.models.LlamaConfig.head_dim">
+<span class="sig-name descname"><span class="pre">head_dim</span></span><a class="headerlink" href="#jaxgarden.models.LlamaConfig.head_dim" title="Link to this definition"></a></dt>
+<dd><p>Dimension of each attention head</p>
+<dl class="field-list simple">
+<dt class="field-odd">Type<span class="colon">:</span></dt>
+<dd class="field-odd"><p><a class="reference external" href="https://docs.python.org/3/library/functions.html#int" title="(in Python v3.13)">int</a></p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py attribute">
+<dt class="sig sig-object py" id="jaxgarden.models.LlamaConfig.intermediate_size">
+<span class="sig-name descname"><span class="pre">intermediate_size</span></span><a class="headerlink" href="#jaxgarden.models.LlamaConfig.intermediate_size" title="Link to this definition"></a></dt>
+<dd><p>Size of MLP intermediate layer</p>
+<dl class="field-list simple">
+<dt class="field-odd">Type<span class="colon">:</span></dt>
+<dd class="field-odd"><p><a class="reference external" href="https://docs.python.org/3/library/functions.html#int" title="(in Python v3.13)">int</a></p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py attribute">
+<dt class="sig sig-object py" id="jaxgarden.models.LlamaConfig.vocab_size">
+<span class="sig-name descname"><span class="pre">vocab_size</span></span><a class="headerlink" href="#jaxgarden.models.LlamaConfig.vocab_size" title="Link to this definition"></a></dt>
+<dd><p>Size of vocabulary</p>
+<dl class="field-list simple">
+<dt class="field-odd">Type<span class="colon">:</span></dt>
+<dd class="field-odd"><p><a class="reference external" href="https://docs.python.org/3/library/functions.html#int" title="(in Python v3.13)">int</a></p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py attribute">
+<dt class="sig sig-object py" id="jaxgarden.models.LlamaConfig.multiple_of">
+<span class="sig-name descname"><span class="pre">multiple_of</span></span><a class="headerlink" href="#jaxgarden.models.LlamaConfig.multiple_of" title="Link to this definition"></a></dt>
+<dd><p>Ensure dimensions are multiples of this value</p>
+<dl class="field-list simple">
+<dt class="field-odd">Type<span class="colon">:</span></dt>
+<dd class="field-odd"><p><a class="reference external" href="https://docs.python.org/3/library/functions.html#int" title="(in Python v3.13)">int</a></p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py attribute">
+<dt class="sig sig-object py" id="jaxgarden.models.LlamaConfig.norm_eps">
+<span class="sig-name descname"><span class="pre">norm_eps</span></span><a class="headerlink" href="#jaxgarden.models.LlamaConfig.norm_eps" title="Link to this definition"></a></dt>
+<dd><p>Epsilon for layer normalization</p>
+<dl class="field-list simple">
+<dt class="field-odd">Type<span class="colon">:</span></dt>
+<dd class="field-odd"><p><a class="reference external" href="https://docs.python.org/3/library/functions.html#float" title="(in Python v3.13)">float</a></p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py attribute">
+<dt class="sig sig-object py" id="jaxgarden.models.LlamaConfig.rope_theta">
+<span class="sig-name descname"><span class="pre">rope_theta</span></span><a class="headerlink" href="#jaxgarden.models.LlamaConfig.rope_theta" title="Link to this definition"></a></dt>
+<dd><p>Base for rotary position embeddings</p>
+<dl class="field-list simple">
+<dt class="field-odd">Type<span class="colon">:</span></dt>
+<dd class="field-odd"><p><a class="reference external" href="https://docs.python.org/3/library/functions.html#float" title="(in Python v3.13)">float</a></p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py attribute">
+<dt class="sig sig-object py" id="id0">
+<span class="sig-name descname"><span class="pre">dim</span></span><em class="property"><span class="p"><span class="pre">:</span></span><span class="w"> </span><a class="reference external" href="https://docs.python.org/3/library/functions.html#int" title="(in Python v3.13)"><span class="pre">int</span></a></em><em class="property"><span class="w"> </span><span class="p"><span class="pre">=</span></span><span class="w"> </span><span class="pre">2048</span></em><a class="headerlink" href="#id0" title="Link to this definition"></a></dt>
+<dd></dd></dl>
+
+<dl class="py attribute">
+<dt class="sig sig-object py" id="id9">
+<span class="sig-name descname"><span class="pre">head_dim</span></span><em class="property"><span class="p"><span class="pre">:</span></span><span class="w"> </span><a class="reference external" href="https://docs.python.org/3/library/functions.html#int" title="(in Python v3.13)"><span class="pre">int</span></a></em><em class="property"><span class="w"> </span><span class="p"><span class="pre">=</span></span><span class="w"> </span><span class="pre">64</span></em><a class="headerlink" href="#id9" title="Link to this definition"></a></dt>
+<dd></dd></dl>
+
+<dl class="py attribute">
+<dt class="sig sig-object py" id="id10">
+<span class="sig-name descname"><span class="pre">intermediate_size</span></span><em class="property"><span class="p"><span class="pre">:</span></span><span class="w"> </span><a class="reference external" href="https://docs.python.org/3/library/functions.html#int" title="(in Python v3.13)"><span class="pre">int</span></a></em><em class="property"><span class="w"> </span><span class="p"><span class="pre">=</span></span><span class="w"> </span><span class="pre">14336</span></em><a class="headerlink" href="#id10" title="Link to this definition"></a></dt>
+<dd></dd></dl>
+
+<dl class="py attribute">
+<dt class="sig sig-object py" id="id11">
+<span class="sig-name descname"><span class="pre">multiple_of</span></span><em class="property"><span class="p"><span class="pre">:</span></span><span class="w"> </span><a class="reference external" href="https://docs.python.org/3/library/functions.html#int" title="(in Python v3.13)"><span class="pre">int</span></a></em><em class="property"><span class="w"> </span><span class="p"><span class="pre">=</span></span><span class="w"> </span><span class="pre">256</span></em><a class="headerlink" href="#id11" title="Link to this definition"></a></dt>
+<dd></dd></dl>
+
+<dl class="py attribute">
+<dt class="sig sig-object py" id="id12">
+<span class="sig-name descname"><span class="pre">n_heads</span></span><em class="property"><span class="p"><span class="pre">:</span></span><span class="w"> </span><a class="reference external" href="https://docs.python.org/3/library/functions.html#int" title="(in Python v3.13)"><span class="pre">int</span></a></em><em class="property"><span class="w"> </span><span class="p"><span class="pre">=</span></span><span class="w"> </span><span class="pre">32</span></em><a class="headerlink" href="#id12" title="Link to this definition"></a></dt>
+<dd></dd></dl>
+
+<dl class="py attribute">
+<dt class="sig sig-object py" id="id13">
+<span class="sig-name descname"><span class="pre">n_kv_heads</span></span><em class="property"><span class="p"><span class="pre">:</span></span><span class="w"> </span><a class="reference external" href="https://docs.python.org/3/library/functions.html#int" title="(in Python v3.13)"><span class="pre">int</span></a></em><em class="property"><span class="w"> </span><span class="p"><span class="pre">=</span></span><span class="w"> </span><span class="pre">8</span></em><a class="headerlink" href="#id13" title="Link to this definition"></a></dt>
+<dd></dd></dl>
+
+<dl class="py attribute">
+<dt class="sig sig-object py" id="id14">
+<span class="sig-name descname"><span class="pre">n_layers</span></span><em class="property"><span class="p"><span class="pre">:</span></span><span class="w"> </span><a class="reference external" href="https://docs.python.org/3/library/functions.html#int" title="(in Python v3.13)"><span class="pre">int</span></a></em><em class="property"><span class="w"> </span><span class="p"><span class="pre">=</span></span><span class="w"> </span><span class="pre">16</span></em><a class="headerlink" href="#id14" title="Link to this definition"></a></dt>
+<dd></dd></dl>
+
+<dl class="py attribute">
+<dt class="sig sig-object py" id="id15">
+<span class="sig-name descname"><span class="pre">norm_eps</span></span><em class="property"><span class="p"><span class="pre">:</span></span><span class="w"> </span><a class="reference external" href="https://docs.python.org/3/library/functions.html#float" title="(in Python v3.13)"><span class="pre">float</span></a></em><em class="property"><span class="w"> </span><span class="p"><span class="pre">=</span></span><span class="w"> </span><span class="pre">1e-05</span></em><a class="headerlink" href="#id15" title="Link to this definition"></a></dt>
+<dd></dd></dl>
+
+<dl class="py attribute">
+<dt class="sig sig-object py" id="id16">
+<span class="sig-name descname"><span class="pre">rope_theta</span></span><em class="property"><span class="p"><span class="pre">:</span></span><span class="w"> </span><a class="reference external" href="https://docs.python.org/3/library/functions.html#float" title="(in Python v3.13)"><span class="pre">float</span></a></em><em class="property"><span class="w"> </span><span class="p"><span class="pre">=</span></span><span class="w"> </span><span class="pre">500000.0</span></em><a class="headerlink" href="#id16" title="Link to this definition"></a></dt>
+<dd></dd></dl>
+
+<dl class="py attribute">
+<dt class="sig sig-object py" id="id17">
+<span class="sig-name descname"><span class="pre">vocab_size</span></span><em class="property"><span class="p"><span class="pre">:</span></span><span class="w"> </span><a class="reference external" href="https://docs.python.org/3/library/functions.html#int" title="(in Python v3.13)"><span class="pre">int</span></a></em><em class="property"><span class="w"> </span><span class="p"><span class="pre">=</span></span><span class="w"> </span><span class="pre">128256</span></em><a class="headerlink" href="#id17" title="Link to this definition"></a></dt>
+<dd></dd></dl>
+
+</dd></dl>
+
+<dl class="py class">
+<dt class="sig sig-object py" id="jaxgarden.models.LlamaForCausalLM">
+<em class="property"><span class="pre">class</span><span class="w"> </span></em><span class="sig-prename descclassname"><span class="pre">jaxgarden.models.</span></span><span class="sig-name descname"><span class="pre">LlamaForCausalLM</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="o"><span class="pre">*</span></span><span class="n"><span class="pre">args</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">Any</span></span></em>, <em class="sig-param"><span class="o"><span class="pre">**</span></span><span class="n"><span class="pre">kwargs</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">Any</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/jaxgarden/models/llama.html#LlamaForCausalLM"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#jaxgarden.models.LlamaForCausalLM" title="Link to this definition"></a></dt>
+<dd><p>Bases: <a class="reference internal" href="#jaxgarden.models.BaseModel" title="jaxgarden.models.base.BaseModel"><code class="xref py py-class docutils literal notranslate"><span class="pre">BaseModel</span></code></a>, <a class="reference internal" href="#jaxgarden.models.GenerationMixin" title="jaxgarden.models.generation_utils.GenerationMixin"><code class="xref py py-class docutils literal notranslate"><span class="pre">GenerationMixin</span></code></a></p>
+<p>LLama model for causal language modeling.</p>
+<p>This implements the full LLama model for generating text.
+It consists of token embeddings, transformer layers, and language modeling head.</p>
+<dl class="py attribute">
+<dt class="sig sig-object py" id="jaxgarden.models.LlamaForCausalLM.token_embed">
+<span class="sig-name descname"><span class="pre">token_embed</span></span><a class="headerlink" href="#jaxgarden.models.LlamaForCausalLM.token_embed" title="Link to this definition"></a></dt>
+<dd><p>Token embedding layer</p>
+</dd></dl>
+
+<dl class="py attribute">
+<dt class="sig sig-object py" id="jaxgarden.models.LlamaForCausalLM.layers">
+<span class="sig-name descname"><span class="pre">layers</span></span><a class="headerlink" href="#jaxgarden.models.LlamaForCausalLM.layers" title="Link to this definition"></a></dt>
+<dd><p>List of transformer blocks</p>
+</dd></dl>
+
+<dl class="py attribute">
+<dt class="sig sig-object py" id="jaxgarden.models.LlamaForCausalLM.lm_head">
+<span class="sig-name descname"><span class="pre">lm_head</span></span><a class="headerlink" href="#jaxgarden.models.LlamaForCausalLM.lm_head" title="Link to this definition"></a></dt>
+<dd><p>Linear layer for language modeling</p>
+</dd></dl>
+
+<dl class="py attribute">
+<dt class="sig sig-object py" id="jaxgarden.models.LlamaForCausalLM.norm">
+<span class="sig-name descname"><span class="pre">norm</span></span><a class="headerlink" href="#jaxgarden.models.LlamaForCausalLM.norm" title="Link to this definition"></a></dt>
+<dd><p>Final layer normalization</p>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="jaxgarden.models.LlamaForCausalLM.__call__">
+<span class="sig-name descname"><span class="pre">__call__</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">input_ids</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><a class="reference external" href="https://docs.jax.dev/en/latest/_autosummary/jax.Array.html#jax.Array" title="(in JAX)"><span class="pre">Array</span></a></span></em>, <em class="sig-param"><span class="n"><span class="pre">attention_mask</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><a class="reference external" href="https://docs.jax.dev/en/latest/_autosummary/jax.Array.html#jax.Array" title="(in JAX)"><span class="pre">Array</span></a><span class="w"> </span><span class="p"><span class="pre">|</span></span><span class="w"> </span><a class="reference external" href="https://docs.python.org/3/library/constants.html#None" title="(in Python v3.13)"><span class="pre">None</span></a></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">deterministic</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><a class="reference external" href="https://docs.python.org/3/library/functions.html#bool" title="(in Python v3.13)"><span class="pre">bool</span></a></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">True</span></span></em><span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><a class="reference external" href="https://docs.jax.dev/en/latest/_autosummary/jax.Array.html#jax.Array" title="(in JAX)"><span class="pre">Array</span></a></span></span><a class="reference internal" href="../_modules/jaxgarden/models/llama.html#LlamaForCausalLM.__call__"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#jaxgarden.models.LlamaForCausalLM.__call__" title="Link to this definition"></a></dt>
+<dd><p>Forward pass of the LLama model.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>input_ids</strong> – Input token ids of shape [batch_size, seq_len]</p></li>
+<li><p><strong>attention_mask</strong> – Boolean attention mask of shape [batch_size, seq_len]</p></li>
+</ul>
+</dd>
+<dt class="field-even">Returns<span class="colon">:</span></dt>
+<dd class="field-even"><p>Logits for next token prediction of shape [batch_size, seq_len, vocab_size]</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="jaxgarden.models.LlamaForCausalLM.__init__">
+<span class="sig-name descname"><span class="pre">__init__</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">config:</span> <span class="pre">~jaxgarden.models.llama.LlamaConfig</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">*</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">dtype:</span> <span class="pre">~numpy.dtype</span> <span class="pre">|</span> <span class="pre">None</span> <span class="pre">=</span> <span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">param_dtype:</span> <span class="pre">~numpy.dtype</span> <span class="pre">=</span> <span class="pre">&lt;class</span> <span class="pre">'jax.numpy.float32'&gt;</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">precision:</span> <span class="pre">~jax._src.lax.lax.Precision</span> <span class="pre">|</span> <span class="pre">str</span> <span class="pre">|</span> <span class="pre">None</span> <span class="pre">=</span> <span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">rngs:</span> <span class="pre">~flax.nnx.rnglib.Rngs</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/jaxgarden/models/llama.html#LlamaForCausalLM.__init__"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#jaxgarden.models.LlamaForCausalLM.__init__" title="Link to this definition"></a></dt>
+<dd><p>Initialize LlamaForCausalLM.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>config</strong> – Model configuration</p></li>
+<li><p><strong>dtype</strong> – Data type for computation</p></li>
+<li><p><strong>param_dtype</strong> – Data type for parameters</p></li>
+<li><p><strong>precision</strong> – Precision for matrix multiplication</p></li>
+<li><p><strong>rngs</strong> – PRNG key collection</p></li>
+</ul>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="jaxgarden.models.LlamaForCausalLM.convert_weights_from_hf">
+<span class="sig-name descname"><span class="pre">convert_weights_from_hf</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">state</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><a class="reference external" href="https://flax.readthedocs.io/en/latest/api_reference/flax.nnx/state.html#flax.nnx.State" title="(in Flax)"><span class="pre">State</span></a><span class="w"> </span><span class="p"><span class="pre">|</span></span><span class="w"> </span><a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#dict" title="(in Python v3.13)"><span class="pre">dict</span></a><span class="p"><span class="pre">[</span></span><a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#str" title="(in Python v3.13)"><span class="pre">str</span></a><span class="p"><span class="pre">,</span></span><span class="w"> </span><a class="reference external" href="https://docs.jax.dev/en/latest/_autosummary/jax.Array.html#jax.Array" title="(in JAX)"><span class="pre">Array</span></a><span class="p"><span class="pre">]</span></span></span></em>, <em class="sig-param"><span class="n"><span class="pre">weights</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><a class="reference external" href="https://docs.python.org/3/library/collections.abc.html#collections.abc.Iterator" title="(in Python v3.13)"><span class="pre">Iterator</span></a><span class="p"><span class="pre">[</span></span><a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#tuple" title="(in Python v3.13)"><span class="pre">tuple</span></a><span class="p"><span class="pre">[</span></span><a class="reference external" href="https://docs.python.org/3/library/typing.html#typing.Any" title="(in Python v3.13)"><span class="pre">Any</span></a><span class="p"><span class="pre">,</span></span><span class="w"> </span><a class="reference external" href="https://docs.python.org/3/library/typing.html#typing.Any" title="(in Python v3.13)"><span class="pre">Any</span></a><span class="p"><span class="pre">]</span></span><span class="p"><span class="pre">]</span></span></span></em><span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><a class="reference external" href="https://docs.python.org/3/library/constants.html#None" title="(in Python v3.13)"><span class="pre">None</span></a></span></span><a class="reference internal" href="../_modules/jaxgarden/models/llama.html#LlamaForCausalLM.convert_weights_from_hf"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#jaxgarden.models.LlamaForCausalLM.convert_weights_from_hf" title="Link to this definition"></a></dt>
+<dd><p>Convert weights from Hugging Face Hub to the model’s state.</p>
+<p>This method should be implemented in downstream classes
+to support conversion from HuggingFace format.</p>
+</dd></dl>
+
+</dd></dl>
+
+<dl class="py class">
+<dt class="sig sig-object py" id="jaxgarden.models.LlamaMLP">
+<em class="property"><span class="pre">class</span><span class="w"> </span></em><span class="sig-prename descclassname"><span class="pre">jaxgarden.models.</span></span><span class="sig-name descname"><span class="pre">LlamaMLP</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="o"><span class="pre">*</span></span><span class="n"><span class="pre">args</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">Any</span></span></em>, <em class="sig-param"><span class="o"><span class="pre">**</span></span><span class="n"><span class="pre">kwargs</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">Any</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/jaxgarden/models/llama.html#LlamaMLP"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#jaxgarden.models.LlamaMLP" title="Link to this definition"></a></dt>
+<dd><p>Bases: <a class="reference external" href="https://flax.readthedocs.io/en/latest/api_reference/flax.nnx/module.html#flax.nnx.Module" title="(in Flax)"><code class="xref py py-class docutils literal notranslate"><span class="pre">Module</span></code></a></p>
+<p>LLama’s MLP implementation with SwiGLU activation.</p>
+<p>This implements the SwiGLU MLP used in LLama models:
+down_proj(silu(gate_proj(x)) * up_proj(x))</p>
+<dl class="py attribute">
+<dt class="sig sig-object py" id="jaxgarden.models.LlamaMLP.gate_proj">
+<span class="sig-name descname"><span class="pre">gate_proj</span></span><a class="headerlink" href="#jaxgarden.models.LlamaMLP.gate_proj" title="Link to this definition"></a></dt>
+<dd><p>Linear projection for gate</p>
+</dd></dl>
+
+<dl class="py attribute">
+<dt class="sig sig-object py" id="jaxgarden.models.LlamaMLP.up_proj">
+<span class="sig-name descname"><span class="pre">up_proj</span></span><a class="headerlink" href="#jaxgarden.models.LlamaMLP.up_proj" title="Link to this definition"></a></dt>
+<dd><p>Linear projection for up-projection</p>
+</dd></dl>
+
+<dl class="py attribute">
+<dt class="sig sig-object py" id="jaxgarden.models.LlamaMLP.down_proj">
+<span class="sig-name descname"><span class="pre">down_proj</span></span><a class="headerlink" href="#jaxgarden.models.LlamaMLP.down_proj" title="Link to this definition"></a></dt>
+<dd><p>Linear projection for down-projection</p>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="jaxgarden.models.LlamaMLP.__call__">
+<span class="sig-name descname"><span class="pre">__call__</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">x</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><a class="reference external" href="https://docs.jax.dev/en/latest/_autosummary/jax.Array.html#jax.Array" title="(in JAX)"><span class="pre">Array</span></a></span></em><span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><a class="reference external" href="https://docs.jax.dev/en/latest/_autosummary/jax.Array.html#jax.Array" title="(in JAX)"><span class="pre">Array</span></a></span></span><a class="reference internal" href="../_modules/jaxgarden/models/llama.html#LlamaMLP.__call__"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#jaxgarden.models.LlamaMLP.__call__" title="Link to this definition"></a></dt>
+<dd><p>Apply SwiGLU MLP to input tensor.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><p><strong>x</strong> – Input tensor of shape [batch_size, seq_len, dim]</p>
+</dd>
+<dt class="field-even">Returns<span class="colon">:</span></dt>
+<dd class="field-even"><p>Output tensor of shape [batch_size, seq_len, dim]</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="jaxgarden.models.LlamaMLP.__init__">
+<span class="sig-name descname"><span class="pre">__init__</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">layer_idx</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><a class="reference external" href="https://docs.python.org/3/library/functions.html#int" title="(in Python v3.13)"><span class="pre">int</span></a></span></em>, <em class="sig-param"><span class="n"><span class="pre">dim</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><a class="reference external" href="https://docs.python.org/3/library/functions.html#int" title="(in Python v3.13)"><span class="pre">int</span></a></span></em>, <em class="sig-param"><span class="n"><span class="pre">intermediate_size</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><a class="reference external" href="https://docs.python.org/3/library/functions.html#int" title="(in Python v3.13)"><span class="pre">int</span></a></span></em>, <em class="sig-param"><span class="o"><span class="pre">*</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">rngs</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><a class="reference external" href="https://flax.readthedocs.io/en/latest/api_reference/flax.nnx/rnglib.html#flax.nnx.Rngs" title="(in Flax)"><span class="pre">Rngs</span></a></span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/jaxgarden/models/llama.html#LlamaMLP.__init__"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#jaxgarden.models.LlamaMLP.__init__" title="Link to this definition"></a></dt>
+<dd><p>Initialize MLP module.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>layer_idx</strong> – Index of the layer</p></li>
+<li><p><strong>dim</strong> – Size of hidden states</p></li>
+<li><p><strong>intermediate_size</strong> – Size of intermediate layer</p></li>
+<li><p><strong>rngs</strong> – PRNG key collection</p></li>
+</ul>
+</dd>
+</dl>
+</dd></dl>
+
+</dd></dl>
+
+<dl class="py class">
+<dt class="sig sig-object py" id="jaxgarden.models.LlamaRMSNorm">
+<em class="property"><span class="pre">class</span><span class="w"> </span></em><span class="sig-prename descclassname"><span class="pre">jaxgarden.models.</span></span><span class="sig-name descname"><span class="pre">LlamaRMSNorm</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="o"><span class="pre">*</span></span><span class="n"><span class="pre">args</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">Any</span></span></em>, <em class="sig-param"><span class="o"><span class="pre">**</span></span><span class="n"><span class="pre">kwargs</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">Any</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/jaxgarden/models/llama.html#LlamaRMSNorm"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#jaxgarden.models.LlamaRMSNorm" title="Link to this definition"></a></dt>
+<dd><p>Bases: <a class="reference external" href="https://flax.readthedocs.io/en/latest/api_reference/flax.nnx/module.html#flax.nnx.Module" title="(in Flax)"><code class="xref py py-class docutils literal notranslate"><span class="pre">Module</span></code></a></p>
+<p>Root Mean Square Layer Normalization.</p>
+<p>This implementation follows the RMSNorm paper: <a class="reference external" href="https://arxiv.org/abs/1910.07467">https://arxiv.org/abs/1910.07467</a>
+Instead of using mean and variance like traditional LayerNorm, RMSNorm only uses
+the root mean square of the inputs for normalization.</p>
+<dl class="py attribute">
+<dt class="sig sig-object py" id="jaxgarden.models.LlamaRMSNorm.norm_weights">
+<span class="sig-name descname"><span class="pre">norm_weights</span></span><a class="headerlink" href="#jaxgarden.models.LlamaRMSNorm.norm_weights" title="Link to this definition"></a></dt>
+<dd><p>The learned scale parameters</p>
+</dd></dl>
+
+<dl class="py attribute">
+<dt class="sig sig-object py" id="jaxgarden.models.LlamaRMSNorm.norm_eps">
+<span class="sig-name descname"><span class="pre">norm_eps</span></span><a class="headerlink" href="#jaxgarden.models.LlamaRMSNorm.norm_eps" title="Link to this definition"></a></dt>
+<dd><p>Small constant for numerical stability</p>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="jaxgarden.models.LlamaRMSNorm.__call__">
+<span class="sig-name descname"><span class="pre">__call__</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">hidden_states</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><a class="reference external" href="https://docs.jax.dev/en/latest/_autosummary/jax.Array.html#jax.Array" title="(in JAX)"><span class="pre">Array</span></a></span></em><span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><a class="reference external" href="https://docs.jax.dev/en/latest/_autosummary/jax.Array.html#jax.Array" title="(in JAX)"><span class="pre">Array</span></a></span></span><a class="reference internal" href="../_modules/jaxgarden/models/llama.html#LlamaRMSNorm.__call__"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#jaxgarden.models.LlamaRMSNorm.__call__" title="Link to this definition"></a></dt>
+<dd><p>Apply RMS normalization to input tensor.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><p><strong>hidden_states</strong> – Input tensor of shape […, dim]</p>
+</dd>
+<dt class="field-even">Returns<span class="colon">:</span></dt>
+<dd class="field-even"><p>Normalized tensor with same shape as input</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="jaxgarden.models.LlamaRMSNorm.__init__">
+<span class="sig-name descname"><span class="pre">__init__</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">dim</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><a class="reference external" href="https://docs.python.org/3/library/functions.html#int" title="(in Python v3.13)"><span class="pre">int</span></a></span></em>, <em class="sig-param"><span class="o"><span class="pre">*</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">norm_eps</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><a class="reference external" href="https://docs.python.org/3/library/functions.html#float" title="(in Python v3.13)"><span class="pre">float</span></a></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">1e-05</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">rngs</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><a class="reference external" href="https://flax.readthedocs.io/en/latest/api_reference/flax.nnx/rnglib.html#flax.nnx.Rngs" title="(in Flax)"><span class="pre">Rngs</span></a></span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/jaxgarden/models/llama.html#LlamaRMSNorm.__init__"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#jaxgarden.models.LlamaRMSNorm.__init__" title="Link to this definition"></a></dt>
+<dd><p>Initialize RMSNorm module.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>dim</strong> – Dimension of the input tensor</p></li>
+<li><p><strong>norm_eps</strong> – Small constant for numerical stability</p></li>
+<li><p><strong>rngs</strong> – PRNG key collection</p></li>
+</ul>
+</dd>
+</dl>
+</dd></dl>
+
+</dd></dl>
+
+<dl class="py class">
+<dt class="sig sig-object py" id="jaxgarden.models.LlamaRotaryEmbedding">
+<em class="property"><span class="pre">class</span><span class="w"> </span></em><span class="sig-prename descclassname"><span class="pre">jaxgarden.models.</span></span><span class="sig-name descname"><span class="pre">LlamaRotaryEmbedding</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="o"><span class="pre">*</span></span><span class="n"><span class="pre">args</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">Any</span></span></em>, <em class="sig-param"><span class="o"><span class="pre">**</span></span><span class="n"><span class="pre">kwargs</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">Any</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/jaxgarden/models/llama.html#LlamaRotaryEmbedding"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#jaxgarden.models.LlamaRotaryEmbedding" title="Link to this definition"></a></dt>
+<dd><p>Bases: <a class="reference external" href="https://flax.readthedocs.io/en/latest/api_reference/flax.nnx/module.html#flax.nnx.Module" title="(in Flax)"><code class="xref py py-class docutils literal notranslate"><span class="pre">Module</span></code></a></p>
+<p>Rotary Position Embedding (RoPE) implementation for LLama.</p>
+<p>Based on: <a class="reference external" href="https://arxiv.org/abs/2104.09864">https://arxiv.org/abs/2104.09864</a></p>
+<dl class="py attribute">
+<dt class="sig sig-object py" id="jaxgarden.models.LlamaRotaryEmbedding.dim">
+<span class="sig-name descname"><span class="pre">dim</span></span><a class="headerlink" href="#jaxgarden.models.LlamaRotaryEmbedding.dim" title="Link to this definition"></a></dt>
+<dd><p>Dimension of the embeddings</p>
+</dd></dl>
+
+<dl class="py attribute">
+<dt class="sig sig-object py" id="jaxgarden.models.LlamaRotaryEmbedding.base">
+<span class="sig-name descname"><span class="pre">base</span></span><a class="headerlink" href="#jaxgarden.models.LlamaRotaryEmbedding.base" title="Link to this definition"></a></dt>
+<dd><p>Base for the sinusoidal functions</p>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="jaxgarden.models.LlamaRotaryEmbedding.__call__">
+<span class="sig-name descname"><span class="pre">__call__</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">position_ids</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><a class="reference external" href="https://docs.jax.dev/en/latest/_autosummary/jax.Array.html#jax.Array" title="(in JAX)"><span class="pre">Array</span></a></span></em><span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#tuple" title="(in Python v3.13)"><span class="pre">tuple</span></a><span class="p"><span class="pre">[</span></span><a class="reference external" href="https://docs.jax.dev/en/latest/_autosummary/jax.Array.html#jax.Array" title="(in JAX)"><span class="pre">Array</span></a><span class="p"><span class="pre">,</span></span><span class="w"> </span><a class="reference external" href="https://docs.jax.dev/en/latest/_autosummary/jax.Array.html#jax.Array" title="(in JAX)"><span class="pre">Array</span></a><span class="p"><span class="pre">]</span></span></span></span><a class="reference internal" href="../_modules/jaxgarden/models/llama.html#LlamaRotaryEmbedding.__call__"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#jaxgarden.models.LlamaRotaryEmbedding.__call__" title="Link to this definition"></a></dt>
+<dd><p>Generate rotary embeddings from position ids.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><p><strong>position_ids</strong> – Position indices of shape [batch_size, seq_len]</p>
+</dd>
+<dt class="field-even">Returns<span class="colon">:</span></dt>
+<dd class="field-even"><p>Tuple of (cos, sin) tensors for rotary embeddings</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="jaxgarden.models.LlamaRotaryEmbedding.__init__">
+<span class="sig-name descname"><span class="pre">__init__</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">dim</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><a class="reference external" href="https://docs.python.org/3/library/functions.html#int" title="(in Python v3.13)"><span class="pre">int</span></a></span></em>, <em class="sig-param"><span class="o"><span class="pre">*</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">base</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><a class="reference external" href="https://docs.python.org/3/library/functions.html#float" title="(in Python v3.13)"><span class="pre">float</span></a></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">10000.0</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">rngs</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><a class="reference external" href="https://flax.readthedocs.io/en/latest/api_reference/flax.nnx/rnglib.html#flax.nnx.Rngs" title="(in Flax)"><span class="pre">Rngs</span></a></span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/jaxgarden/models/llama.html#LlamaRotaryEmbedding.__init__"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#jaxgarden.models.LlamaRotaryEmbedding.__init__" title="Link to this definition"></a></dt>
+<dd><p>Initialize RoPE module.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>dim</strong> – Dimension of the embeddings (must be even)</p></li>
+<li><p><strong>base</strong> – Base for the sinusoidal functions</p></li>
+<li><p><strong>rngs</strong> – PRNG key collection</p></li>
+</ul>
+</dd>
+</dl>
+</dd></dl>
+
+</dd></dl>
+
+<dl class="py class">
+<dt class="sig sig-object py" id="jaxgarden.models.LlamaTransformerBlock">
+<em class="property"><span class="pre">class</span><span class="w"> </span></em><span class="sig-prename descclassname"><span class="pre">jaxgarden.models.</span></span><span class="sig-name descname"><span class="pre">LlamaTransformerBlock</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="o"><span class="pre">*</span></span><span class="n"><span class="pre">args</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">Any</span></span></em>, <em class="sig-param"><span class="o"><span class="pre">**</span></span><span class="n"><span class="pre">kwargs</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">Any</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/jaxgarden/models/llama.html#LlamaTransformerBlock"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#jaxgarden.models.LlamaTransformerBlock" title="Link to this definition"></a></dt>
+<dd><p>Bases: <a class="reference external" href="https://flax.readthedocs.io/en/latest/api_reference/flax.nnx/module.html#flax.nnx.Module" title="(in Flax)"><code class="xref py py-class docutils literal notranslate"><span class="pre">Module</span></code></a></p>
+<p>LLama transformer block implementation.</p>
+<p>This implements a single layer of the LLama transformer, consisting of
+attention, layer normalization, and MLP components.</p>
+<dl class="py attribute">
+<dt class="sig sig-object py" id="jaxgarden.models.LlamaTransformerBlock.input_layernorm">
+<span class="sig-name descname"><span class="pre">input_layernorm</span></span><a class="headerlink" href="#jaxgarden.models.LlamaTransformerBlock.input_layernorm" title="Link to this definition"></a></dt>
+<dd><p>Layer normalization before attention</p>
+</dd></dl>
+
+<dl class="py attribute">
+<dt class="sig sig-object py" id="jaxgarden.models.LlamaTransformerBlock.attention">
+<span class="sig-name descname"><span class="pre">attention</span></span><a class="headerlink" href="#jaxgarden.models.LlamaTransformerBlock.attention" title="Link to this definition"></a></dt>
+<dd><p>Multi-headed attention</p>
+</dd></dl>
+
+<dl class="py attribute">
+<dt class="sig sig-object py" id="jaxgarden.models.LlamaTransformerBlock.post_attention_layernorm">
+<span class="sig-name descname"><span class="pre">post_attention_layernorm</span></span><a class="headerlink" href="#jaxgarden.models.LlamaTransformerBlock.post_attention_layernorm" title="Link to this definition"></a></dt>
+<dd><p>Layer normalization after attention</p>
+</dd></dl>
+
+<dl class="py attribute">
+<dt class="sig sig-object py" id="jaxgarden.models.LlamaTransformerBlock.mlp">
+<span class="sig-name descname"><span class="pre">mlp</span></span><a class="headerlink" href="#jaxgarden.models.LlamaTransformerBlock.mlp" title="Link to this definition"></a></dt>
+<dd><p>MLP block</p>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="jaxgarden.models.LlamaTransformerBlock.__call__">
+<span class="sig-name descname"><span class="pre">__call__</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">x</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><a class="reference external" href="https://docs.jax.dev/en/latest/_autosummary/jax.Array.html#jax.Array" title="(in JAX)"><span class="pre">Array</span></a></span></em>, <em class="sig-param"><span class="n"><span class="pre">position_ids</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><a class="reference external" href="https://docs.jax.dev/en/latest/_autosummary/jax.Array.html#jax.Array" title="(in JAX)"><span class="pre">Array</span></a></span></em>, <em class="sig-param"><span class="n"><span class="pre">attention_mask</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><a class="reference external" href="https://docs.jax.dev/en/latest/_autosummary/jax.Array.html#jax.Array" title="(in JAX)"><span class="pre">Array</span></a></span></em><span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><a class="reference external" href="https://docs.jax.dev/en/latest/_autosummary/jax.Array.html#jax.Array" title="(in JAX)"><span class="pre">Array</span></a></span></span><a class="reference internal" href="../_modules/jaxgarden/models/llama.html#LlamaTransformerBlock.__call__"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#jaxgarden.models.LlamaTransformerBlock.__call__" title="Link to this definition"></a></dt>
+<dd><p>Apply transformer block to input tensor.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>x</strong> – Input tensor of shape [batch_size, seq_len, dim]</p></li>
+<li><p><strong>position_ids</strong> – Position indices of shape [batch_size, seq_len]</p></li>
+<li><p><strong>attention_mask</strong> – Additive attention mask of shape (batch_size, 1, q_len, kv_len)
+or another shape that can be broadcasted to this shape.</p></li>
+</ul>
+</dd>
+<dt class="field-even">Returns<span class="colon">:</span></dt>
+<dd class="field-even"><p>Output tensor of shape [batch_size, seq_len, dim]</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="jaxgarden.models.LlamaTransformerBlock.__init__">
+<span class="sig-name descname"><span class="pre">__init__</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">layer_idx</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><a class="reference external" href="https://docs.python.org/3/library/functions.html#int" title="(in Python v3.13)"><span class="pre">int</span></a></span></em>, <em class="sig-param"><span class="n"><span class="pre">dim</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><a class="reference external" href="https://docs.python.org/3/library/functions.html#int" title="(in Python v3.13)"><span class="pre">int</span></a></span></em>, <em class="sig-param"><span class="n"><span class="pre">n_heads</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><a class="reference external" href="https://docs.python.org/3/library/functions.html#int" title="(in Python v3.13)"><span class="pre">int</span></a></span></em>, <em class="sig-param"><span class="n"><span class="pre">n_kv_heads</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><a class="reference external" href="https://docs.python.org/3/library/functions.html#int" title="(in Python v3.13)"><span class="pre">int</span></a></span></em>, <em class="sig-param"><span class="n"><span class="pre">head_dim</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><a class="reference external" href="https://docs.python.org/3/library/functions.html#int" title="(in Python v3.13)"><span class="pre">int</span></a></span></em>, <em class="sig-param"><span class="n"><span class="pre">rope_theta</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><a class="reference external" href="https://docs.python.org/3/library/functions.html#float" title="(in Python v3.13)"><span class="pre">float</span></a></span></em>, <em class="sig-param"><span class="n"><span class="pre">intermediate_size</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><a class="reference external" href="https://docs.python.org/3/library/functions.html#int" title="(in Python v3.13)"><span class="pre">int</span></a></span></em>, <em class="sig-param"><span class="o"><span class="pre">*</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">norm_eps</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><a class="reference external" href="https://docs.python.org/3/library/functions.html#float" title="(in Python v3.13)"><span class="pre">float</span></a></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">1e-05</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">rngs</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><a class="reference external" href="https://flax.readthedocs.io/en/latest/api_reference/flax.nnx/rnglib.html#flax.nnx.Rngs" title="(in Flax)"><span class="pre">Rngs</span></a></span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/jaxgarden/models/llama.html#LlamaTransformerBlock.__init__"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#jaxgarden.models.LlamaTransformerBlock.__init__" title="Link to this definition"></a></dt>
+<dd><p>Initialize transformer block.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>layer_idx</strong> – Index of the layer</p></li>
+<li><p><strong>dim</strong> – Size of hidden states</p></li>
+<li><p><strong>n_heads</strong> – Number of attention heads</p></li>
+<li><p><strong>n_kv_heads</strong> – Number of key/value heads</p></li>
+<li><p><strong>head_dim</strong> – Dimension of each attention head</p></li>
+<li><p><strong>rope_theta</strong> – Base for rotary position embeddings</p></li>
+<li><p><strong>intermediate_size</strong> – Size of MLP intermediate layer</p></li>
+<li><p><strong>norm_eps</strong> – Epsilon for layer normalization</p></li>
+<li><p><strong>rngs</strong> – PRNG key collection</p></li>
+</ul>
 </dd>
 </dl>
 </dd></dl>

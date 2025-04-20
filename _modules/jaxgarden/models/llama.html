@@ -1,0 +1,710 @@
+
+
+<!DOCTYPE html>
+<html class="writer-html5" lang="en" data-content_root="../../../">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>jaxgarden.models.llama &mdash; JAXgarden 0.1.0 documentation</title>
+      <link rel="stylesheet" type="text/css" href="../../../_static/pygments.css?v=b86133f3" />
+      <link rel="stylesheet" type="text/css" href="../../../_static/css/theme.css?v=e59714d7" />
+
+  
+      <script src="../../../_static/jquery.js?v=5d32c60e"></script>
+      <script src="../../../_static/_sphinx_javascript_frameworks_compat.js?v=2cd50e6c"></script>
+      <script src="../../../_static/documentation_options.js?v=01f34227"></script>
+      <script src="../../../_static/doctools.js?v=9bcbadda"></script>
+      <script src="../../../_static/sphinx_highlight.js?v=dc90522c"></script>
+    <script src="../../../_static/js/theme.js"></script>
+    <link rel="index" title="Index" href="../../../genindex.html" />
+    <link rel="search" title="Search" href="../../../search.html" /> 
+</head>
+
+<body class="wy-body-for-nav"> 
+  <div class="wy-grid-for-nav">
+    <nav data-toggle="wy-nav-shift" class="wy-nav-side">
+      <div class="wy-side-scroll">
+        <div class="wy-side-nav-search" >
+
+          
+          
+          <a href="../../../index.html" class="icon icon-home">
+            JAXgarden
+          </a>
+<div role="search">
+  <form id="rtd-search-form" class="wy-form" action="../../../search.html" method="get">
+    <input type="text" name="q" placeholder="Search docs" aria-label="Search docs" />
+    <input type="hidden" name="check_keywords" value="yes" />
+    <input type="hidden" name="area" value="default" />
+  </form>
+</div>
+        </div><div class="wy-menu wy-menu-vertical" data-spy="affix" role="navigation" aria-label="Navigation menu">
+              <p class="caption" role="heading"><span class="caption-text">Contents:</span></p>
+<ul>
+<li class="toctree-l1"><a class="reference internal" href="../../../modules/index.html">API Documentation</a></li>
+</ul>
+
+        </div>
+      </div>
+    </nav>
+
+    <section data-toggle="wy-nav-shift" class="wy-nav-content-wrap"><nav class="wy-nav-top" aria-label="Mobile navigation menu" >
+          <i data-toggle="wy-nav-top" class="fa fa-bars"></i>
+          <a href="../../../index.html">JAXgarden</a>
+      </nav>
+
+      <div class="wy-nav-content">
+        <div class="rst-content">
+          <div role="navigation" aria-label="Page navigation">
+  <ul class="wy-breadcrumbs">
+      <li><a href="../../../index.html" class="icon icon-home" aria-label="Home"></a></li>
+          <li class="breadcrumb-item"><a href="../../index.html">Module code</a></li>
+      <li class="breadcrumb-item active">jaxgarden.models.llama</li>
+      <li class="wy-breadcrumbs-aside">
+      </li>
+  </ul>
+  <hr/>
+</div>
+          <div role="main" class="document" itemscope="itemscope" itemtype="http://schema.org/Article">
+           <div itemprop="articleBody">
+             
+  <h1>Source code for jaxgarden.models.llama</h1><div class="highlight"><pre>
+<span></span><span class="sd">&quot;&quot;&quot;LLama model implementation in JAX using Flax NNX.</span>
+
+<span class="sd">This module implements the LLama architecture as described in Meta&#39;s LLama series of models.</span>
+<span class="sd">The implementation includes modern transformer architecture with rotary position embeddings (RoPE),</span>
+<span class="sd">group query attention (GQA), and SwiGLU activation function in the feed-forward network.</span>
+
+<span class="sd">See: https://arxiv.org/abs/2302.13971</span>
+<span class="sd">&quot;&quot;&quot;</span>
+
+<span class="kn">from</span><span class="w"> </span><span class="nn">collections.abc</span><span class="w"> </span><span class="kn">import</span> <span class="n">Iterator</span>
+<span class="kn">from</span><span class="w"> </span><span class="nn">dataclasses</span><span class="w"> </span><span class="kn">import</span> <span class="n">dataclass</span>
+<span class="kn">from</span><span class="w"> </span><span class="nn">typing</span><span class="w"> </span><span class="kn">import</span> <span class="n">Any</span>
+
+<span class="kn">import</span><span class="w"> </span><span class="nn">jax</span>
+<span class="kn">import</span><span class="w"> </span><span class="nn">jax.numpy</span><span class="w"> </span><span class="k">as</span><span class="w"> </span><span class="nn">jnp</span>
+<span class="kn">from</span><span class="w"> </span><span class="nn">flax</span><span class="w"> </span><span class="kn">import</span> <span class="n">nnx</span>
+
+<span class="kn">from</span><span class="w"> </span><span class="nn">jaxgarden.models.base</span><span class="w"> </span><span class="kn">import</span> <span class="n">BaseConfig</span><span class="p">,</span> <span class="n">BaseModel</span>
+<span class="kn">from</span><span class="w"> </span><span class="nn">jaxgarden.models.generation_utils</span><span class="w"> </span><span class="kn">import</span> <span class="n">GenerationMixin</span>
+
+
+<div class="viewcode-block" id="LlamaConfig">
+<a class="viewcode-back" href="../../../modules/index.html#jaxgarden.models.LlamaConfig">[docs]</a>
+<span class="nd">@dataclass</span>
+<span class="k">class</span><span class="w"> </span><span class="nc">LlamaConfig</span><span class="p">(</span><span class="n">BaseConfig</span><span class="p">):</span>
+<span class="w">    </span><span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">    Configuration for LLama model.</span>
+
+<span class="sd">    This configuration class extends BaseConfig and contains all the parameters</span>
+<span class="sd">    required to initialize a LLama model. It includes settings for model architecture,</span>
+<span class="sd">    attention mechanisms, and other hyperparameters.</span>
+
+<span class="sd">    Attributes:</span>
+<span class="sd">        dim: Size of hidden states</span>
+<span class="sd">        n_layers: Number of transformer layers</span>
+<span class="sd">        n_heads: Number of attention heads</span>
+<span class="sd">        n_kv_heads: Number of key/value heads (for group query attention)</span>
+<span class="sd">        head_dim: Dimension of each attention head</span>
+<span class="sd">        intermediate_size: Size of MLP intermediate layer</span>
+<span class="sd">        vocab_size: Size of vocabulary</span>
+<span class="sd">        multiple_of: Ensure dimensions are multiples of this value</span>
+<span class="sd">        norm_eps: Epsilon for layer normalization</span>
+<span class="sd">        rope_theta: Base for rotary position embeddings</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+
+    <span class="n">dim</span><span class="p">:</span> <span class="nb">int</span> <span class="o">=</span> <span class="mi">2048</span>
+    <span class="n">n_layers</span><span class="p">:</span> <span class="nb">int</span> <span class="o">=</span> <span class="mi">16</span>
+    <span class="n">n_heads</span><span class="p">:</span> <span class="nb">int</span> <span class="o">=</span> <span class="mi">32</span>
+    <span class="n">n_kv_heads</span><span class="p">:</span> <span class="nb">int</span> <span class="o">=</span> <span class="mi">8</span>
+    <span class="n">head_dim</span><span class="p">:</span> <span class="nb">int</span> <span class="o">=</span> <span class="mi">64</span>
+    <span class="n">intermediate_size</span><span class="p">:</span> <span class="nb">int</span> <span class="o">=</span> <span class="mi">14336</span>
+    <span class="n">vocab_size</span><span class="p">:</span> <span class="nb">int</span> <span class="o">=</span> <span class="mi">128256</span>
+    <span class="n">multiple_of</span><span class="p">:</span> <span class="nb">int</span> <span class="o">=</span> <span class="mi">256</span>
+    <span class="n">norm_eps</span><span class="p">:</span> <span class="nb">float</span> <span class="o">=</span> <span class="mf">1e-05</span>
+    <span class="n">rope_theta</span><span class="p">:</span> <span class="nb">float</span> <span class="o">=</span> <span class="mf">500000.0</span></div>
+
+
+
+<div class="viewcode-block" id="LlamaRMSNorm">
+<a class="viewcode-back" href="../../../modules/index.html#jaxgarden.models.LlamaRMSNorm">[docs]</a>
+<span class="k">class</span><span class="w"> </span><span class="nc">LlamaRMSNorm</span><span class="p">(</span><span class="n">nnx</span><span class="o">.</span><span class="n">Module</span><span class="p">):</span>
+<span class="w">    </span><span class="sd">&quot;&quot;&quot;Root Mean Square Layer Normalization.</span>
+
+<span class="sd">    This implementation follows the RMSNorm paper: https://arxiv.org/abs/1910.07467</span>
+<span class="sd">    Instead of using mean and variance like traditional LayerNorm, RMSNorm only uses</span>
+<span class="sd">    the root mean square of the inputs for normalization.</span>
+
+<span class="sd">    Attributes:</span>
+<span class="sd">        norm_weights: The learned scale parameters</span>
+<span class="sd">        norm_eps: Small constant for numerical stability</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+
+<div class="viewcode-block" id="LlamaRMSNorm.__init__">
+<a class="viewcode-back" href="../../../modules/index.html#jaxgarden.models.LlamaRMSNorm.__init__">[docs]</a>
+    <span class="k">def</span><span class="w"> </span><span class="fm">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">dim</span><span class="p">:</span> <span class="nb">int</span><span class="p">,</span> <span class="o">*</span><span class="p">,</span> <span class="n">norm_eps</span><span class="p">:</span> <span class="nb">float</span> <span class="o">=</span> <span class="mf">1e-05</span><span class="p">,</span> <span class="n">rngs</span><span class="p">:</span> <span class="n">nnx</span><span class="o">.</span><span class="n">Rngs</span><span class="p">):</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;Initialize RMSNorm module.</span>
+
+<span class="sd">        Args:</span>
+<span class="sd">            dim: Dimension of the input tensor</span>
+<span class="sd">            norm_eps: Small constant for numerical stability</span>
+<span class="sd">            rngs: PRNG key collection</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="nb">super</span><span class="p">()</span><span class="o">.</span><span class="fm">__init__</span><span class="p">()</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">norm_weights</span> <span class="o">=</span> <span class="n">nnx</span><span class="o">.</span><span class="n">Param</span><span class="p">(</span><span class="n">jnp</span><span class="o">.</span><span class="n">zeros</span><span class="p">((</span><span class="n">dim</span><span class="p">,),</span> <span class="n">dtype</span><span class="o">=</span><span class="n">jnp</span><span class="o">.</span><span class="n">bfloat16</span><span class="p">))</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">norm_eps</span> <span class="o">=</span> <span class="n">norm_eps</span></div>
+
+
+<div class="viewcode-block" id="LlamaRMSNorm.__call__">
+<a class="viewcode-back" href="../../../modules/index.html#jaxgarden.models.LlamaRMSNorm.__call__">[docs]</a>
+    <span class="nd">@nnx</span><span class="o">.</span><span class="n">jit</span><span class="p">()</span>
+    <span class="k">def</span><span class="w"> </span><span class="fm">__call__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">hidden_states</span><span class="p">:</span> <span class="n">jnp</span><span class="o">.</span><span class="n">ndarray</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">jnp</span><span class="o">.</span><span class="n">ndarray</span><span class="p">:</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;Apply RMS normalization to input tensor.</span>
+
+<span class="sd">        Args:</span>
+<span class="sd">            hidden_states: Input tensor of shape [..., dim]</span>
+
+<span class="sd">        Returns:</span>
+<span class="sd">            Normalized tensor with same shape as input</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="n">input_dtype</span> <span class="o">=</span> <span class="n">hidden_states</span><span class="o">.</span><span class="n">dtype</span>
+        <span class="n">hidden_states</span> <span class="o">=</span> <span class="n">hidden_states</span><span class="o">.</span><span class="n">astype</span><span class="p">(</span><span class="n">jnp</span><span class="o">.</span><span class="n">float32</span><span class="p">)</span>
+        <span class="n">squared_mean</span> <span class="o">=</span> <span class="n">jnp</span><span class="o">.</span><span class="n">mean</span><span class="p">(</span><span class="n">jnp</span><span class="o">.</span><span class="n">square</span><span class="p">(</span><span class="n">hidden_states</span><span class="p">),</span> <span class="n">axis</span><span class="o">=-</span><span class="mi">1</span><span class="p">,</span> <span class="n">keepdims</span><span class="o">=</span><span class="kc">True</span><span class="p">)</span>
+        <span class="n">hidden_states</span> <span class="o">=</span> <span class="n">hidden_states</span> <span class="o">*</span> <span class="n">jnp</span><span class="o">.</span><span class="n">reciprocal</span><span class="p">(</span><span class="n">jnp</span><span class="o">.</span><span class="n">sqrt</span><span class="p">(</span><span class="n">squared_mean</span> <span class="o">+</span> <span class="bp">self</span><span class="o">.</span><span class="n">norm_eps</span><span class="p">))</span>
+        <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">norm_weights</span> <span class="o">*</span> <span class="n">hidden_states</span><span class="o">.</span><span class="n">astype</span><span class="p">(</span><span class="n">input_dtype</span><span class="p">)</span></div>
+</div>
+
+
+
+<div class="viewcode-block" id="LlamaRotaryEmbedding">
+<a class="viewcode-back" href="../../../modules/index.html#jaxgarden.models.LlamaRotaryEmbedding">[docs]</a>
+<span class="k">class</span><span class="w"> </span><span class="nc">LlamaRotaryEmbedding</span><span class="p">(</span><span class="n">nnx</span><span class="o">.</span><span class="n">Module</span><span class="p">):</span>
+<span class="w">    </span><span class="sd">&quot;&quot;&quot;Rotary Position Embedding (RoPE) implementation for LLama.</span>
+
+<span class="sd">    Based on: https://arxiv.org/abs/2104.09864</span>
+
+<span class="sd">    Attributes:</span>
+<span class="sd">        dim: Dimension of the embeddings</span>
+<span class="sd">        base: Base for the sinusoidal functions</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+
+<div class="viewcode-block" id="LlamaRotaryEmbedding.__init__">
+<a class="viewcode-back" href="../../../modules/index.html#jaxgarden.models.LlamaRotaryEmbedding.__init__">[docs]</a>
+    <span class="k">def</span><span class="w"> </span><span class="fm">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">dim</span><span class="p">:</span> <span class="nb">int</span><span class="p">,</span> <span class="o">*</span><span class="p">,</span> <span class="n">base</span><span class="p">:</span> <span class="nb">float</span> <span class="o">=</span> <span class="mf">10000.0</span><span class="p">,</span> <span class="n">rngs</span><span class="p">:</span> <span class="n">nnx</span><span class="o">.</span><span class="n">Rngs</span><span class="p">):</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;Initialize RoPE module.</span>
+
+<span class="sd">        Args:</span>
+<span class="sd">            dim: Dimension of the embeddings (must be even)</span>
+<span class="sd">            base: Base for the sinusoidal functions</span>
+<span class="sd">            rngs: PRNG key collection</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="nb">super</span><span class="p">()</span><span class="o">.</span><span class="fm">__init__</span><span class="p">()</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">dim</span> <span class="o">=</span> <span class="n">dim</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">base</span> <span class="o">=</span> <span class="n">base</span></div>
+
+
+<div class="viewcode-block" id="LlamaRotaryEmbedding.__call__">
+<a class="viewcode-back" href="../../../modules/index.html#jaxgarden.models.LlamaRotaryEmbedding.__call__">[docs]</a>
+    <span class="nd">@nnx</span><span class="o">.</span><span class="n">jit</span><span class="p">()</span>
+    <span class="k">def</span><span class="w"> </span><span class="fm">__call__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">position_ids</span><span class="p">:</span> <span class="n">jnp</span><span class="o">.</span><span class="n">ndarray</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">tuple</span><span class="p">[</span><span class="n">jnp</span><span class="o">.</span><span class="n">ndarray</span><span class="p">,</span> <span class="n">jnp</span><span class="o">.</span><span class="n">ndarray</span><span class="p">]:</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;Generate rotary embeddings from position ids.</span>
+
+<span class="sd">        Args:</span>
+<span class="sd">            position_ids: Position indices of shape [batch_size, seq_len]</span>
+
+<span class="sd">        Returns:</span>
+<span class="sd">            Tuple of (cos, sin) tensors for rotary embeddings</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="n">inv_freq</span> <span class="o">=</span> <span class="mf">1.0</span> <span class="o">/</span> <span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">base</span> <span class="o">**</span> <span class="p">(</span><span class="n">jnp</span><span class="o">.</span><span class="n">arange</span><span class="p">(</span><span class="mi">0</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">dim</span><span class="p">,</span> <span class="mi">2</span><span class="p">,</span> <span class="n">dtype</span><span class="o">=</span><span class="n">jnp</span><span class="o">.</span><span class="n">float32</span><span class="p">)</span> <span class="o">/</span> <span class="bp">self</span><span class="o">.</span><span class="n">dim</span><span class="p">))</span>
+        <span class="n">inv_freq_expanded</span> <span class="o">=</span> <span class="n">jnp</span><span class="o">.</span><span class="n">expand_dims</span><span class="p">(</span><span class="n">inv_freq</span><span class="p">,</span> <span class="n">axis</span><span class="o">=</span><span class="p">(</span><span class="mi">0</span><span class="p">,</span> <span class="mi">1</span><span class="p">))</span>
+        <span class="n">position_ids_expanded</span> <span class="o">=</span> <span class="n">jnp</span><span class="o">.</span><span class="n">expand_dims</span><span class="p">(</span><span class="n">position_ids</span><span class="p">,</span> <span class="n">axis</span><span class="o">=</span><span class="p">(</span><span class="mi">0</span><span class="p">,</span> <span class="mi">2</span><span class="p">))</span><span class="o">.</span><span class="n">astype</span><span class="p">(</span><span class="n">jnp</span><span class="o">.</span><span class="n">float32</span><span class="p">)</span>
+        <span class="n">freqs</span> <span class="o">=</span> <span class="n">jnp</span><span class="o">.</span><span class="n">einsum</span><span class="p">(</span><span class="s2">&quot;bij,bjk-&gt;bijk&quot;</span><span class="p">,</span> <span class="n">position_ids_expanded</span><span class="p">,</span> <span class="n">inv_freq_expanded</span><span class="p">)</span>
+        <span class="n">emb</span> <span class="o">=</span> <span class="n">jnp</span><span class="o">.</span><span class="n">concatenate</span><span class="p">([</span><span class="n">freqs</span><span class="p">,</span> <span class="n">freqs</span><span class="p">],</span> <span class="n">axis</span><span class="o">=-</span><span class="mi">1</span><span class="p">)</span>
+        <span class="n">cos</span> <span class="o">=</span> <span class="n">jnp</span><span class="o">.</span><span class="n">cos</span><span class="p">(</span><span class="n">emb</span><span class="p">)</span><span class="o">.</span><span class="n">squeeze</span><span class="p">(</span><span class="mi">2</span><span class="p">)</span><span class="o">.</span><span class="n">astype</span><span class="p">(</span><span class="n">jnp</span><span class="o">.</span><span class="n">bfloat16</span><span class="p">)</span>
+        <span class="n">sin</span> <span class="o">=</span> <span class="n">jnp</span><span class="o">.</span><span class="n">sin</span><span class="p">(</span><span class="n">emb</span><span class="p">)</span><span class="o">.</span><span class="n">squeeze</span><span class="p">(</span><span class="mi">2</span><span class="p">)</span><span class="o">.</span><span class="n">astype</span><span class="p">(</span><span class="n">jnp</span><span class="o">.</span><span class="n">bfloat16</span><span class="p">)</span>
+        <span class="k">return</span> <span class="n">cos</span><span class="p">,</span> <span class="n">sin</span></div>
+</div>
+
+
+
+<div class="viewcode-block" id="LlamaAttention">
+<a class="viewcode-back" href="../../../modules/index.html#jaxgarden.models.LlamaAttention">[docs]</a>
+<span class="k">class</span><span class="w"> </span><span class="nc">LlamaAttention</span><span class="p">(</span><span class="n">nnx</span><span class="o">.</span><span class="n">Module</span><span class="p">):</span>
+<span class="w">    </span><span class="sd">&quot;&quot;&quot;Multi-headed attention with support for Group Query Attention (GQA).</span>
+
+<span class="sd">    This implements the LLama attention mechanism with rotary position embeddings (RoPE)</span>
+<span class="sd">    and support for fewer key-value heads than query heads (GQA).</span>
+
+<span class="sd">    Attributes:</span>
+<span class="sd">        q_proj: Linear projection for queries</span>
+<span class="sd">        k_proj: Linear projection for keys</span>
+<span class="sd">        v_proj: Linear projection for values</span>
+<span class="sd">        o_proj: Linear projection for output</span>
+<span class="sd">        rotary_emb: Rotary position embeddings</span>
+<span class="sd">        head_dim: Dimension of each attention head</span>
+<span class="sd">        n_heads: Number of attention heads</span>
+<span class="sd">        n_kv_heads: Number of key/value heads</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+
+<div class="viewcode-block" id="LlamaAttention.__init__">
+<a class="viewcode-back" href="../../../modules/index.html#jaxgarden.models.LlamaAttention.__init__">[docs]</a>
+    <span class="k">def</span><span class="w"> </span><span class="fm">__init__</span><span class="p">(</span>
+        <span class="bp">self</span><span class="p">,</span>
+        <span class="n">layer_idx</span><span class="p">:</span> <span class="nb">int</span><span class="p">,</span>
+        <span class="n">dim</span><span class="p">:</span> <span class="nb">int</span><span class="p">,</span>
+        <span class="n">n_heads</span><span class="p">:</span> <span class="nb">int</span><span class="p">,</span>
+        <span class="n">n_kv_heads</span><span class="p">:</span> <span class="nb">int</span><span class="p">,</span>
+        <span class="n">head_dim</span><span class="p">:</span> <span class="nb">int</span><span class="p">,</span>
+        <span class="n">rope_theta</span><span class="p">:</span> <span class="nb">float</span><span class="p">,</span>
+        <span class="o">*</span><span class="p">,</span>
+        <span class="n">rngs</span><span class="p">:</span> <span class="n">nnx</span><span class="o">.</span><span class="n">Rngs</span><span class="p">,</span>
+    <span class="p">):</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;Initialize attention module.</span>
+
+<span class="sd">        Args:</span>
+<span class="sd">            layer_idx: Index of the layer</span>
+<span class="sd">            dim: Size of hidden states</span>
+<span class="sd">            n_heads: Number of attention heads</span>
+<span class="sd">            n_kv_heads: Number of key/value heads</span>
+<span class="sd">            head_dim: Dimension of each attention head</span>
+<span class="sd">            rope_theta: Base for rotary position embeddings</span>
+<span class="sd">            rngs: PRNG key collection</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">q_proj</span> <span class="o">=</span> <span class="n">nnx</span><span class="o">.</span><span class="n">Linear</span><span class="p">(</span>
+            <span class="n">dim</span><span class="p">,</span> <span class="n">n_heads</span> <span class="o">*</span> <span class="n">head_dim</span><span class="p">,</span> <span class="n">use_bias</span><span class="o">=</span><span class="kc">False</span><span class="p">,</span> <span class="n">rngs</span><span class="o">=</span><span class="n">rngs</span><span class="p">,</span> <span class="n">param_dtype</span><span class="o">=</span><span class="n">jnp</span><span class="o">.</span><span class="n">bfloat16</span>
+        <span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">k_proj</span> <span class="o">=</span> <span class="n">nnx</span><span class="o">.</span><span class="n">Linear</span><span class="p">(</span>
+            <span class="n">dim</span><span class="p">,</span> <span class="n">n_kv_heads</span> <span class="o">*</span> <span class="n">head_dim</span><span class="p">,</span> <span class="n">use_bias</span><span class="o">=</span><span class="kc">False</span><span class="p">,</span> <span class="n">rngs</span><span class="o">=</span><span class="n">rngs</span><span class="p">,</span> <span class="n">param_dtype</span><span class="o">=</span><span class="n">jnp</span><span class="o">.</span><span class="n">bfloat16</span>
+        <span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">v_proj</span> <span class="o">=</span> <span class="n">nnx</span><span class="o">.</span><span class="n">Linear</span><span class="p">(</span>
+            <span class="n">dim</span><span class="p">,</span> <span class="n">n_kv_heads</span> <span class="o">*</span> <span class="n">head_dim</span><span class="p">,</span> <span class="n">use_bias</span><span class="o">=</span><span class="kc">False</span><span class="p">,</span> <span class="n">rngs</span><span class="o">=</span><span class="n">rngs</span><span class="p">,</span> <span class="n">param_dtype</span><span class="o">=</span><span class="n">jnp</span><span class="o">.</span><span class="n">bfloat16</span>
+        <span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">o_proj</span> <span class="o">=</span> <span class="n">nnx</span><span class="o">.</span><span class="n">Linear</span><span class="p">(</span>
+            <span class="n">n_heads</span> <span class="o">*</span> <span class="n">head_dim</span><span class="p">,</span> <span class="n">dim</span><span class="p">,</span> <span class="n">use_bias</span><span class="o">=</span><span class="kc">False</span><span class="p">,</span> <span class="n">rngs</span><span class="o">=</span><span class="n">rngs</span><span class="p">,</span> <span class="n">param_dtype</span><span class="o">=</span><span class="n">jnp</span><span class="o">.</span><span class="n">bfloat16</span>
+        <span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">rotary_emb</span> <span class="o">=</span> <span class="n">LlamaRotaryEmbedding</span><span class="p">(</span><span class="n">head_dim</span><span class="p">,</span> <span class="n">base</span><span class="o">=</span><span class="n">rope_theta</span><span class="p">,</span> <span class="n">rngs</span><span class="o">=</span><span class="n">rngs</span><span class="p">)</span>
+
+        <span class="bp">self</span><span class="o">.</span><span class="n">head_dim</span> <span class="o">=</span> <span class="n">head_dim</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">n_heads</span> <span class="o">=</span> <span class="n">n_heads</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">n_kv_heads</span> <span class="o">=</span> <span class="n">n_kv_heads</span></div>
+
+
+<div class="viewcode-block" id="LlamaAttention.apply_rotary_pos_emb">
+<a class="viewcode-back" href="../../../modules/index.html#jaxgarden.models.LlamaAttention.apply_rotary_pos_emb">[docs]</a>
+    <span class="k">def</span><span class="w"> </span><span class="nf">apply_rotary_pos_emb</span><span class="p">(</span>
+        <span class="bp">self</span><span class="p">,</span>
+        <span class="n">q</span><span class="p">:</span> <span class="n">jnp</span><span class="o">.</span><span class="n">ndarray</span><span class="p">,</span>
+        <span class="n">k</span><span class="p">:</span> <span class="n">jnp</span><span class="o">.</span><span class="n">ndarray</span><span class="p">,</span>
+        <span class="n">cos</span><span class="p">:</span> <span class="n">jnp</span><span class="o">.</span><span class="n">ndarray</span><span class="p">,</span>
+        <span class="n">sin</span><span class="p">:</span> <span class="n">jnp</span><span class="o">.</span><span class="n">ndarray</span><span class="p">,</span>
+        <span class="n">unsqueeze_dim</span><span class="p">:</span> <span class="nb">int</span> <span class="o">=</span> <span class="mi">1</span><span class="p">,</span>
+    <span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">tuple</span><span class="p">[</span><span class="n">jnp</span><span class="o">.</span><span class="n">ndarray</span><span class="p">,</span> <span class="n">jnp</span><span class="o">.</span><span class="n">ndarray</span><span class="p">]:</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;Apply rotary position embeddings to query and key tensors.</span>
+
+<span class="sd">        Args:</span>
+<span class="sd">            q: Query tensor</span>
+<span class="sd">            k: Key tensor</span>
+<span class="sd">            cos: Cosine component of rotary embeddings</span>
+<span class="sd">            sin: Sine component of rotary embeddings</span>
+<span class="sd">            unsqueeze_dim: Dimension to unsqueeze cosine and sine components</span>
+
+<span class="sd">        Returns:</span>
+<span class="sd">            Tuple of (rotated_q, rotated_k)</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="n">cos</span> <span class="o">=</span> <span class="n">jnp</span><span class="o">.</span><span class="n">expand_dims</span><span class="p">(</span><span class="n">cos</span><span class="p">,</span> <span class="n">axis</span><span class="o">=</span><span class="n">unsqueeze_dim</span><span class="p">)</span>
+        <span class="n">sin</span> <span class="o">=</span> <span class="n">jnp</span><span class="o">.</span><span class="n">expand_dims</span><span class="p">(</span><span class="n">sin</span><span class="p">,</span> <span class="n">axis</span><span class="o">=</span><span class="n">unsqueeze_dim</span><span class="p">)</span>
+        <span class="n">q_embed</span> <span class="o">=</span> <span class="p">(</span><span class="n">q</span> <span class="o">*</span> <span class="n">cos</span><span class="p">)</span> <span class="o">+</span> <span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">rotate_half</span><span class="p">(</span><span class="n">q</span><span class="p">)</span> <span class="o">*</span> <span class="n">sin</span><span class="p">)</span>
+        <span class="n">k_embed</span> <span class="o">=</span> <span class="p">(</span><span class="n">k</span> <span class="o">*</span> <span class="n">cos</span><span class="p">)</span> <span class="o">+</span> <span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">rotate_half</span><span class="p">(</span><span class="n">k</span><span class="p">)</span> <span class="o">*</span> <span class="n">sin</span><span class="p">)</span>
+        <span class="k">return</span> <span class="n">q_embed</span><span class="p">,</span> <span class="n">k_embed</span></div>
+
+
+<div class="viewcode-block" id="LlamaAttention.rotate_half">
+<a class="viewcode-back" href="../../../modules/index.html#jaxgarden.models.LlamaAttention.rotate_half">[docs]</a>
+    <span class="k">def</span><span class="w"> </span><span class="nf">rotate_half</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">x</span><span class="p">:</span> <span class="n">jnp</span><span class="o">.</span><span class="n">ndarray</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">jnp</span><span class="o">.</span><span class="n">ndarray</span><span class="p">:</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;Rotate half the hidden dims of the input.</span>
+
+<span class="sd">        Args:</span>
+<span class="sd">            x: Input tensor</span>
+
+<span class="sd">        Returns:</span>
+<span class="sd">            Tensor with half the dimensions rotated</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="n">x1</span> <span class="o">=</span> <span class="n">x</span><span class="p">[</span><span class="o">...</span><span class="p">,</span> <span class="p">:</span> <span class="n">x</span><span class="o">.</span><span class="n">shape</span><span class="p">[</span><span class="o">-</span><span class="mi">1</span><span class="p">]</span> <span class="o">//</span> <span class="mi">2</span><span class="p">]</span>
+        <span class="n">x2</span> <span class="o">=</span> <span class="n">x</span><span class="p">[</span><span class="o">...</span><span class="p">,</span> <span class="n">x</span><span class="o">.</span><span class="n">shape</span><span class="p">[</span><span class="o">-</span><span class="mi">1</span><span class="p">]</span> <span class="o">//</span> <span class="mi">2</span> <span class="p">:]</span>
+        <span class="k">return</span> <span class="n">jnp</span><span class="o">.</span><span class="n">concatenate</span><span class="p">([</span><span class="o">-</span><span class="n">x2</span><span class="p">,</span> <span class="n">x1</span><span class="p">],</span> <span class="n">axis</span><span class="o">=-</span><span class="mi">1</span><span class="p">)</span></div>
+
+
+<div class="viewcode-block" id="LlamaAttention.repeat_kv">
+<a class="viewcode-back" href="../../../modules/index.html#jaxgarden.models.LlamaAttention.repeat_kv">[docs]</a>
+    <span class="k">def</span><span class="w"> </span><span class="nf">repeat_kv</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">hidden_states</span><span class="p">:</span> <span class="n">jnp</span><span class="o">.</span><span class="n">ndarray</span><span class="p">,</span> <span class="n">n_repeat</span><span class="p">:</span> <span class="nb">int</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">jnp</span><span class="o">.</span><span class="n">ndarray</span><span class="p">:</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;Repeat key/value heads to match the number of query heads.</span>
+
+<span class="sd">        When using GQA, we need to repeat each key/value head to match</span>
+<span class="sd">        the number of query heads.</span>
+
+<span class="sd">        Args:</span>
+<span class="sd">            hidden_states: Key or value tensor of shape [batch, n_kv_heads, seq_len, head_dim]</span>
+<span class="sd">            n_repeat: Number of times to repeat each key/value head</span>
+
+<span class="sd">        Returns:</span>
+<span class="sd">            Tensor with repeated key/value heads</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="n">batch</span><span class="p">,</span> <span class="n">n_kv_heads</span><span class="p">,</span> <span class="n">seq_len</span><span class="p">,</span> <span class="n">head_dim</span> <span class="o">=</span> <span class="n">hidden_states</span><span class="o">.</span><span class="n">shape</span>
+        <span class="k">if</span> <span class="n">n_repeat</span> <span class="o">==</span> <span class="mi">1</span><span class="p">:</span>
+            <span class="k">return</span> <span class="n">hidden_states</span>
+        <span class="n">hidden_states</span> <span class="o">=</span> <span class="n">hidden_states</span><span class="p">[:,</span> <span class="p">:,</span> <span class="kc">None</span><span class="p">,</span> <span class="p">:,</span> <span class="p">:]</span><span class="o">.</span><span class="n">repeat</span><span class="p">(</span><span class="n">n_repeat</span><span class="p">,</span> <span class="n">axis</span><span class="o">=</span><span class="mi">2</span><span class="p">)</span>
+        <span class="k">return</span> <span class="n">hidden_states</span><span class="o">.</span><span class="n">reshape</span><span class="p">(</span><span class="n">batch</span><span class="p">,</span> <span class="n">n_kv_heads</span> <span class="o">*</span> <span class="n">n_repeat</span><span class="p">,</span> <span class="n">seq_len</span><span class="p">,</span> <span class="n">head_dim</span><span class="p">)</span></div>
+
+
+<div class="viewcode-block" id="LlamaAttention.__call__">
+<a class="viewcode-back" href="../../../modules/index.html#jaxgarden.models.LlamaAttention.__call__">[docs]</a>
+    <span class="nd">@nnx</span><span class="o">.</span><span class="n">jit</span><span class="p">()</span>
+    <span class="k">def</span><span class="w"> </span><span class="fm">__call__</span><span class="p">(</span>
+        <span class="bp">self</span><span class="p">,</span> <span class="n">x</span><span class="p">:</span> <span class="n">jnp</span><span class="o">.</span><span class="n">ndarray</span><span class="p">,</span> <span class="n">position_ids</span><span class="p">:</span> <span class="n">jnp</span><span class="o">.</span><span class="n">ndarray</span><span class="p">,</span> <span class="n">attention_mask</span><span class="p">:</span> <span class="n">jnp</span><span class="o">.</span><span class="n">ndarray</span>
+    <span class="p">)</span> <span class="o">-&gt;</span> <span class="n">jnp</span><span class="o">.</span><span class="n">ndarray</span><span class="p">:</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;Apply self-attention using queries, keys, and values derived from input x.</span>
+
+<span class="sd">        Args:</span>
+<span class="sd">            x: Input tensor of shape [batch_size, seq_len, dim]</span>
+<span class="sd">            position_ids: Position indices of shape [batch_size, seq_len]</span>
+<span class="sd">            attention_mask: Additive attention mask of shape (batch_size, 1, q_len, kv_len)</span>
+<span class="sd">                or a shape that can be broadcasted to this shape.</span>
+
+<span class="sd">        Returns:</span>
+<span class="sd">            Output tensor of shape [batch_size, seq_len, dim]</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="n">batch_size</span><span class="p">,</span> <span class="n">seq_len</span><span class="p">,</span> <span class="n">_</span> <span class="o">=</span> <span class="n">x</span><span class="o">.</span><span class="n">shape</span>
+        <span class="n">query</span> <span class="o">=</span> <span class="p">(</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">q_proj</span><span class="p">(</span><span class="n">x</span><span class="p">)</span>
+            <span class="o">.</span><span class="n">reshape</span><span class="p">(</span><span class="n">batch_size</span><span class="p">,</span> <span class="n">seq_len</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">n_heads</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">head_dim</span><span class="p">)</span>
+            <span class="o">.</span><span class="n">transpose</span><span class="p">((</span><span class="mi">0</span><span class="p">,</span> <span class="mi">2</span><span class="p">,</span> <span class="mi">1</span><span class="p">,</span> <span class="mi">3</span><span class="p">))</span>
+        <span class="p">)</span>
+        <span class="n">key</span> <span class="o">=</span> <span class="p">(</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">k_proj</span><span class="p">(</span><span class="n">x</span><span class="p">)</span>
+            <span class="o">.</span><span class="n">reshape</span><span class="p">(</span><span class="n">batch_size</span><span class="p">,</span> <span class="n">seq_len</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">n_kv_heads</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">head_dim</span><span class="p">)</span>
+            <span class="o">.</span><span class="n">transpose</span><span class="p">((</span><span class="mi">0</span><span class="p">,</span> <span class="mi">2</span><span class="p">,</span> <span class="mi">1</span><span class="p">,</span> <span class="mi">3</span><span class="p">))</span>
+        <span class="p">)</span>
+        <span class="n">value</span> <span class="o">=</span> <span class="p">(</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">v_proj</span><span class="p">(</span><span class="n">x</span><span class="p">)</span>
+            <span class="o">.</span><span class="n">reshape</span><span class="p">(</span><span class="n">batch_size</span><span class="p">,</span> <span class="n">seq_len</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">n_kv_heads</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">head_dim</span><span class="p">)</span>
+            <span class="o">.</span><span class="n">transpose</span><span class="p">((</span><span class="mi">0</span><span class="p">,</span> <span class="mi">2</span><span class="p">,</span> <span class="mi">1</span><span class="p">,</span> <span class="mi">3</span><span class="p">))</span>
+        <span class="p">)</span>
+        <span class="c1"># Assuming batch_size=1</span>
+        <span class="n">cos</span><span class="p">,</span> <span class="n">sin</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">rotary_emb</span><span class="p">(</span><span class="n">position_ids</span><span class="p">[</span><span class="mi">0</span><span class="p">])</span>
+        <span class="n">query</span><span class="p">,</span> <span class="n">key</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">apply_rotary_pos_emb</span><span class="p">(</span><span class="n">query</span><span class="p">,</span> <span class="n">key</span><span class="p">,</span> <span class="n">cos</span><span class="p">,</span> <span class="n">sin</span><span class="p">)</span>
+
+        <span class="n">key</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">repeat_kv</span><span class="p">(</span><span class="n">key</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">n_heads</span> <span class="o">//</span> <span class="bp">self</span><span class="o">.</span><span class="n">n_kv_heads</span><span class="p">)</span>
+        <span class="n">value</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">repeat_kv</span><span class="p">(</span><span class="n">value</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">n_heads</span> <span class="o">//</span> <span class="bp">self</span><span class="o">.</span><span class="n">n_kv_heads</span><span class="p">)</span>
+
+        <span class="n">attn_weights</span> <span class="o">=</span> <span class="n">jnp</span><span class="o">.</span><span class="n">matmul</span><span class="p">(</span><span class="n">query</span><span class="p">,</span> <span class="n">jnp</span><span class="o">.</span><span class="n">transpose</span><span class="p">(</span><span class="n">key</span><span class="p">,</span> <span class="p">(</span><span class="mi">0</span><span class="p">,</span> <span class="mi">1</span><span class="p">,</span> <span class="mi">3</span><span class="p">,</span> <span class="mi">2</span><span class="p">)))</span>
+        <span class="n">attn_weights</span> <span class="o">=</span> <span class="p">(</span><span class="n">attn_weights</span><span class="o">.</span><span class="n">astype</span><span class="p">(</span><span class="n">jnp</span><span class="o">.</span><span class="n">float32</span><span class="p">)</span> <span class="o">/</span> <span class="n">jnp</span><span class="o">.</span><span class="n">sqrt</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">head_dim</span><span class="p">))</span><span class="o">.</span><span class="n">astype</span><span class="p">(</span>
+            <span class="n">jnp</span><span class="o">.</span><span class="n">bfloat16</span>
+        <span class="p">)</span>
+        <span class="n">attn_weights</span> <span class="o">=</span> <span class="n">attn_weights</span> <span class="o">+</span> <span class="n">attention_mask</span>
+        <span class="n">attn_weights</span> <span class="o">=</span> <span class="n">jax</span><span class="o">.</span><span class="n">nn</span><span class="o">.</span><span class="n">softmax</span><span class="p">(</span><span class="n">attn_weights</span><span class="o">.</span><span class="n">astype</span><span class="p">(</span><span class="n">jnp</span><span class="o">.</span><span class="n">float32</span><span class="p">),</span> <span class="n">axis</span><span class="o">=-</span><span class="mi">1</span><span class="p">)</span><span class="o">.</span><span class="n">astype</span><span class="p">(</span>
+            <span class="n">jnp</span><span class="o">.</span><span class="n">bfloat16</span>
+        <span class="p">)</span>
+        <span class="n">attn_output</span> <span class="o">=</span> <span class="p">(</span>
+            <span class="n">jnp</span><span class="o">.</span><span class="n">matmul</span><span class="p">(</span><span class="n">attn_weights</span><span class="p">,</span> <span class="n">value</span><span class="p">)</span><span class="o">.</span><span class="n">transpose</span><span class="p">((</span><span class="mi">0</span><span class="p">,</span> <span class="mi">2</span><span class="p">,</span> <span class="mi">1</span><span class="p">,</span> <span class="mi">3</span><span class="p">))</span><span class="o">.</span><span class="n">reshape</span><span class="p">(</span><span class="n">batch_size</span><span class="p">,</span> <span class="n">seq_len</span><span class="p">,</span> <span class="o">-</span><span class="mi">1</span><span class="p">)</span>
+        <span class="p">)</span>
+        <span class="n">output</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">o_proj</span><span class="p">(</span><span class="n">attn_output</span><span class="p">)</span>
+        <span class="k">return</span> <span class="n">output</span></div>
+</div>
+
+
+
+<div class="viewcode-block" id="LlamaMLP">
+<a class="viewcode-back" href="../../../modules/index.html#jaxgarden.models.LlamaMLP">[docs]</a>
+<span class="k">class</span><span class="w"> </span><span class="nc">LlamaMLP</span><span class="p">(</span><span class="n">nnx</span><span class="o">.</span><span class="n">Module</span><span class="p">):</span>
+<span class="w">    </span><span class="sd">&quot;&quot;&quot;LLama&#39;s MLP implementation with SwiGLU activation.</span>
+
+<span class="sd">    This implements the SwiGLU MLP used in LLama models:</span>
+<span class="sd">    down_proj(silu(gate_proj(x)) * up_proj(x))</span>
+
+<span class="sd">    Attributes:</span>
+<span class="sd">        gate_proj: Linear projection for gate</span>
+<span class="sd">        up_proj: Linear projection for up-projection</span>
+<span class="sd">        down_proj: Linear projection for down-projection</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+
+<div class="viewcode-block" id="LlamaMLP.__init__">
+<a class="viewcode-back" href="../../../modules/index.html#jaxgarden.models.LlamaMLP.__init__">[docs]</a>
+    <span class="k">def</span><span class="w"> </span><span class="fm">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">layer_idx</span><span class="p">:</span> <span class="nb">int</span><span class="p">,</span> <span class="n">dim</span><span class="p">:</span> <span class="nb">int</span><span class="p">,</span> <span class="n">intermediate_size</span><span class="p">:</span> <span class="nb">int</span><span class="p">,</span> <span class="o">*</span><span class="p">,</span> <span class="n">rngs</span><span class="p">:</span> <span class="n">nnx</span><span class="o">.</span><span class="n">Rngs</span><span class="p">):</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;Initialize MLP module.</span>
+
+<span class="sd">        Args:</span>
+<span class="sd">            layer_idx: Index of the layer</span>
+<span class="sd">            dim: Size of hidden states</span>
+<span class="sd">            intermediate_size: Size of intermediate layer</span>
+<span class="sd">            rngs: PRNG key collection</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">gate_proj</span> <span class="o">=</span> <span class="n">nnx</span><span class="o">.</span><span class="n">Linear</span><span class="p">(</span>
+            <span class="n">dim</span><span class="p">,</span> <span class="n">intermediate_size</span><span class="p">,</span> <span class="n">use_bias</span><span class="o">=</span><span class="kc">False</span><span class="p">,</span> <span class="n">rngs</span><span class="o">=</span><span class="n">rngs</span><span class="p">,</span> <span class="n">param_dtype</span><span class="o">=</span><span class="n">jnp</span><span class="o">.</span><span class="n">bfloat16</span>
+        <span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">up_proj</span> <span class="o">=</span> <span class="n">nnx</span><span class="o">.</span><span class="n">Linear</span><span class="p">(</span>
+            <span class="n">dim</span><span class="p">,</span> <span class="n">intermediate_size</span><span class="p">,</span> <span class="n">use_bias</span><span class="o">=</span><span class="kc">False</span><span class="p">,</span> <span class="n">rngs</span><span class="o">=</span><span class="n">rngs</span><span class="p">,</span> <span class="n">param_dtype</span><span class="o">=</span><span class="n">jnp</span><span class="o">.</span><span class="n">bfloat16</span>
+        <span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">down_proj</span> <span class="o">=</span> <span class="n">nnx</span><span class="o">.</span><span class="n">Linear</span><span class="p">(</span>
+            <span class="n">intermediate_size</span><span class="p">,</span> <span class="n">dim</span><span class="p">,</span> <span class="n">use_bias</span><span class="o">=</span><span class="kc">False</span><span class="p">,</span> <span class="n">rngs</span><span class="o">=</span><span class="n">rngs</span><span class="p">,</span> <span class="n">param_dtype</span><span class="o">=</span><span class="n">jnp</span><span class="o">.</span><span class="n">bfloat16</span>
+        <span class="p">)</span></div>
+
+
+<div class="viewcode-block" id="LlamaMLP.__call__">
+<a class="viewcode-back" href="../../../modules/index.html#jaxgarden.models.LlamaMLP.__call__">[docs]</a>
+    <span class="nd">@nnx</span><span class="o">.</span><span class="n">jit</span><span class="p">()</span>
+    <span class="k">def</span><span class="w"> </span><span class="fm">__call__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">x</span><span class="p">:</span> <span class="n">jnp</span><span class="o">.</span><span class="n">ndarray</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">jnp</span><span class="o">.</span><span class="n">ndarray</span><span class="p">:</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;Apply SwiGLU MLP to input tensor.</span>
+
+<span class="sd">        Args:</span>
+<span class="sd">            x: Input tensor of shape [batch_size, seq_len, dim]</span>
+
+<span class="sd">        Returns:</span>
+<span class="sd">            Output tensor of shape [batch_size, seq_len, dim]</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">down_proj</span><span class="p">(</span><span class="n">jax</span><span class="o">.</span><span class="n">nn</span><span class="o">.</span><span class="n">silu</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">gate_proj</span><span class="p">(</span><span class="n">x</span><span class="p">))</span> <span class="o">*</span> <span class="bp">self</span><span class="o">.</span><span class="n">up_proj</span><span class="p">(</span><span class="n">x</span><span class="p">))</span></div>
+</div>
+
+
+
+<div class="viewcode-block" id="LlamaTransformerBlock">
+<a class="viewcode-back" href="../../../modules/index.html#jaxgarden.models.LlamaTransformerBlock">[docs]</a>
+<span class="k">class</span><span class="w"> </span><span class="nc">LlamaTransformerBlock</span><span class="p">(</span><span class="n">nnx</span><span class="o">.</span><span class="n">Module</span><span class="p">):</span>
+<span class="w">    </span><span class="sd">&quot;&quot;&quot;LLama transformer block implementation.</span>
+
+<span class="sd">    This implements a single layer of the LLama transformer, consisting of</span>
+<span class="sd">    attention, layer normalization, and MLP components.</span>
+
+<span class="sd">    Attributes:</span>
+<span class="sd">        input_layernorm: Layer normalization before attention</span>
+<span class="sd">        attention: Multi-headed attention</span>
+<span class="sd">        post_attention_layernorm: Layer normalization after attention</span>
+<span class="sd">        mlp: MLP block</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+
+<div class="viewcode-block" id="LlamaTransformerBlock.__init__">
+<a class="viewcode-back" href="../../../modules/index.html#jaxgarden.models.LlamaTransformerBlock.__init__">[docs]</a>
+    <span class="k">def</span><span class="w"> </span><span class="fm">__init__</span><span class="p">(</span>
+        <span class="bp">self</span><span class="p">,</span>
+        <span class="n">layer_idx</span><span class="p">:</span> <span class="nb">int</span><span class="p">,</span>
+        <span class="n">dim</span><span class="p">:</span> <span class="nb">int</span><span class="p">,</span>
+        <span class="n">n_heads</span><span class="p">:</span> <span class="nb">int</span><span class="p">,</span>
+        <span class="n">n_kv_heads</span><span class="p">:</span> <span class="nb">int</span><span class="p">,</span>
+        <span class="n">head_dim</span><span class="p">:</span> <span class="nb">int</span><span class="p">,</span>
+        <span class="n">rope_theta</span><span class="p">:</span> <span class="nb">float</span><span class="p">,</span>
+        <span class="n">intermediate_size</span><span class="p">:</span> <span class="nb">int</span><span class="p">,</span>
+        <span class="o">*</span><span class="p">,</span>
+        <span class="n">norm_eps</span><span class="p">:</span> <span class="nb">float</span> <span class="o">=</span> <span class="mf">1e-05</span><span class="p">,</span>
+        <span class="n">rngs</span><span class="p">:</span> <span class="n">nnx</span><span class="o">.</span><span class="n">Rngs</span><span class="p">,</span>
+    <span class="p">):</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;Initialize transformer block.</span>
+
+<span class="sd">        Args:</span>
+<span class="sd">            layer_idx: Index of the layer</span>
+<span class="sd">            dim: Size of hidden states</span>
+<span class="sd">            n_heads: Number of attention heads</span>
+<span class="sd">            n_kv_heads: Number of key/value heads</span>
+<span class="sd">            head_dim: Dimension of each attention head</span>
+<span class="sd">            rope_theta: Base for rotary position embeddings</span>
+<span class="sd">            intermediate_size: Size of MLP intermediate layer</span>
+<span class="sd">            norm_eps: Epsilon for layer normalization</span>
+<span class="sd">            rngs: PRNG key collection</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">input_layernorm</span> <span class="o">=</span> <span class="n">LlamaRMSNorm</span><span class="p">(</span><span class="n">dim</span><span class="o">=</span><span class="n">dim</span><span class="p">,</span> <span class="n">norm_eps</span><span class="o">=</span><span class="n">norm_eps</span><span class="p">,</span> <span class="n">rngs</span><span class="o">=</span><span class="n">rngs</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">attention</span> <span class="o">=</span> <span class="n">LlamaAttention</span><span class="p">(</span>
+            <span class="n">layer_idx</span><span class="o">=</span><span class="n">layer_idx</span><span class="p">,</span>
+            <span class="n">dim</span><span class="o">=</span><span class="n">dim</span><span class="p">,</span>
+            <span class="n">n_heads</span><span class="o">=</span><span class="n">n_heads</span><span class="p">,</span>
+            <span class="n">n_kv_heads</span><span class="o">=</span><span class="n">n_kv_heads</span><span class="p">,</span>
+            <span class="n">head_dim</span><span class="o">=</span><span class="n">head_dim</span><span class="p">,</span>
+            <span class="n">rope_theta</span><span class="o">=</span><span class="n">rope_theta</span><span class="p">,</span>
+            <span class="n">rngs</span><span class="o">=</span><span class="n">rngs</span><span class="p">,</span>
+        <span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">post_attention_layernorm</span> <span class="o">=</span> <span class="n">LlamaRMSNorm</span><span class="p">(</span><span class="n">dim</span><span class="o">=</span><span class="n">dim</span><span class="p">,</span> <span class="n">norm_eps</span><span class="o">=</span><span class="n">norm_eps</span><span class="p">,</span> <span class="n">rngs</span><span class="o">=</span><span class="n">rngs</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">mlp</span> <span class="o">=</span> <span class="n">LlamaMLP</span><span class="p">(</span>
+            <span class="n">layer_idx</span><span class="o">=</span><span class="n">layer_idx</span><span class="p">,</span> <span class="n">dim</span><span class="o">=</span><span class="n">dim</span><span class="p">,</span> <span class="n">intermediate_size</span><span class="o">=</span><span class="n">intermediate_size</span><span class="p">,</span> <span class="n">rngs</span><span class="o">=</span><span class="n">rngs</span>
+        <span class="p">)</span></div>
+
+
+<div class="viewcode-block" id="LlamaTransformerBlock.__call__">
+<a class="viewcode-back" href="../../../modules/index.html#jaxgarden.models.LlamaTransformerBlock.__call__">[docs]</a>
+    <span class="nd">@nnx</span><span class="o">.</span><span class="n">jit</span><span class="p">()</span>
+    <span class="k">def</span><span class="w"> </span><span class="fm">__call__</span><span class="p">(</span>
+        <span class="bp">self</span><span class="p">,</span> <span class="n">x</span><span class="p">:</span> <span class="n">jnp</span><span class="o">.</span><span class="n">ndarray</span><span class="p">,</span> <span class="n">position_ids</span><span class="p">:</span> <span class="n">jnp</span><span class="o">.</span><span class="n">ndarray</span><span class="p">,</span> <span class="n">attention_mask</span><span class="p">:</span> <span class="n">jnp</span><span class="o">.</span><span class="n">ndarray</span>
+    <span class="p">)</span> <span class="o">-&gt;</span> <span class="n">jnp</span><span class="o">.</span><span class="n">ndarray</span><span class="p">:</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;Apply transformer block to input tensor.</span>
+
+<span class="sd">        Args:</span>
+<span class="sd">            x: Input tensor of shape [batch_size, seq_len, dim]</span>
+<span class="sd">            position_ids: Position indices of shape [batch_size, seq_len]</span>
+<span class="sd">            attention_mask: Additive attention mask of shape (batch_size, 1, q_len, kv_len)</span>
+<span class="sd">                or another shape that can be broadcasted to this shape.</span>
+
+<span class="sd">        Returns:</span>
+<span class="sd">            Output tensor of shape [batch_size, seq_len, dim]</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="n">residual</span> <span class="o">=</span> <span class="n">x</span>
+        <span class="n">x</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">input_layernorm</span><span class="p">(</span><span class="n">x</span><span class="p">)</span>
+        <span class="n">x</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">attention</span><span class="p">(</span><span class="n">x</span><span class="p">,</span> <span class="n">position_ids</span><span class="p">,</span> <span class="n">attention_mask</span><span class="p">)</span>
+        <span class="n">x</span> <span class="o">=</span> <span class="n">residual</span> <span class="o">+</span> <span class="n">x</span>
+
+        <span class="n">residual</span> <span class="o">=</span> <span class="n">x</span>
+        <span class="n">x</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">post_attention_layernorm</span><span class="p">(</span><span class="n">x</span><span class="p">)</span>
+        <span class="n">x</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">mlp</span><span class="p">(</span><span class="n">x</span><span class="p">)</span>
+        <span class="n">x</span> <span class="o">=</span> <span class="n">residual</span> <span class="o">+</span> <span class="n">x</span>
+        <span class="k">return</span> <span class="n">x</span></div>
+</div>
+
+
+
+<div class="viewcode-block" id="LlamaForCausalLM">
+<a class="viewcode-back" href="../../../modules/index.html#jaxgarden.models.LlamaForCausalLM">[docs]</a>
+<span class="k">class</span><span class="w"> </span><span class="nc">LlamaForCausalLM</span><span class="p">(</span><span class="n">BaseModel</span><span class="p">,</span> <span class="n">GenerationMixin</span><span class="p">):</span>
+<span class="w">    </span><span class="sd">&quot;&quot;&quot;LLama model for causal language modeling.</span>
+
+<span class="sd">    This implements the full LLama model for generating text.</span>
+<span class="sd">    It consists of token embeddings, transformer layers, and language modeling head.</span>
+
+<span class="sd">    Attributes:</span>
+<span class="sd">        token_embed: Token embedding layer</span>
+<span class="sd">        layers: List of transformer blocks</span>
+<span class="sd">        lm_head: Linear layer for language modeling</span>
+<span class="sd">        norm: Final layer normalization</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+
+<div class="viewcode-block" id="LlamaForCausalLM.__init__">
+<a class="viewcode-back" href="../../../modules/index.html#jaxgarden.models.LlamaForCausalLM.__init__">[docs]</a>
+    <span class="k">def</span><span class="w"> </span><span class="fm">__init__</span><span class="p">(</span>
+        <span class="bp">self</span><span class="p">,</span>
+        <span class="n">config</span><span class="p">:</span> <span class="n">LlamaConfig</span><span class="p">,</span>
+        <span class="o">*</span><span class="p">,</span>
+        <span class="n">dtype</span><span class="p">:</span> <span class="n">jnp</span><span class="o">.</span><span class="n">dtype</span> <span class="o">|</span> <span class="kc">None</span> <span class="o">=</span> <span class="kc">None</span><span class="p">,</span>
+        <span class="n">param_dtype</span><span class="p">:</span> <span class="n">jnp</span><span class="o">.</span><span class="n">dtype</span> <span class="o">=</span> <span class="n">jnp</span><span class="o">.</span><span class="n">float32</span><span class="p">,</span>
+        <span class="n">precision</span><span class="p">:</span> <span class="n">jax</span><span class="o">.</span><span class="n">lax</span><span class="o">.</span><span class="n">Precision</span> <span class="o">|</span> <span class="nb">str</span> <span class="o">|</span> <span class="kc">None</span> <span class="o">=</span> <span class="kc">None</span><span class="p">,</span>
+        <span class="n">rngs</span><span class="p">:</span> <span class="n">nnx</span><span class="o">.</span><span class="n">Rngs</span><span class="p">,</span>
+    <span class="p">):</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;Initialize LlamaForCausalLM.</span>
+
+<span class="sd">        Args:</span>
+<span class="sd">            config: Model configuration</span>
+<span class="sd">            dtype: Data type for computation</span>
+<span class="sd">            param_dtype: Data type for parameters</span>
+<span class="sd">            precision: Precision for matrix multiplication</span>
+<span class="sd">            rngs: PRNG key collection</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="nb">super</span><span class="p">()</span><span class="o">.</span><span class="fm">__init__</span><span class="p">(</span>
+            <span class="n">config</span><span class="p">,</span> <span class="n">dtype</span><span class="o">=</span><span class="n">dtype</span><span class="p">,</span> <span class="n">param_dtype</span><span class="o">=</span><span class="n">param_dtype</span><span class="p">,</span> <span class="n">precision</span><span class="o">=</span><span class="n">precision</span><span class="p">,</span> <span class="n">rngs</span><span class="o">=</span><span class="n">rngs</span>
+        <span class="p">)</span>
+
+        <span class="bp">self</span><span class="o">.</span><span class="n">token_embed</span> <span class="o">=</span> <span class="n">nnx</span><span class="o">.</span><span class="n">Embed</span><span class="p">(</span>
+            <span class="n">num_embeddings</span><span class="o">=</span><span class="n">config</span><span class="o">.</span><span class="n">vocab_size</span><span class="p">,</span>
+            <span class="n">features</span><span class="o">=</span><span class="n">config</span><span class="o">.</span><span class="n">dim</span><span class="p">,</span>
+            <span class="n">param_dtype</span><span class="o">=</span><span class="n">param_dtype</span><span class="p">,</span>
+            <span class="n">rngs</span><span class="o">=</span><span class="n">rngs</span><span class="p">,</span>
+        <span class="p">)</span>
+
+        <span class="bp">self</span><span class="o">.</span><span class="n">layers</span> <span class="o">=</span> <span class="p">[</span>
+            <span class="n">LlamaTransformerBlock</span><span class="p">(</span>
+                <span class="n">layer_idx</span><span class="o">=</span><span class="n">idx</span><span class="p">,</span>
+                <span class="n">dim</span><span class="o">=</span><span class="n">config</span><span class="o">.</span><span class="n">dim</span><span class="p">,</span>
+                <span class="n">n_heads</span><span class="o">=</span><span class="n">config</span><span class="o">.</span><span class="n">n_heads</span><span class="p">,</span>
+                <span class="n">n_kv_heads</span><span class="o">=</span><span class="n">config</span><span class="o">.</span><span class="n">n_kv_heads</span><span class="p">,</span>
+                <span class="n">head_dim</span><span class="o">=</span><span class="n">config</span><span class="o">.</span><span class="n">head_dim</span><span class="p">,</span>
+                <span class="n">rope_theta</span><span class="o">=</span><span class="n">config</span><span class="o">.</span><span class="n">rope_theta</span><span class="p">,</span>
+                <span class="n">intermediate_size</span><span class="o">=</span><span class="n">config</span><span class="o">.</span><span class="n">intermediate_size</span><span class="p">,</span>
+                <span class="n">norm_eps</span><span class="o">=</span><span class="n">config</span><span class="o">.</span><span class="n">norm_eps</span><span class="p">,</span>
+                <span class="n">rngs</span><span class="o">=</span><span class="n">rngs</span><span class="p">,</span>
+            <span class="p">)</span>
+            <span class="k">for</span> <span class="n">idx</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="n">config</span><span class="o">.</span><span class="n">n_layers</span><span class="p">)</span>
+        <span class="p">]</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">lm_head</span> <span class="o">=</span> <span class="n">nnx</span><span class="o">.</span><span class="n">Linear</span><span class="p">(</span>
+            <span class="n">config</span><span class="o">.</span><span class="n">dim</span><span class="p">,</span> <span class="n">config</span><span class="o">.</span><span class="n">vocab_size</span><span class="p">,</span> <span class="n">use_bias</span><span class="o">=</span><span class="kc">False</span><span class="p">,</span> <span class="n">rngs</span><span class="o">=</span><span class="n">rngs</span><span class="p">,</span> <span class="n">param_dtype</span><span class="o">=</span><span class="n">param_dtype</span>
+        <span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">norm</span> <span class="o">=</span> <span class="n">LlamaRMSNorm</span><span class="p">(</span><span class="n">dim</span><span class="o">=</span><span class="n">config</span><span class="o">.</span><span class="n">dim</span><span class="p">,</span> <span class="n">rngs</span><span class="o">=</span><span class="n">rngs</span><span class="p">)</span></div>
+
+
+<div class="viewcode-block" id="LlamaForCausalLM.__call__">
+<a class="viewcode-back" href="../../../modules/index.html#jaxgarden.models.LlamaForCausalLM.__call__">[docs]</a>
+    <span class="nd">@nnx</span><span class="o">.</span><span class="n">jit</span><span class="p">()</span>
+    <span class="k">def</span><span class="w"> </span><span class="fm">__call__</span><span class="p">(</span>
+        <span class="bp">self</span><span class="p">,</span>
+        <span class="n">input_ids</span><span class="p">:</span> <span class="n">jnp</span><span class="o">.</span><span class="n">ndarray</span><span class="p">,</span>
+        <span class="n">attention_mask</span><span class="p">:</span> <span class="n">jnp</span><span class="o">.</span><span class="n">ndarray</span> <span class="o">|</span> <span class="kc">None</span> <span class="o">=</span> <span class="kc">None</span><span class="p">,</span>
+        <span class="n">deterministic</span><span class="p">:</span> <span class="nb">bool</span> <span class="o">=</span> <span class="kc">True</span><span class="p">,</span>
+    <span class="p">)</span> <span class="o">-&gt;</span> <span class="n">jnp</span><span class="o">.</span><span class="n">ndarray</span><span class="p">:</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;Forward pass of the LLama model.</span>
+
+<span class="sd">        Args:</span>
+<span class="sd">            input_ids: Input token ids of shape [batch_size, seq_len]</span>
+<span class="sd">            attention_mask: Boolean attention mask of shape [batch_size, seq_len]</span>
+
+<span class="sd">        Returns:</span>
+<span class="sd">            Logits for next token prediction of shape [batch_size, seq_len, vocab_size]</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="k">assert</span> <span class="n">input_ids</span><span class="o">.</span><span class="n">shape</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span> <span class="o">==</span> <span class="mi">1</span><span class="p">,</span> <span class="s2">&quot;Only batch size 1 is supported&quot;</span>
+        <span class="nb">print</span><span class="p">(</span><span class="n">input_ids</span><span class="o">.</span><span class="n">shape</span><span class="p">)</span>
+        <span class="n">position_ids</span> <span class="o">=</span> <span class="n">jnp</span><span class="o">.</span><span class="n">arange</span><span class="p">(</span><span class="n">input_ids</span><span class="o">.</span><span class="n">shape</span><span class="p">[</span><span class="o">-</span><span class="mi">1</span><span class="p">])[</span><span class="kc">None</span><span class="p">,</span> <span class="p">:]</span><span class="o">.</span><span class="n">astype</span><span class="p">(</span><span class="n">jnp</span><span class="o">.</span><span class="n">int32</span><span class="p">)</span>
+        <span class="n">attention_mask</span> <span class="o">=</span> <span class="n">jnp</span><span class="o">.</span><span class="n">where</span><span class="p">(</span><span class="n">attention_mask</span><span class="p">,</span> <span class="mf">0.0</span><span class="p">,</span> <span class="o">-</span><span class="n">jnp</span><span class="o">.</span><span class="n">inf</span><span class="p">)[</span><span class="kc">None</span><span class="p">,</span> <span class="kc">None</span><span class="p">,</span> <span class="o">...</span><span class="p">]</span>
+        <span class="n">x</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">token_embed</span><span class="p">(</span><span class="n">input_ids</span><span class="p">)</span>
+        <span class="k">for</span> <span class="n">layer</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">layers</span><span class="p">:</span>
+            <span class="n">x</span> <span class="o">=</span> <span class="n">layer</span><span class="p">(</span><span class="n">x</span><span class="p">,</span> <span class="n">position_ids</span><span class="p">,</span> <span class="n">attention_mask</span><span class="p">)</span>
+        <span class="n">x</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">norm</span><span class="p">(</span><span class="n">x</span><span class="p">)</span>
+        <span class="n">logits</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">lm_head</span><span class="p">(</span><span class="n">x</span><span class="p">)</span>
+        <span class="k">return</span> <span class="n">logits</span></div>
+
+
+<div class="viewcode-block" id="LlamaForCausalLM.convert_weights_from_hf">
+<a class="viewcode-back" href="../../../modules/index.html#jaxgarden.models.LlamaForCausalLM.convert_weights_from_hf">[docs]</a>
+    <span class="k">def</span><span class="w"> </span><span class="nf">convert_weights_from_hf</span><span class="p">(</span>
+        <span class="bp">self</span><span class="p">,</span> <span class="n">state</span><span class="p">:</span> <span class="n">nnx</span><span class="o">.</span><span class="n">State</span> <span class="o">|</span> <span class="nb">dict</span><span class="p">[</span><span class="nb">str</span><span class="p">,</span> <span class="n">jnp</span><span class="o">.</span><span class="n">ndarray</span><span class="p">],</span> <span class="n">weights</span><span class="p">:</span> <span class="n">Iterator</span><span class="p">[</span><span class="nb">tuple</span><span class="p">[</span><span class="n">Any</span><span class="p">,</span> <span class="n">Any</span><span class="p">]]</span>
+    <span class="p">)</span> <span class="o">-&gt;</span> <span class="kc">None</span><span class="p">:</span>
+        <span class="k">for</span> <span class="n">wholekey</span><span class="p">,</span> <span class="n">tensor</span> <span class="ow">in</span> <span class="n">weights</span><span class="p">:</span>
+            <span class="n">keys</span> <span class="o">=</span> <span class="n">wholekey</span><span class="o">.</span><span class="n">split</span><span class="p">(</span><span class="s2">&quot;.&quot;</span><span class="p">)</span>
+            <span class="k">if</span> <span class="n">keys</span><span class="p">[</span><span class="mi">1</span><span class="p">]</span> <span class="o">==</span> <span class="s2">&quot;layers&quot;</span><span class="p">:</span>
+                <span class="k">if</span> <span class="n">keys</span><span class="p">[</span><span class="mi">3</span><span class="p">]</span> <span class="o">==</span> <span class="s2">&quot;self_attn&quot;</span><span class="p">:</span>
+                    <span class="n">keys</span><span class="p">[</span><span class="mi">3</span><span class="p">]</span> <span class="o">=</span> <span class="s2">&quot;attention&quot;</span>
+                <span class="k">if</span> <span class="p">(</span><span class="n">keys</span><span class="p">[</span><span class="mi">1</span><span class="p">]</span> <span class="o">==</span> <span class="s2">&quot;layers&quot;</span> <span class="ow">and</span> <span class="n">keys</span><span class="p">[</span><span class="mi">3</span><span class="p">]</span> <span class="o">==</span> <span class="s2">&quot;attention&quot;</span><span class="p">)</span> <span class="ow">or</span> <span class="p">(</span>
+                    <span class="n">keys</span><span class="p">[</span><span class="mi">1</span><span class="p">]</span> <span class="o">==</span> <span class="s2">&quot;layers&quot;</span> <span class="ow">and</span> <span class="n">keys</span><span class="p">[</span><span class="mi">3</span><span class="p">]</span> <span class="o">==</span> <span class="s2">&quot;mlp&quot;</span>
+                <span class="p">):</span>
+                    <span class="n">state</span><span class="p">[</span><span class="s2">&quot;layers&quot;</span><span class="p">][</span><span class="nb">int</span><span class="p">(</span><span class="n">keys</span><span class="p">[</span><span class="mi">2</span><span class="p">])][</span><span class="n">keys</span><span class="p">[</span><span class="mi">3</span><span class="p">]][</span><span class="n">keys</span><span class="p">[</span><span class="mi">4</span><span class="p">]][</span><span class="s2">&quot;kernel&quot;</span><span class="p">]</span><span class="o">.</span><span class="n">value</span> <span class="o">=</span> <span class="n">tensor</span><span class="o">.</span><span class="n">T</span>  <span class="c1"># type: ignore</span>
+                <span class="k">elif</span> <span class="p">(</span><span class="n">keys</span><span class="p">[</span><span class="mi">1</span><span class="p">]</span> <span class="o">==</span> <span class="s2">&quot;layers&quot;</span> <span class="ow">and</span> <span class="n">keys</span><span class="p">[</span><span class="mi">3</span><span class="p">]</span> <span class="o">==</span> <span class="s2">&quot;input_layernorm&quot;</span><span class="p">)</span> <span class="ow">or</span> <span class="p">(</span>
+                    <span class="n">keys</span><span class="p">[</span><span class="mi">1</span><span class="p">]</span> <span class="o">==</span> <span class="s2">&quot;layers&quot;</span> <span class="ow">and</span> <span class="n">keys</span><span class="p">[</span><span class="mi">3</span><span class="p">]</span> <span class="o">==</span> <span class="s2">&quot;post_attention_layernorm&quot;</span>
+                <span class="p">):</span>
+                    <span class="n">state</span><span class="p">[</span><span class="s2">&quot;layers&quot;</span><span class="p">][</span><span class="nb">int</span><span class="p">(</span><span class="n">keys</span><span class="p">[</span><span class="mi">2</span><span class="p">])][</span><span class="n">keys</span><span class="p">[</span><span class="mi">3</span><span class="p">]][</span><span class="s2">&quot;norm_weights&quot;</span><span class="p">]</span><span class="o">.</span><span class="n">value</span> <span class="o">=</span> <span class="n">tensor</span>  <span class="c1"># type: ignore</span>
+            <span class="k">elif</span> <span class="n">keys</span><span class="p">[</span><span class="mi">1</span><span class="p">]</span> <span class="o">==</span> <span class="s2">&quot;embed_tokens&quot;</span><span class="p">:</span>
+                <span class="n">state</span><span class="p">[</span><span class="s2">&quot;token_embed&quot;</span><span class="p">]</span><span class="o">.</span><span class="n">embedding</span><span class="o">.</span><span class="n">value</span> <span class="o">=</span> <span class="n">tensor</span>  <span class="c1"># type: ignore</span>
+                <span class="n">state</span><span class="p">[</span><span class="s2">&quot;lm_head&quot;</span><span class="p">]</span><span class="o">.</span><span class="n">kernel</span><span class="o">.</span><span class="n">value</span> <span class="o">=</span> <span class="n">tensor</span><span class="o">.</span><span class="n">T</span>  <span class="c1"># type: ignore</span>
+            <span class="k">elif</span> <span class="n">keys</span><span class="p">[</span><span class="mi">1</span><span class="p">]</span> <span class="o">==</span> <span class="s2">&quot;norm&quot;</span><span class="p">:</span>
+                <span class="n">state</span><span class="p">[</span><span class="s2">&quot;norm&quot;</span><span class="p">]</span><span class="o">.</span><span class="n">norm_weights</span><span class="o">.</span><span class="n">value</span> <span class="o">=</span> <span class="n">tensor</span>  <span class="c1"># type: ignore</span></div>
+</div>
+
+</pre></div>
+
+           </div>
+          </div>
+          <footer>
+
+  <hr/>
+
+  <div role="contentinfo">
+    <p>&#169; Copyright 2025, JAXgarden Contributors.</p>
+  </div>
+
+  Built with <a href="https://www.sphinx-doc.org/">Sphinx</a> using a
+    <a href="https://github.com/readthedocs/sphinx_rtd_theme">theme</a>
+    provided by <a href="https://readthedocs.org">Read the Docs</a>.
+   
+
+</footer>
+        </div>
+      </div>
+    </section>
+  </div>
+  <script>
+      jQuery(function () {
+          SphinxRtdTheme.Navigation.enable(true);
+      });
+  </script> 
+
+</body>
+</html>

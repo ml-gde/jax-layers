@@ -69,7 +69,9 @@
            <div itemprop="articleBody">
              
   <h1>Source code for jaxgarden.models.base</h1><div class="highlight"><pre>
-<span></span><span class="kn">import</span><span class="w"> </span><span class="nn">os</span>
+<span></span><span class="kn">import</span><span class="w"> </span><span class="nn">logging</span>
+<span class="kn">import</span><span class="w"> </span><span class="nn">os</span>
+<span class="kn">import</span><span class="w"> </span><span class="nn">shutil</span>
 <span class="kn">from</span><span class="w"> </span><span class="nn">collections.abc</span><span class="w"> </span><span class="kn">import</span> <span class="n">Iterator</span>
 <span class="kn">from</span><span class="w"> </span><span class="nn">dataclasses</span><span class="w"> </span><span class="kn">import</span> <span class="n">dataclass</span><span class="p">,</span> <span class="n">field</span>
 <span class="kn">from</span><span class="w"> </span><span class="nn">pathlib</span><span class="w"> </span><span class="kn">import</span> <span class="n">Path</span>
@@ -81,6 +83,9 @@
 <span class="kn">from</span><span class="w"> </span><span class="nn">flax</span><span class="w"> </span><span class="kn">import</span> <span class="n">nnx</span>
 <span class="kn">from</span><span class="w"> </span><span class="nn">huggingface_hub</span><span class="w"> </span><span class="kn">import</span> <span class="n">snapshot_download</span>
 <span class="kn">from</span><span class="w"> </span><span class="nn">safetensors</span><span class="w"> </span><span class="kn">import</span> <span class="n">safe_open</span>
+
+<span class="c1"># Set up logging</span>
+<span class="n">logger</span> <span class="o">=</span> <span class="n">logging</span><span class="o">.</span><span class="n">getLogger</span><span class="p">(</span><span class="vm">__name__</span><span class="p">)</span>
 
 <span class="n">DEFAULT_PARAMS_FILE</span> <span class="o">=</span> <span class="s2">&quot;jaxgarden_state&quot;</span>
 
@@ -149,11 +154,16 @@
 
 
     <span class="nd">@property</span>
-    <span class="k">def</span><span class="w"> </span><span class="nf">state</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">dict</span><span class="p">[</span><span class="nb">str</span><span class="p">,</span> <span class="n">jnp</span><span class="o">.</span><span class="n">ndarray</span><span class="p">]:</span>
-<span class="w">        </span><span class="sd">&quot;&quot;&quot;Splits state from the graph and returns it.</span>
+    <span class="k">def</span><span class="w"> </span><span class="nf">state</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">nnx</span><span class="o">.</span><span class="n">State</span><span class="p">:</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;Splits state from the graph and returns it&quot;&quot;&quot;</span>
+        <span class="k">return</span> <span class="n">nnx</span><span class="o">.</span><span class="n">split</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">nnx</span><span class="o">.</span><span class="n">Param</span><span class="p">,</span> <span class="o">...</span><span class="p">)[</span><span class="mi">1</span><span class="p">]</span>
+
+    <span class="nd">@property</span>
+    <span class="k">def</span><span class="w"> </span><span class="nf">state_dict</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">dict</span><span class="p">[</span><span class="nb">str</span><span class="p">,</span> <span class="n">jnp</span><span class="o">.</span><span class="n">ndarray</span><span class="p">]:</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;Splits state from the graph and returns it as a dictionary.</span>
 
 <span class="sd">        It can be used for serialization with orbax.&quot;&quot;&quot;</span>
-        <span class="n">state</span> <span class="o">=</span> <span class="n">nnx</span><span class="o">.</span><span class="n">split</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">nnx</span><span class="o">.</span><span class="n">Param</span><span class="p">,</span> <span class="o">...</span><span class="p">)[</span><span class="mi">1</span><span class="p">]</span>
+        <span class="n">state</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">state</span>
         <span class="n">pure_dict_state</span> <span class="o">=</span> <span class="n">nnx</span><span class="o">.</span><span class="n">to_pure_dict</span><span class="p">(</span><span class="n">state</span><span class="p">)</span>
         <span class="k">return</span> <span class="n">pure_dict_state</span>
 
@@ -165,7 +175,7 @@
 <span class="sd">        Args:</span>
 <span class="sd">            path: The directory path to save the model state to.</span>
 <span class="sd">        &quot;&quot;&quot;</span>
-        <span class="n">state</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">state</span>
+        <span class="n">state</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">state_dict</span>
         <span class="n">checkpointer</span> <span class="o">=</span> <span class="n">ocp</span><span class="o">.</span><span class="n">StandardCheckpointer</span><span class="p">()</span>
         <span class="n">checkpointer</span><span class="o">.</span><span class="n">save</span><span class="p">(</span><span class="n">os</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">join</span><span class="p">(</span><span class="n">path</span><span class="p">,</span> <span class="n">DEFAULT_PARAMS_FILE</span><span class="p">),</span> <span class="n">state</span><span class="p">)</span>
         <span class="n">checkpointer</span><span class="o">.</span><span class="n">wait_until_finished</span><span class="p">()</span></div>
@@ -190,23 +200,33 @@
 <div class="viewcode-block" id="BaseModel.download_from_hf">
 <a class="viewcode-back" href="../../../modules/index.html#jaxgarden.models.BaseModel.download_from_hf">[docs]</a>
     <span class="nd">@staticmethod</span>
-    <span class="k">def</span><span class="w"> </span><span class="nf">download_from_hf</span><span class="p">(</span><span class="n">repo_id</span><span class="p">:</span> <span class="nb">str</span><span class="p">,</span> <span class="n">local_dir</span><span class="p">:</span> <span class="nb">str</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="kc">None</span><span class="p">:</span>
+    <span class="k">def</span><span class="w"> </span><span class="nf">download_from_hf</span><span class="p">(</span>
+        <span class="n">repo_id</span><span class="p">:</span> <span class="nb">str</span><span class="p">,</span> <span class="n">local_dir</span><span class="p">:</span> <span class="nb">str</span><span class="p">,</span> <span class="n">token</span><span class="p">:</span> <span class="nb">str</span> <span class="o">|</span> <span class="kc">None</span> <span class="o">=</span> <span class="kc">None</span><span class="p">,</span> <span class="n">force_download</span><span class="p">:</span> <span class="nb">bool</span> <span class="o">=</span> <span class="kc">False</span>
+    <span class="p">)</span> <span class="o">-&gt;</span> <span class="kc">None</span><span class="p">:</span>
 <span class="w">        </span><span class="sd">&quot;&quot;&quot;Downloads the model from the Hugging Face Hub.</span>
 
 <span class="sd">        Args:</span>
 <span class="sd">            repo_id: The repository ID of the model to download.</span>
 <span class="sd">            local_dir: The local directory to save the model to.</span>
 <span class="sd">        &quot;&quot;&quot;</span>
-        <span class="n">snapshot_download</span><span class="p">(</span><span class="n">repo_id</span><span class="p">,</span> <span class="n">local_dir</span><span class="o">=</span><span class="n">local_dir</span><span class="p">)</span></div>
+        <span class="n">logger</span><span class="o">.</span><span class="n">info</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;Attempting to download </span><span class="si">{</span><span class="n">repo_id</span><span class="si">}</span><span class="s2"> from Hugging Face Hub to </span><span class="si">{</span><span class="n">local_dir</span><span class="si">}</span><span class="s2">.&quot;</span><span class="p">)</span>
+        <span class="k">try</span><span class="p">:</span>
+            <span class="n">snapshot_download</span><span class="p">(</span>
+                <span class="n">repo_id</span><span class="p">,</span> <span class="n">local_dir</span><span class="o">=</span><span class="n">local_dir</span><span class="p">,</span> <span class="n">token</span><span class="o">=</span><span class="n">token</span><span class="p">,</span> <span class="n">force_download</span><span class="o">=</span><span class="n">force_download</span>
+            <span class="p">)</span>
+            <span class="n">logger</span><span class="o">.</span><span class="n">info</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;Successfully downloaded </span><span class="si">{</span><span class="n">repo_id</span><span class="si">}</span><span class="s2"> to </span><span class="si">{</span><span class="n">local_dir</span><span class="si">}</span><span class="s2">.&quot;</span><span class="p">)</span>
+        <span class="k">except</span> <span class="ne">Exception</span> <span class="k">as</span> <span class="n">e</span><span class="p">:</span>
+            <span class="n">logger</span><span class="o">.</span><span class="n">error</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;Failed to download </span><span class="si">{</span><span class="n">repo_id</span><span class="si">}</span><span class="s2">: </span><span class="si">{</span><span class="n">e</span><span class="si">}</span><span class="s2">&quot;</span><span class="p">)</span>
+            <span class="k">raise</span></div>
 
 
-<div class="viewcode-block" id="BaseModel.load_safetensors">
-<a class="viewcode-back" href="../../../modules/index.html#jaxgarden.models.BaseModel.load_safetensors">[docs]</a>
+<div class="viewcode-block" id="BaseModel.iter_safetensors">
+<a class="viewcode-back" href="../../../modules/index.html#jaxgarden.models.BaseModel.iter_safetensors">[docs]</a>
     <span class="nd">@staticmethod</span>
-    <span class="k">def</span><span class="w"> </span><span class="nf">load_safetensors</span><span class="p">(</span><span class="n">path_to_model_weights</span><span class="p">:</span> <span class="nb">str</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">Iterator</span><span class="p">[</span><span class="nb">tuple</span><span class="p">[</span><span class="n">Any</span><span class="p">,</span> <span class="n">Any</span><span class="p">]]:</span>
+    <span class="k">def</span><span class="w"> </span><span class="nf">iter_safetensors</span><span class="p">(</span><span class="n">path_to_model_weights</span><span class="p">:</span> <span class="nb">str</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">Iterator</span><span class="p">[</span><span class="nb">tuple</span><span class="p">[</span><span class="n">Any</span><span class="p">,</span> <span class="n">Any</span><span class="p">]]:</span>
 <span class="w">        </span><span class="sd">&quot;&quot;&quot;Helper function to lazily load params from safetensors file.</span>
 
-<span class="sd">        Use this static method to load weights for conversion tasks.</span>
+<span class="sd">        Use this static method to iterate over weights for conversion tasks.</span>
 
 <span class="sd">        Args:</span>
 <span class="sd">            model_path_to_params: Path to directory containing .safetensors files.&quot;&quot;&quot;</span>
@@ -217,8 +237,81 @@
 
         <span class="k">for</span> <span class="n">file</span> <span class="ow">in</span> <span class="n">safetensors_files</span><span class="p">:</span>
             <span class="k">with</span> <span class="n">safe_open</span><span class="p">(</span><span class="n">file</span><span class="p">,</span> <span class="n">framework</span><span class="o">=</span><span class="s2">&quot;jax&quot;</span><span class="p">,</span> <span class="n">device</span><span class="o">=</span><span class="s2">&quot;cpu&quot;</span><span class="p">)</span> <span class="k">as</span> <span class="n">f</span><span class="p">:</span>
-                <span class="k">for</span> <span class="n">key</span> <span class="ow">in</span> <span class="n">f</span><span class="p">:</span>
+                <span class="k">for</span> <span class="n">key</span> <span class="ow">in</span> <span class="n">f</span><span class="o">.</span><span class="n">keys</span><span class="p">():</span>  <span class="c1"># noqa: SIM118</span>
                     <span class="k">yield</span> <span class="p">(</span><span class="n">key</span><span class="p">,</span> <span class="n">f</span><span class="o">.</span><span class="n">get_tensor</span><span class="p">(</span><span class="n">key</span><span class="p">))</span></div>
+
+
+<div class="viewcode-block" id="BaseModel.from_hf">
+<a class="viewcode-back" href="../../../modules/index.html#jaxgarden.models.BaseModel.from_hf">[docs]</a>
+    <span class="k">def</span><span class="w"> </span><span class="nf">from_hf</span><span class="p">(</span>
+        <span class="bp">self</span><span class="p">,</span>
+        <span class="n">model_repo_or_id</span><span class="p">:</span> <span class="nb">str</span><span class="p">,</span>
+        <span class="n">token</span><span class="p">:</span> <span class="nb">str</span> <span class="o">|</span> <span class="kc">None</span> <span class="o">=</span> <span class="kc">None</span><span class="p">,</span>
+        <span class="n">force_download</span><span class="p">:</span> <span class="nb">bool</span> <span class="o">=</span> <span class="kc">False</span><span class="p">,</span>
+        <span class="n">save_in_orbax</span><span class="p">:</span> <span class="nb">bool</span> <span class="o">=</span> <span class="kc">True</span><span class="p">,</span>
+        <span class="n">remove_hf_after_conversion</span><span class="p">:</span> <span class="nb">bool</span> <span class="o">=</span> <span class="kc">True</span><span class="p">,</span>
+    <span class="p">)</span> <span class="o">-&gt;</span> <span class="kc">None</span><span class="p">:</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;Downloads the model from the Hugging Face Hub and returns a new instance of the model.</span>
+
+<span class="sd">        It can also save the converted weights in an Orbax checkpoint</span>
+<span class="sd">            and removes the original HF checkpoint after conversion.</span>
+
+<span class="sd">        Args:</span>
+<span class="sd">            model_repo_or_id: The repository ID or name of the model to download.</span>
+<span class="sd">            token: The token to use for authentication with the Hugging Face Hub.</span>
+<span class="sd">            save_in_orbax: Whether to save the converted weights in an Orbax checkpoint.</span>
+<span class="sd">            remove_hf_after_conversion: Whether to remove the downloaded HuggingFace checkpoint</span>
+<span class="sd">                after conversion.</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="n">logger</span><span class="o">.</span><span class="n">info</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;Starting from_hf process for model: </span><span class="si">{</span><span class="n">model_repo_or_id</span><span class="si">}</span><span class="s2">&quot;</span><span class="p">)</span>
+        <span class="n">local_dir</span> <span class="o">=</span> <span class="n">os</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">join</span><span class="p">(</span>
+            <span class="n">os</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">expanduser</span><span class="p">(</span><span class="s2">&quot;~&quot;</span><span class="p">),</span> <span class="s2">&quot;.jaxgarden&quot;</span><span class="p">,</span> <span class="s2">&quot;hf_models&quot;</span><span class="p">,</span> <span class="o">*</span><span class="n">model_repo_or_id</span><span class="o">.</span><span class="n">split</span><span class="p">(</span><span class="s2">&quot;/&quot;</span><span class="p">)</span>
+        <span class="p">)</span>
+        <span class="n">save_dir</span> <span class="o">=</span> <span class="n">local_dir</span><span class="o">.</span><span class="n">replace</span><span class="p">(</span><span class="s2">&quot;hf_models&quot;</span><span class="p">,</span> <span class="s2">&quot;models&quot;</span><span class="p">)</span>
+        <span class="k">if</span> <span class="n">os</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">exists</span><span class="p">(</span><span class="n">save_dir</span><span class="p">):</span>
+            <span class="k">if</span> <span class="n">force_download</span><span class="p">:</span>
+                <span class="n">logger</span><span class="o">.</span><span class="n">warn</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;Removing </span><span class="si">{</span><span class="n">save_dir</span><span class="si">}</span><span class="s2"> because force_download is set to True&quot;</span><span class="p">)</span>
+                <span class="n">shutil</span><span class="o">.</span><span class="n">rmtree</span><span class="p">(</span><span class="n">save_dir</span><span class="p">)</span>
+            <span class="k">else</span><span class="p">:</span>
+                <span class="k">raise</span> <span class="ne">RuntimeError</span><span class="p">(</span>
+                    <span class="sa">f</span><span class="s2">&quot;Path </span><span class="si">{</span><span class="n">save_dir</span><span class="si">}</span><span class="s2"> already exists.&quot;</span>
+                    <span class="o">+</span> <span class="s2">&quot; Set force_download to Tru to run conversion again.&quot;</span>
+                <span class="p">)</span>
+
+        <span class="n">logger</span><span class="o">.</span><span class="n">debug</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;Local Hugging Face model directory set to: </span><span class="si">{</span><span class="n">local_dir</span><span class="si">}</span><span class="s2">&quot;</span><span class="p">)</span>
+
+        <span class="n">BaseModel</span><span class="o">.</span><span class="n">download_from_hf</span><span class="p">(</span>
+            <span class="n">model_repo_or_id</span><span class="p">,</span> <span class="n">local_dir</span><span class="p">,</span> <span class="n">token</span><span class="o">=</span><span class="n">token</span><span class="p">,</span> <span class="n">force_download</span><span class="o">=</span><span class="n">force_download</span>
+        <span class="p">)</span>
+        <span class="n">logger</span><span class="o">.</span><span class="n">info</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;Initiating weight iteration from safetensors in </span><span class="si">{</span><span class="n">local_dir</span><span class="si">}</span><span class="s2">&quot;</span><span class="p">)</span>
+        <span class="n">weights</span> <span class="o">=</span> <span class="n">BaseModel</span><span class="o">.</span><span class="n">iter_safetensors</span><span class="p">(</span><span class="n">local_dir</span><span class="p">)</span>
+        <span class="n">state</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">state</span>
+        <span class="n">logger</span><span class="o">.</span><span class="n">info</span><span class="p">(</span><span class="s2">&quot;Running weight conversion...&quot;</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">convert_weights_from_hf</span><span class="p">(</span><span class="n">state</span><span class="p">,</span> <span class="n">weights</span><span class="p">)</span>
+        <span class="n">logger</span><span class="o">.</span><span class="n">info</span><span class="p">(</span><span class="s2">&quot;Weight conversion finished. Updating model state...&quot;</span><span class="p">)</span>
+        <span class="n">nnx</span><span class="o">.</span><span class="n">update</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">state</span><span class="p">)</span>
+        <span class="n">logger</span><span class="o">.</span><span class="n">warn</span><span class="p">(</span><span class="s2">&quot;Model state successfully updated with converted weights.&quot;</span><span class="p">)</span>
+
+        <span class="k">if</span> <span class="n">remove_hf_after_conversion</span><span class="p">:</span>
+            <span class="n">logger</span><span class="o">.</span><span class="n">warn</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;Removing HuggingFace checkpoint from </span><span class="si">{</span><span class="n">local_dir</span><span class="si">}</span><span class="s2">...&quot;</span><span class="p">)</span>
+            <span class="n">shutil</span><span class="o">.</span><span class="n">rmtree</span><span class="p">(</span><span class="n">local_dir</span><span class="p">)</span>
+
+        <span class="k">if</span> <span class="n">save_in_orbax</span><span class="p">:</span>
+            <span class="n">logger</span><span class="o">.</span><span class="n">warn</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;)Saving Orbax checkpoint in </span><span class="si">{</span><span class="n">save_dir</span><span class="si">}</span><span class="s2">.&quot;</span><span class="p">)</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">save</span><span class="p">(</span><span class="n">save_dir</span><span class="p">)</span>
+
+        <span class="n">logger</span><span class="o">.</span><span class="n">warn</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;from_hf process completed for </span><span class="si">{</span><span class="n">model_repo_or_id</span><span class="si">}</span><span class="s2">.&quot;</span><span class="p">)</span></div>
+
+
+<div class="viewcode-block" id="BaseModel.convert_weights_from_hf">
+<a class="viewcode-back" href="../../../modules/index.html#jaxgarden.models.BaseModel.convert_weights_from_hf">[docs]</a>
+    <span class="k">def</span><span class="w"> </span><span class="nf">convert_weights_from_hf</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">state</span><span class="p">:</span> <span class="n">nnx</span><span class="o">.</span><span class="n">State</span><span class="p">,</span> <span class="n">weights</span><span class="p">:</span> <span class="n">Iterator</span><span class="p">[</span><span class="nb">tuple</span><span class="p">[</span><span class="n">Any</span><span class="p">,</span> <span class="n">Any</span><span class="p">]])</span> <span class="o">-&gt;</span> <span class="kc">None</span><span class="p">:</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;Convert weights from Hugging Face Hub to the model&#39;s state.</span>
+
+<span class="sd">        This method should be implemented in downstream classes</span>
+<span class="sd">        to support conversion from HuggingFace format.</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="k">raise</span> <span class="ne">NotImplementedError</span><span class="p">(</span><span class="s2">&quot;This model does not support conversion from HuggingFace yet.&quot;</span><span class="p">)</span></div>
 </div>
 
 </pre></div>
