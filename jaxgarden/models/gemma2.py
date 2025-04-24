@@ -53,7 +53,7 @@ class Gemma2Config(BaseConfig):
     dtype: Any = field(default=jnp.bfloat16, metadata={"dtype": True})
     tie_word_embeddings: bool = True
 
-    def __post_init__(self):
+    def __post_init__(self) -> None:
         if self.num_key_value_heads is None:
             self.num_key_value_heads = self.num_attention_heads // 2
         if self.head_dim is None:
@@ -359,7 +359,7 @@ class Gemma2Attention(nnx.Module):
         return cap * jnp.tanh(x / cap)
 
     @staticmethod
-    def rotate_half(x):
+    def rotate_half(x: jnp.ndarray) -> jnp.ndarray:
         x1, x2 = jnp.split(x, 2, axis=-1)
         return jnp.concatenate([-x2, x1], axis=-1)
 
@@ -397,7 +397,7 @@ class Gemma2MLP(nnx.Module):
 
 
 class Gemma2DecoderLayer(nnx.Module):
-    def __init__(self, layer_idx: int, config: Gemma2Config, *, rngs: nnx.Rngs):
+    def __init__(self, layer_idx: int, config: Gemma2Config, *, rngs: nnx.Rngs) -> None:
         super().__init__()
         # Alternate global/local per layer
         attention_type = "global" if layer_idx % 2 == 0 else "local"
@@ -436,7 +436,9 @@ class Gemma2DecoderLayer(nnx.Module):
 
 # 3. Main Model
 class Gemma2ForCausalLM(BaseModel, GenerationMixin):
-    def __init__(self, config: Gemma2Config, *, rngs: nnx.Rngs):
+    config: Gemma2Config  # This helps to fix a mypy issue
+
+    def __init__(self, config: Gemma2Config, *, rngs: nnx.Rngs) -> None:
         super().__init__(config, dtype=config.dtype, param_dtype=config.param_dtype, rngs=rngs)
         self.embed_tokens = nnx.Embed(
             num_embeddings=config.vocab_size,
