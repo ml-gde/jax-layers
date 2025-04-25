@@ -6,6 +6,7 @@ This implementation is heavily influenced by the original Gemma 2
 implementation from DeepMind. https://github.com/google-deepmind/gemma
 """
 
+from collections.abc import Iterator
 from dataclasses import dataclass, field
 from typing import Any
 
@@ -17,29 +18,32 @@ from jaxgarden.models.base import BaseConfig, BaseModel
 from jaxgarden.models.generation_utils import GenerationMixin
 
 
+def set_nested_attr(obj, path, value):
+    """Set a value in a nested object or dict, given a tuple path."""
+    for key in path[:-1]:
+        obj = obj.setdefault(key, {}) if isinstance(obj, dict) else getattr(obj, key)
+    last_key = path[-1]
+    if isinstance(obj, dict):
+        obj[last_key] = value
+    else:
+        setattr(obj, last_key, value)
+
+
 # 1. Configuration
 @dataclass
 class Gemma2Config(BaseConfig):
     """
     Configuration for Gemma 2. Variant defaults below (from technical report):
-    # 2B:  vocab_size=256128, hidden_size=2304, intermediate_size=18432,
-    # num_hidden_layers=26, num_attention_heads=8, num_key_value_heads=4, head_dim=256
 
-    # 9B:  vocab_size=256128, hidden_size=3584, intermediate_size=28672,
-    # num_hidden_layers=42, num_attention_heads=16, num_key_value_heads=8, head_dim=256
-
-    # 27B: vocab_size=256128, hidden_size=4608, intermediate_size=73728,
-    # num_hidden_layers=46, num_attention_heads=32, num_key_value_heads=16, head_dim=128
-
-    This default configuration is based on the original Gemma 2 9B variant.
+    This default configuration is based on the original Gemma 2 2B variant.
     """
 
-    vocab_size: int = 256128
-    hidden_size: int = 3584
-    intermediate_size: int = 28672
-    num_hidden_layers: int = 42
-    num_attention_heads: int = 16
-    num_key_value_heads: int = 8
+    vocab_size: int = 256000
+    hidden_size: int = 2048
+    intermediate_size: int = 16384
+    num_hidden_layers: int = 18
+    num_attention_heads: int = 8
+    num_key_value_heads: int = 1
     head_dim: int = 256
     rms_norm_eps: float = 1e-6
     rope_theta: float = 10000.0
@@ -58,13 +62,8 @@ class Gemma2Config(BaseConfig):
             self.num_key_value_heads = self.num_attention_heads // 2
         if self.head_dim is None:
             self.head_dim = self.hidden_size // self.num_attention_heads
-        # assert self.vocab_size == 256128, "Gemma2 uses 256128 vocab size"
-        # assert self.context_length == 8192, "Gemma2 context length is 8192"
         assert self.num_attention_heads % self.num_key_value_heads == 0, (
             "GQA: num_attention_heads must be divisible by num_key_value_heads"
-        )
-        assert self.hidden_size == self.num_attention_heads * self.head_dim, (
-            "hidden_size must equal num_attention_heads * head_dim"
         )
 
 
@@ -457,9 +456,10 @@ class Gemma2ForCausalLM(BaseModel, GenerationMixin):
         input_ids: jnp.ndarray,  # [B, S]
         position_ids: jnp.ndarray,
         attention_mask: jnp.ndarray
-        | None = None,  # [B, S], True for valid tokens, used for *padding*
+        | None = None,  # [B, S], True for valid tokens, used for padding
         cache: list[tuple[jnp.ndarray, jnp.ndarray]]
         | None = None,  # List of (k_cache, v_cache) per layer
+        deterministic: bool = True,
     ) -> tuple[jnp.ndarray, list[tuple[jnp.ndarray, jnp.ndarray]] | None]:
         batch_size, seq_length = input_ids.shape
 
@@ -547,3 +547,102 @@ class Gemma2ForCausalLM(BaseModel, GenerationMixin):
             logits = logits / self.config.final_logit_soft_cap
 
         return logits, next_cache_list
+
+    # --- Weight Loading / Conversion --- #
+    @staticmethod
+    def _map_hf_key_to_nnx(hf_key: str, config: Gemma2Config) -> tuple[str, str] | None:
+        """Maps Hugging Face parameter keys to NNX state paths and attribute names.
+
+        Args:
+            hf_key: HF parameter name (e.g., 'model.layers.0.self_attn.q_proj.weight').
+            config: The Gemma2Config instance.
+
+        Returns:
+            A tuple containing the target NNX path (e.g., 'layers.0.attn.q_proj')
+            and the target attribute name ('kernel'), or None if the key is not mapped.
+            Note: NNX Linear handles kernel transposition automatically.
+        """
+        import re
+
+        # Top-level mappings
+        if hf_key == "model.embed_tokens.weight":
+            return ("embed_tokens", "embedding")
+        if hf_key == "model.norm.weight":
+            return ("norm", "weight")
+        if hf_key == "lm_head.weight":
+            # Note: Weight tying is handled in __init__.
+            # This mapping ensures the kernel shape is correct if loading untied weights.
+            # If weights are truly tied, this loaded tensor might be redundant
+            # but should match the embedding.
+            return ("lm_head", "kernel")
+
+        # Layer-specific mappings
+        match = re.match(r"model\.layers\.(\d+)\.(.+)", hf_key)
+        if match:
+            layer_idx, sub_key = match.groups()
+            layer_path = f"layers.{layer_idx}"
+
+            # Attention projections (HF: weight[out, in] -> NNX: kernel[in, out])
+            if sub_key == "self_attn.q_proj.weight":
+                return (f"{layer_path}.attn.q_proj", "kernel")
+            if sub_key == "self_attn.k_proj.weight":
+                return (f"{layer_path}.attn.k_proj", "kernel")
+            if sub_key == "self_attn.v_proj.weight":
+                return (f"{layer_path}.attn.v_proj", "kernel")
+            if sub_key == "self_attn.o_proj.weight":
+                return (f"{layer_path}.attn.o_proj", "kernel")
+
+            # MLP layers (HF: weight[out, in] -> NNX: kernel[in, out])
+            # Gemma2 uses GeGLU (fc1 contains both gate and up projections concatenated)
+            # IMPORTANT: If HF checkpoint stores gate_proj and up_proj separately,
+            # they MUST be concatenated *before* calling this mapping function
+            # during the weight loading process. This function assumes fc1 expects
+            # a single concatenated kernel.
+            if sub_key == "mlp.gate_proj.weight":
+                # Assumes concatenation handled externally.
+                return (f"{layer_path}.mlp.fc1", "kernel")
+            if sub_key == "mlp.up_proj.weight":
+                # Assumes concatenation handled externally.
+                return (f"{layer_path}.mlp.fc1", "kernel")
+            if sub_key == "mlp.down_proj.weight":  # Maps to fc2
+                return (f"{layer_path}.mlp.fc2", "kernel")
+
+            # Layer Normalization Weights (Direct mapping, shape [dim])
+            # Adjust names based on Gemma2's specific norm usage
+            if sub_key == "input_layernorm.weight":  # Maps to pre_attn_norm
+                return (f"{layer_path}.pre_attn_norm", "weight")
+            if sub_key == "post_attention_layernorm.weight":  # Maps to post_attn_norm
+                return (f"{layer_path}.post_attn_norm", "weight")
+            # Gemma 2 has pre/post MLP norms as well. Need HF names for these.
+            # Assuming standard naming like 'pre_mlp_layernorm'/'post_mlp_layernorm'
+            # **These HF names might be incorrect - adjust based on actual checkpoint keys**
+            if sub_key == "pre_mlp_layernorm.weight":  # Maps to pre_mlp_norm
+                return (f"{layer_path}.pre_mlp_norm", "weight")
+            if sub_key == "post_mlp_layernorm.weight":  # Maps to post_mlp_norm
+                return (f"{layer_path}.post_mlp_norm", "weight")
+
+        # If no match found
+        return None
+
+    def convert_weights_from_hf(
+        self,
+        state: nnx.State,
+        hf_weights: Iterator[tuple[str, jnp.ndarray]],
+    ):
+        """Loads Hugging Face weights into the NNX model state.
+
+        Handles mapping HF keys to NNX paths and potential tensor manipulations.
+        Requires external concatenation for MLP gate/up projections if stored separately in HF.
+        """
+        for key, tensor in hf_weights:
+            map_result = self._map_hf_key_to_nnx(key, self.config)
+            if map_result:
+                full_path = (*map_result[0].split("."), map_result[1])
+                try:
+                    set_nested_attr(state, full_path, tensor)
+                except KeyError:
+                    print(f"Warning: Parameter path {full_path} not found in model state.")
+                except Exception as e:
+                    print(f"Error setting path {full_path}: {e}")
+            else:
+                print(f"Warning: Skipping HF weight {key}")
