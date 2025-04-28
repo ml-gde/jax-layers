@@ -6,7 +6,6 @@ This implementation is heavily influenced by the original Gemma 2
 implementation from DeepMind. https://github.com/google-deepmind/gemma
 """
 
-from collections.abc import Iterator
 from dataclasses import dataclass, field
 from typing import Any
 
@@ -16,17 +15,6 @@ from flax import nnx
 
 from jaxgarden.models.base import BaseConfig, BaseModel
 from jaxgarden.models.generation_utils import GenerationMixin
-
-
-def set_nested_attr(obj, path, value):
-    """Set a value in a nested object or dict, given a tuple path."""
-    for key in path[:-1]:
-        obj = obj.setdefault(key, {}) if isinstance(obj, dict) else getattr(obj, key)
-    last_key = path[-1]
-    if isinstance(obj, dict):
-        obj[last_key] = value
-    else:
-        setattr(obj, last_key, value)
 
 
 # 1. Configuration
@@ -547,102 +535,3 @@ class Gemma2ForCausalLM(BaseModel, GenerationMixin):
             logits = logits / self.config.final_logit_soft_cap
 
         return logits, next_cache_list
-
-    # --- Weight Loading / Conversion --- #
-    @staticmethod
-    def _map_hf_key_to_nnx(hf_key: str, config: Gemma2Config) -> tuple[str, str] | None:
-        """Maps Hugging Face parameter keys to NNX state paths and attribute names.
-
-        Args:
-            hf_key: HF parameter name (e.g., 'model.layers.0.self_attn.q_proj.weight').
-            config: The Gemma2Config instance.
-
-        Returns:
-            A tuple containing the target NNX path (e.g., 'layers.0.attn.q_proj')
-            and the target attribute name ('kernel'), or None if the key is not mapped.
-            Note: NNX Linear handles kernel transposition automatically.
-        """
-        import re
-
-        # Top-level mappings
-        if hf_key == "model.embed_tokens.weight":
-            return ("embed_tokens", "embedding")
-        if hf_key == "model.norm.weight":
-            return ("norm", "weight")
-        if hf_key == "lm_head.weight":
-            # Note: Weight tying is handled in __init__.
-            # This mapping ensures the kernel shape is correct if loading untied weights.
-            # If weights are truly tied, this loaded tensor might be redundant
-            # but should match the embedding.
-            return ("lm_head", "kernel")
-
-        # Layer-specific mappings
-        match = re.match(r"model\.layers\.(\d+)\.(.+)", hf_key)
-        if match:
-            layer_idx, sub_key = match.groups()
-            layer_path = f"layers.{layer_idx}"
-
-            # Attention projections (HF: weight[out, in] -> NNX: kernel[in, out])
-            if sub_key == "self_attn.q_proj.weight":
-                return (f"{layer_path}.attn.q_proj", "kernel")
-            if sub_key == "self_attn.k_proj.weight":
-                return (f"{layer_path}.attn.k_proj", "kernel")
-            if sub_key == "self_attn.v_proj.weight":
-                return (f"{layer_path}.attn.v_proj", "kernel")
-            if sub_key == "self_attn.o_proj.weight":
-                return (f"{layer_path}.attn.o_proj", "kernel")
-
-            # MLP layers (HF: weight[out, in] -> NNX: kernel[in, out])
-            # Gemma2 uses GeGLU (fc1 contains both gate and up projections concatenated)
-            # IMPORTANT: If HF checkpoint stores gate_proj and up_proj separately,
-            # they MUST be concatenated *before* calling this mapping function
-            # during the weight loading process. This function assumes fc1 expects
-            # a single concatenated kernel.
-            if sub_key == "mlp.gate_proj.weight":
-                # Assumes concatenation handled externally.
-                return (f"{layer_path}.mlp.fc1", "kernel")
-            if sub_key == "mlp.up_proj.weight":
-                # Assumes concatenation handled externally.
-                return (f"{layer_path}.mlp.fc1", "kernel")
-            if sub_key == "mlp.down_proj.weight":  # Maps to fc2
-                return (f"{layer_path}.mlp.fc2", "kernel")
-
-            # Layer Normalization Weights (Direct mapping, shape [dim])
-            # Adjust names based on Gemma2's specific norm usage
-            if sub_key == "input_layernorm.weight":  # Maps to pre_attn_norm
-                return (f"{layer_path}.pre_attn_norm", "weight")
-            if sub_key == "post_attention_layernorm.weight":  # Maps to post_attn_norm
-                return (f"{layer_path}.post_attn_norm", "weight")
-            # Gemma 2 has pre/post MLP norms as well. Need HF names for these.
-            # Assuming standard naming like 'pre_mlp_layernorm'/'post_mlp_layernorm'
-            # **These HF names might be incorrect - adjust based on actual checkpoint keys**
-            if sub_key == "pre_mlp_layernorm.weight":  # Maps to pre_mlp_norm
-                return (f"{layer_path}.pre_mlp_norm", "weight")
-            if sub_key == "post_mlp_layernorm.weight":  # Maps to post_mlp_norm
-                return (f"{layer_path}.post_mlp_norm", "weight")
-
-        # If no match found
-        return None
-
-    def convert_weights_from_hf(
-        self,
-        state: nnx.State,
-        hf_weights: Iterator[tuple[str, jnp.ndarray]],
-    ):
-        """Loads Hugging Face weights into the NNX model state.
-
-        Handles mapping HF keys to NNX paths and potential tensor manipulations.
-        Requires external concatenation for MLP gate/up projections if stored separately in HF.
-        """
-        for key, tensor in hf_weights:
-            map_result = self._map_hf_key_to_nnx(key, self.config)
-            if map_result:
-                full_path = (*map_result[0].split("."), map_result[1])
-                try:
-                    set_nested_attr(state, full_path, tensor)
-                except KeyError:
-                    print(f"Warning: Parameter path {full_path} not found in model state.")
-                except Exception as e:
-                    print(f"Error setting path {full_path}: {e}")
-            else:
-                print(f"Warning: Skipping HF weight {key}")
