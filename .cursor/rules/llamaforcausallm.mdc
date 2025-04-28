@@ -1,0 +1,269 @@
+---
+description: Details the jaxgarden LlamaForCausalLM model for causal language modeling, covering architecture, components, and HF weight conversion.
+globs: jaxgarden/models/llama.py
+alwaysApply: false
+---
+# Chapter 4: LlamaForCausalLM
+
+In the [previous chapter](baseconfig.mdc), we examined `BaseConfig`, the foundation for configuring models in `jaxgarden`. We saw how model-specific configurations like `LlamaConfig` inherit from it to define hyperparameters. Now, we dive into the complete model implementation that uses this configuration: `LlamaForCausalLM`.
+
+**Motivation:** Large language models like Meta's Llama have demonstrated remarkable capabilities in natural language understanding and generation. Implementing such complex architectures efficiently within the JAX ecosystem requires careful integration of various components (attention mechanisms, normalization layers, embeddings) and adherence to best practices for performance and state management. `LlamaForCausalLM` provides a faithful and optimized implementation of the Llama architecture, ready for training and inference using JAX and Flax NNX.
+
+**Central Use Case:** Loading pretrained Llama weights (e.g., from Hugging Face Hub) into a `jaxgarden.LlamaForCausalLM` instance and using it for autoregressive text generation. This involves initializing the model with the correct `LlamaConfig`, leveraging the `from_hf` method inherited from [BaseModel](basemodel.mdc) for weight conversion, and then using the `generate` method from the [GenerationMixin](generationmixin.mdc) for text synthesis.
+
+## Key Concepts
+
+`LlamaForCausalLM` integrates several advanced transformer components into a cohesive causal language model:
+
+1.  **Core Structure:** It inherits from [BaseModel](basemodel.mdc) for configuration, state management, and HF integration capabilities, and from [GenerationMixin](generationmixin.mdc) for text generation methods.
+2.  **Token Embeddings (`nnx.Embed`):** Maps input token IDs from a vocabulary to dense vector representations (hidden states).
+3.  **`LlamaTransformerBlock`:** The main building block, repeated multiple times (`n_layers` specified in `LlamaConfig`). Each block contains:
+    *   **`LlamaRMSNorm` (Pre-Normalization):** Applied before the attention and MLP layers for improved training stability. RMSNorm is a simpler and often faster alternative to LayerNorm.
+    *   **`LlamaAttention`:** Implements multi-head self-attention. It incorporates [Rotary Position Embeddings (RoPE)](rotary_position_embeddings__rope_.mdc) via `LlamaRotaryEmbedding` to inject positional information dynamically. It also supports Grouped Query Attention (GQA) where the number of key/value heads (`n_kv_heads`) can be smaller than the number of query heads (`n_heads`) for reduced computational cost and memory footprint, particularly during inference.
+    *   **`LlamaMLP`:** A feed-forward network using the SwiGLU activation function (`silu(gate(x)) * up(x)`), which has shown strong performance in recent models.
+4.  **Final Normalization & LM Head:** After the last `LlamaTransformerBlock`, a final `LlamaRMSNorm` is applied. The output is then passed through a linear layer (`lm_head`) that projects the final hidden state back to the vocabulary size, producing logits for the next token prediction.
+5.  **Weight Tying:** The weights of the `lm_head` are typically tied to the weights of the `token_embed` layer. This reduces the total number of parameters and can improve performance. This tying is handled during weight initialization and conversion.
+6.  **HF Weight Conversion (`convert_weights_from_hf`):** Implements the logic to map parameter names and shapes from Hugging Face Llama checkpoints (stored in Safetensors format) to the specific structure and naming convention of the `jaxgarden` `LlamaForCausalLM` state.
+7.  **Text Generation:** Inherits the `generate` method from [GenerationMixin](generationmixin.mdc), enabling autoregressive text generation with sampling strategies like temperature, top-k, and top-p.
+
+## Using `LlamaForCausalLM`
+
+Let's see how to initialize, load weights, and use the model.
+
+### Initialization
+
+First, define the configuration (`LlamaConfig`) and instantiate the model using `nnx.Rngs`.
+
+```python
+import jax
+import jax.numpy as jnp
+from flax import nnx
+from jaxgarden.models.llama import LlamaConfig, LlamaForCausalLM
+
+# Example: Configuration for a small Llama model
+config = LlamaConfig(
+    dim=512,
+    n_layers=4,
+    n_heads=8,
+    n_kv_heads=4, # GQA enabled (n_kv_heads < n_heads)
+    head_dim=64,
+    intermediate_size=1024,
+    vocab_size=10000, # Example vocabulary size
+    norm_eps=1e-5,
+    rope_theta=10000.0
+)
+
+# Initialize PRNG keys
+rngs = nnx.Rngs(params=0) # Or use more sophisticated key management
+
+# Instantiate the model
+model = LlamaForCausalLM(config, rngs=rngs, param_dtype=jnp.bfloat16)
+
+print(f"Initialized LlamaForCausalLM with {config.n_layers} layers.")
+# Output: Initialized LlamaForCausalLM with 4 layers.
+```
+**Explanation:** We create a `LlamaConfig` dataclass instance, specifying the architecture details. We then pass this config and an `nnx.Rngs` object to the `LlamaForCausalLM` constructor. `param_dtype=jnp.bfloat16` is often used for large models to save memory.
+
+### Loading Pretrained Weights
+
+To load weights from a Hugging Face checkpoint (assuming you have one compatible, e.g., `"meta-llama/Llama-2-7b-hf"`), use the `from_hf` method.
+
+```python
+# hf_model_id = "meta-llama/Llama-2-7b-hf" # Example HF model ID
+# print(f"Attempting to load weights from {hf_model_id}...")
+# try:
+#     # Ensure config matches the HF model being loaded
+#     # config_hf = LlamaConfig(...) # Load/define config matching the HF model
+#     # model_hf = LlamaForCausalLM(config_hf, rngs=nnx.Rngs(1), param_dtype=jnp.bfloat16)
+#     # model_hf.from_hf(hf_model_id, save_in_orbax=False, remove_hf_after_conversion=True)
+#     # print("Weights loaded successfully.")
+# except Exception as e:
+#     # print(f"Skipping HF weight loading example due to error: {e}")
+#     pass
+print("Skipping actual HF weight loading execution.")
+```
+**Explanation:** Calling `model.from_hf(hf_model_id)` triggers the download (via `BaseModel.download_from_hf`), weight iteration (`BaseModel.iter_safetensors`), and crucially, the conversion logic defined in `LlamaForCausalLM.convert_weights_from_hf`. The model's state is updated in place with the loaded weights. Ensure the `LlamaConfig` used to initialize the model matches the architecture of the Hugging Face checkpoint.
+
+### Forward Pass (`__call__`)
+
+The `__call__` method performs a standard forward pass, taking token IDs and an optional attention mask, and returning logits.
+
+```python
+# Prepare dummy input (Batch size 1, sequence length 10)
+batch_size = 1
+seq_len = 10
+dummy_input_ids = jnp.ones((batch_size, seq_len), dtype=jnp.int32)
+dummy_attention_mask = jnp.ones((batch_size, seq_len), dtype=jnp.int32) # 1s indicate valid tokens
+
+# Perform forward pass
+# Note: Actual model execution requires JIT compilation or running on device
+@jax.jit
+def forward_pass(model_state, input_ids, attention_mask):
+    # Need to split model for JIT
+    graphdef, params = nnx.split(model, nnx.Param, ...)
+    logits = graphdef(input_ids=input_ids, attention_mask=attention_mask)
+    return logits
+
+# We won't execute the JITted function here, just show the structure
+# logits = forward_pass(model.state, dummy_input_ids, dummy_attention_mask)
+# print(f"Output logits shape: (batch_size, seq_len, vocab_size) = {logits.shape}")
+# Expected output shape if run: (1, 10, 10000)
+print(f"Expected output logits shape: ({batch_size}, {seq_len}, {config.vocab_size})")
+# Output: Expected output logits shape: (1, 10, 10000)
+```
+**Explanation:** The `__call__` method expects `input_ids` (shape `[batch_size, seq_len]`) and an optional `attention_mask` (same shape, 1 for real tokens, 0 for padding). It returns logits (shape `[batch_size, seq_len, vocab_size]`). For performance, the forward pass is typically JIT-compiled. Note that the current implementation asserts `batch_size == 1`.
+
+### Text Generation (`generate`)
+
+Use the inherited `generate` method for autoregressive text generation.
+
+```python
+from jaxgarden.tokenization import Tokenizer # Assuming Tokenizer is available
+
+# Assume 'model' is initialized and potentially loaded with weights
+# Assume 'tokenizer' is loaded, e.g., Tokenizer.from_pretrained("meta-llama/Llama-2-7b-hf")
+
+prompt = "The capital of France is"
+# encoded_prompt = tokenizer.encode(prompt, return_tensors="jax")
+# input_ids = encoded_prompt['input_ids']
+# attention_mask = encoded_prompt['attention_mask']
+
+# # Set generation parameters
+# max_new_tokens = 10
+# target_max_length = input_ids.shape[1] + max_new_tokens
+
+# # Generate text (requires JIT or device execution)
+# generation_rng = jax.random.PRNGKey(42)
+# # output_ids = model.generate(
+# #     input_ids,
+# #     attention_mask=attention_mask,
+# #     max_length=target_max_length,
+# #     temperature=0.7,
+# #     top_k=50,
+# #     do_sample=True,
+# #     pad_token_id=tokenizer.pad_token_id,
+# #     eos_token_id=tokenizer.eos_token_id,
+# #     rng=generation_rng,
+# #     use_jit=True # Recommended for performance
+# # )
+
+# # Decode the output
+# # decoded_output = tokenizer.decode(output_ids[0], skip_special_tokens=True)
+# # print(f"Prompt: {prompt}")
+# # print(f"Generated Text: {decoded_output}")
+# Expected Output (conceptual):
+# Prompt: The capital of France is
+# Generated Text: The capital of France is Paris. It is known for...
+print("Skipping actual text generation execution.")
+```
+**Explanation:** We encode a prompt using the [Tokenizer](tokenizer.mdc). The resulting `input_ids` and `attention_mask` are passed to `model.generate`, along with generation parameters (`max_length`, `temperature`, `top_k`, `do_sample`, etc.) and token IDs for padding and end-of-sequence. The `generate` method (detailed in [GenerationMixin](generationmixin.mdc)) handles the autoregressive sampling loop. The output token IDs are then decoded back into text. Using `use_jit=True` is highly recommended for efficient generation.
+
+## Internal Implementation
+
+Understanding the internal structure helps in debugging and potential extensions.
+
+*   **File:** `jaxgarden/models/llama.py`
+
+1.  **Initialization (`__init__`)**:
+    *   Calls `super().__init__` from [BaseModel](basemodel.mdc).
+    *   Initializes `self.token_embed` as an `nnx.Embed` layer.
+    *   Creates a list of `LlamaTransformerBlock` instances (`self.layers`), passing the configuration and layer index to each.
+    *   Initializes the final `self.norm` as a `LlamaRMSNorm` layer.
+    *   Initializes `self.lm_head` as an `nnx.Linear` layer. Weight tying with `self.token_embed` happens implicitly during weight loading/conversion (in `convert_weights_from_hf`) or potentially during custom initialization logic not shown here.
+
+2.  **Forward Pass (`__call__`)**:
+
+    ```mermaid
+    sequenceDiagram
+        participant Input
+        participant LlamaForCausalLM
+        participant Embed as nnx.Embed
+        participant Blocks as LlamaTransformerBlock (Loop)
+        participant Norm as LlamaRMSNorm
+        participant Head as nnx.Linear (lm_head)
+        participant Output
+
+        Input->>+LlamaForCausalLM: __call__(input_ids, attention_mask)
+        LlamaForCausalLM->>LlamaForCausalLM: Calculate position_ids
+        LlamaForCausalLM->>LlamaForCausalLM: Convert attention_mask to additive mask
+        LlamaForCausalLM->>+Embed: token_embed(input_ids)
+        Embed-->>-LlamaForCausalLM: hidden_states (x)
+        loop N Layers
+            LlamaForCausalLM->>+Blocks: layer(x, position_ids, additive_mask)
+            Blocks-->>-LlamaForCausalLM: updated hidden_states (x)
+        end
+        LlamaForCausalLM->>+Norm: norm(x)
+        Norm-->>-LlamaForCausalLM: normalized_states
+        LlamaForCausalLM->>+Head: lm_head(normalized_states)
+        Head-->>-LlamaForCausalLM: logits
+        LlamaForCausalLM-->>-Output: logits
+    ```
+    *   Calculates `position_ids` based on the sequence length.
+    *   Converts the boolean `attention_mask` into an additive mask (0.0 for valid, -inf for masked) suitable for softmax normalization in attention.
+    *   Passes `input_ids` through `self.token_embed`.
+    *   Iteratively passes the hidden states `x` through each `LlamaTransformerBlock` in `self.layers`, along with `position_ids` and the `attention_mask`.
+    *   Applies the final `self.norm`.
+    *   Applies `self.lm_head` to get the final logits.
+
+3.  **Hugging Face Weight Conversion (`convert_weights_from_hf`)**:
+    *   This method receives the model's `state` (an `nnx.State` object or dict) and an iterator yielding `(hf_key, hf_tensor)` tuples from the Safetensors files.
+    *   It iterates through the HF weights and maps the HF key names to the corresponding `jaxgarden` state keys.
+    *   Key transformations include:
+        *   Renaming: e.g., `model.layers.<i>.self_attn...` -> `state["layers"][<i>]["attention"]...`
+        *   Transposition: Weights from `nn.Linear` layers in HF PyTorch often need to be transposed (`.T`) for Flax `nnx.Linear` kernel shape `[in_features, out_features]`.
+        *   Direct Assignment: Normalization weights (`model.layers.<i>.input_layernorm.weight`) are directly assigned (`state["layers"][<i>]["input_layernorm"]["norm_weights"].value = tensor`).
+        *   Weight Tying: The embedding weights (`model.embed_tokens.weight`) are assigned to both `state["token_embed"].embedding` and (after transposition) `state["lm_head"].kernel`.
+
+    ```python
+    # Snippet from LlamaForCausalLM.convert_weights_from_hf
+    def convert_weights_from_hf(
+        self, state: nnx.State | dict[str, jnp.ndarray], weights: Iterator[tuple[Any, Any]]
+    ) -> None:
+        for wholekey, tensor in weights:
+            keys = wholekey.split(".")
+            if keys[0] == "model": # Strip 'model.' prefix often found in HF checkpoints
+                keys = keys[1:]
+
+            if keys[0] == "layers":
+                layer_idx = int(keys[1])
+                component = keys[2]
+                param_name = keys[3]
+                target_state = state["layers"][layer_idx]
+
+                if component == "self_attn": component = "attention" # Rename
+
+                if component in ["attention", "mlp"]:
+                    # Linear layer weights need transpose
+                    target_state[component][param_name]["kernel"].value = tensor.T
+                elif component in ["input_layernorm", "post_attention_layernorm"]:
+                    # RMSNorm weights
+                    target_state[component]["norm_weights"].value = tensor
+            elif keys[0] == "embed_tokens":
+                state["token_embed"].embedding.value = tensor
+                # Tie weights with lm_head (transpose required)
+                state["lm_head"].kernel.value = tensor.T
+            elif keys[0] == "norm":
+                state["norm"].norm_weights.value = tensor
+            elif keys[0] == "lm_head":
+                 # This case might occur if weights aren't tied in HF checkpoint
+                 # If already tied via embed_tokens, this might overwrite or be redundant
+                 if not jnp.array_equal(state["lm_head"].kernel.value, tensor.T):
+                     print(f"Warning: Overwriting lm_head from separate checkpoint tensor: {wholekey}")
+                     state["lm_head"].kernel.value = tensor.T
+            # else: # Handle potential unexpected keys
+            #    print(f"Warning: Unhandled HF key: {wholekey}")
+
+    ```
+
+## Conclusion
+
+`LlamaForCausalLM` provides a comprehensive and efficient implementation of the Llama architecture within the `jaxgarden` framework. By leveraging `BaseModel` for structure and `GenerationMixin` for functionality, and integrating key components like `LlamaRMSNorm`, `LlamaAttention` with RoPE and GQA, and `LlamaMLP` with SwiGLU, it offers a powerful tool for causal language modeling tasks. Its ability to load pretrained weights via `convert_weights_from_hf` makes it easy to utilize existing Llama models directly in JAX.
+
+The next chapter will delve deeper into the text generation capabilities provided by the mixin class used by this model.
+
+**Next:** [GenerationMixin](generationmixin.mdc)
+
+
+---
+
+Generated by [Rules for AI](https://github.com/altaidevorg/rules-for-ai)
