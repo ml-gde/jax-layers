@@ -379,6 +379,7 @@ class GenerationMixin(_Base):
 
         Args:
             input_ids: Initial token IDs of shape [batch_size, seq_len].
+            attention_mask: Optional attention mask
             max_length: Maximum length for generated sequences.
             temperature: Temperature for sampling.
             top_k: If specified, only sample from the top-k logits.

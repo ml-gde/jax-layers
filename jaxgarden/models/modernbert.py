@@ -371,7 +371,7 @@ class ModernBertAttention(nnx.Module):
             )(attention_output)
 
         if output_attentions:
-            return (attention_output, attention_probs)
+            return attention_output, attention_probs
         return (attention_output,)
 
 
@@ -514,7 +514,7 @@ class ModernBertLayer(nnx.Module):
         hidden_states = hidden_states + mlp_output
 
         if output_attentions:
-            return (hidden_states, attention_weights)  # type: ignore
+            return hidden_states, attention_weights  # type: ignore
         return (hidden_states,)
 
 
@@ -654,11 +654,11 @@ class ModernBERTEncoder(nnx.Module):
         if not output_hidden_states and not output_attentions:
             return (hidden_states,)
         elif output_hidden_states and not output_attentions:
-            return (hidden_states, all_hidden_states)  # type: ignore
+            return hidden_states, all_hidden_states  # type: ignore
         elif output_attentions and not output_hidden_states:
-            return (hidden_states, all_self_attentions)  # type: ignore
+            return hidden_states, all_self_attentions  # type: ignore
         else:  # both output_hidden_states and output_attentions
-            return (hidden_states, all_hidden_states, all_self_attentions)  # type: ignore
+            return hidden_states, all_hidden_states, all_self_attentions  # type: ignore
 
 
 class ModernBERTMLMHead(nnx.Module):
