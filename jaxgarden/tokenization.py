@@ -187,7 +187,8 @@ class Tokenizer:
             **kwargs,
         )
 
-    def _validate_template(self, template: str, variables: set) -> None:
+    @staticmethod
+    def _validate_template(template: str, variables: set) -> None:
         """Checks if template variables match expected ones."""
         env = Environment()
         try:

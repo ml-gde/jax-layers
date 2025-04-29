@@ -115,6 +115,12 @@ class BaseModel(nnx.Module):
         Args:
             repo_id: The repository ID of the model to download.
             local_dir: The local directory to save the model to.
+            token: The hf auth token to download the model with.
+              - If `True`, the token is read from the HuggingFace config
+                folder.
+              - If a string, it's used as the authentication token.
+            force_download (`bool`, *optional*, defaults to `False`):
+              Whether the file should be downloaded even if it already exists in the local cache.
         """
         logger.info(f"Attempting to download {repo_id} from Hugging Face Hub to {local_dir}.")
         try:
@@ -133,7 +139,7 @@ class BaseModel(nnx.Module):
         Use this static method to iterate over weights for conversion tasks.
 
         Args:
-            model_path_to_params: Path to directory containing .safetensors files."""
+            path_to_model_weights: Path to directory containing .safetensors files."""
         if not os.path.isdir(path_to_model_weights):
             raise ValueError(f"{path_to_model_weights} is not a valid directory.")
 
@@ -142,7 +148,7 @@ class BaseModel(nnx.Module):
         for file in safetensors_files:
             with safe_open(file, framework="jax", device="cpu") as f:
                 for key in f.keys():  # noqa: SIM118
-                    yield (key, f.get_tensor(key))
+                    yield key, f.get_tensor(key)
 
     def from_hf(
         self,
@@ -160,6 +166,8 @@ class BaseModel(nnx.Module):
         Args:
             model_repo_or_id: The repository ID or name of the model to download.
             token: The token to use for authentication with the Hugging Face Hub.
+            force_download: (`bool`, *optional*, defaults to `False`):
+              Whether the file should be downloaded even if it already exists in the local cache.
             save_in_orbax: Whether to save the converted weights in an Orbax checkpoint.
             remove_hf_after_conversion: Whether to remove the downloaded HuggingFace checkpoint
                 after conversion.
@@ -171,7 +179,7 @@ class BaseModel(nnx.Module):
         save_dir = local_dir.replace("hf_models", "models")
         if os.path.exists(save_dir):
             if force_download:
-                logger.warn(f"Removing {save_dir} because force_download is set to True")
+                logger.warning(f"Removing {save_dir} because force_download is set to True")
                 shutil.rmtree(save_dir)
             else:
                 raise RuntimeError(
@@ -191,17 +199,17 @@ class BaseModel(nnx.Module):
         self.convert_weights_from_hf(state, weights)
         logger.info("Weight conversion finished. Updating model state...")
         nnx.update(self, state)
-        logger.warn("Model state successfully updated with converted weights.")
+        logger.warning("Model state successfully updated with converted weights.")
 
         if remove_hf_after_conversion:
-            logger.warn(f"Removing HuggingFace checkpoint from {local_dir}...")
+            logger.warning(f"Removing HuggingFace checkpoint from {local_dir}...")
             shutil.rmtree(local_dir)
 
         if save_in_orbax:
-            logger.warn(f")Saving Orbax checkpoint in {save_dir}.")
+            logger.warning(f")Saving Orbax checkpoint in {save_dir}.")
             self.save(save_dir)
 
-        logger.warn(f"from_hf process completed for {model_repo_or_id}.")
+        logger.warning(f"from_hf process completed for {model_repo_or_id}.")
 
     def convert_weights_from_hf(self, state: nnx.State, weights: Iterator[tuple[Any, Any]]) -> None:
         """Convert weights from Hugging Face Hub to the model's state.

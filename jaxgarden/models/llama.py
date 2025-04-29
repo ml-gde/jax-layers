@@ -219,7 +219,8 @@ class LlamaAttention(nnx.Module):
         k_embed = (k * cos) + (self.rotate_half(k) * sin)
         return q_embed, k_embed
 
-    def rotate_half(self, x: jnp.ndarray) -> jnp.ndarray:
+    @staticmethod
+    def rotate_half(x: jnp.ndarray) -> jnp.ndarray:
         """Rotate half the hidden dims of the input.
 
         Args:
@@ -232,7 +233,8 @@ class LlamaAttention(nnx.Module):
         x2 = x[..., x.shape[-1] // 2 :]
         return jnp.concatenate([-x2, x1], axis=-1)
 
-    def repeat_kv(self, hidden_states: jnp.ndarray, n_repeat: int) -> jnp.ndarray:
+    @staticmethod
+    def repeat_kv(hidden_states: jnp.ndarray, n_repeat: int) -> jnp.ndarray:
         """Repeat key/value heads to match the number of query heads.
 
         When using GQA, we need to repeat each key/value head to match

@@ -36,7 +36,7 @@ class RotaryPositionalEmbeddingsTorch(nn.Module):
         self,
         dim: int,
         max_seq_len: int = 4096,
-        base: int = 10_000,
+        base: float = 10_000.0,
     ) -> None:
         super().__init__()
         self.dim = dim
@@ -991,7 +991,7 @@ class TorchModernBertLayer(nn.Module):
         hidden_states = hidden_states + mlp_output
 
         if output_attentions and attention_weights is not None:
-            return (hidden_states, attention_weights)
+            return hidden_states, attention_weights
         return (hidden_states,)
 
 
