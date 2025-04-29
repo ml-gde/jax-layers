@@ -419,6 +419,16 @@ to support conversion from HuggingFace format.</p>
 <dd class="field-odd"><ul class="simple">
 <li><p><strong>repo_id</strong> – The repository ID of the model to download.</p></li>
 <li><p><strong>local_dir</strong> – The local directory to save the model to.</p></li>
+<li><p><strong>token</strong> – <p>The hf auth token to download the model with.
+- If <cite>True</cite>, the token is read from the HuggingFace config</p>
+<blockquote>
+<div><p>folder.</p>
+</div></blockquote>
+<ul>
+<li><p>If a string, it’s used as the authentication token.</p></li>
+</ul>
+</p></li>
+<li><p><strong>force_download</strong> (<cite>bool</cite>, <em>optional</em>, defaults to <cite>False</cite>) – Whether the file should be downloaded even if it already exists in the local cache.</p></li>
 </ul>
 </dd>
 </dl>
@@ -437,6 +447,8 @@ to support conversion from HuggingFace format.</p>
 <dd class="field-odd"><ul class="simple">
 <li><p><strong>model_repo_or_id</strong> – The repository ID or name of the model to download.</p></li>
 <li><p><strong>token</strong> – The token to use for authentication with the Hugging Face Hub.</p></li>
+<li><p><strong>force_download</strong> – (<cite>bool</cite>, <em>optional</em>, defaults to <cite>False</cite>):
+Whether the file should be downloaded even if it already exists in the local cache.</p></li>
 <li><p><strong>save_in_orbax</strong> – Whether to save the converted weights in an Orbax checkpoint.</p></li>
 <li><p><strong>remove_hf_after_conversion</strong> – Whether to remove the downloaded HuggingFace checkpoint
 after conversion.</p></li>
@@ -452,7 +464,7 @@ after conversion.</p></li>
 <p>Use this static method to iterate over weights for conversion tasks.</p>
 <dl class="field-list simple">
 <dt class="field-odd">Parameters<span class="colon">:</span></dt>
-<dd class="field-odd"><p><strong>model_path_to_params</strong> – Path to directory containing .safetensors files.</p>
+<dd class="field-odd"><p><strong>path_to_model_weights</strong> – Path to directory containing .safetensors files.</p>
 </dd>
 </dl>
 </dd></dl>
@@ -509,6 +521,7 @@ and min-probability filtering, for CausalLMs.</p>
 <dt class="field-odd">Parameters<span class="colon">:</span></dt>
 <dd class="field-odd"><ul class="simple">
 <li><p><strong>input_ids</strong> – Initial token IDs of shape [batch_size, seq_len].</p></li>
+<li><p><strong>attention_mask</strong> – Optional attention mask</p></li>
 <li><p><strong>max_length</strong> – Maximum length for generated sequences.</p></li>
 <li><p><strong>temperature</strong> – Temperature for sampling.</p></li>
 <li><p><strong>top_k</strong> – If specified, only sample from the top-k logits.</p></li>
@@ -645,7 +658,7 @@ or a shape that can be broadcasted to this shape.</p></li>
 
 <dl class="py method">
 <dt class="sig sig-object py" id="jaxgarden.models.LlamaAttention.repeat_kv">
-<span class="sig-name descname"><span class="pre">repeat_kv</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">hidden_states</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><a class="reference external" href="https://docs.jax.dev/en/latest/_autosummary/jax.Array.html#jax.Array" title="(in JAX)"><span class="pre">Array</span></a></span></em>, <em class="sig-param"><span class="n"><span class="pre">n_repeat</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><a class="reference external" href="https://docs.python.org/3/library/functions.html#int" title="(in Python v3.13)"><span class="pre">int</span></a></span></em><span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><a class="reference external" href="https://docs.jax.dev/en/latest/_autosummary/jax.Array.html#jax.Array" title="(in JAX)"><span class="pre">Array</span></a></span></span><a class="reference internal" href="../_modules/jaxgarden/models/llama.html#LlamaAttention.repeat_kv"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#jaxgarden.models.LlamaAttention.repeat_kv" title="Link to this definition"></a></dt>
+<em class="property"><span class="pre">static</span><span class="w"> </span></em><span class="sig-name descname"><span class="pre">repeat_kv</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">hidden_states</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><a class="reference external" href="https://docs.jax.dev/en/latest/_autosummary/jax.Array.html#jax.Array" title="(in JAX)"><span class="pre">Array</span></a></span></em>, <em class="sig-param"><span class="n"><span class="pre">n_repeat</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><a class="reference external" href="https://docs.python.org/3/library/functions.html#int" title="(in Python v3.13)"><span class="pre">int</span></a></span></em><span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><a class="reference external" href="https://docs.jax.dev/en/latest/_autosummary/jax.Array.html#jax.Array" title="(in JAX)"><span class="pre">Array</span></a></span></span><a class="reference internal" href="../_modules/jaxgarden/models/llama.html#LlamaAttention.repeat_kv"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#jaxgarden.models.LlamaAttention.repeat_kv" title="Link to this definition"></a></dt>
 <dd><p>Repeat key/value heads to match the number of query heads.</p>
 <p>When using GQA, we need to repeat each key/value head to match
 the number of query heads.</p>
@@ -664,7 +677,7 @@ the number of query heads.</p>
 
 <dl class="py method">
 <dt class="sig sig-object py" id="jaxgarden.models.LlamaAttention.rotate_half">
-<span class="sig-name descname"><span class="pre">rotate_half</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">x</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><a class="reference external" href="https://docs.jax.dev/en/latest/_autosummary/jax.Array.html#jax.Array" title="(in JAX)"><span class="pre">Array</span></a></span></em><span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><a class="reference external" href="https://docs.jax.dev/en/latest/_autosummary/jax.Array.html#jax.Array" title="(in JAX)"><span class="pre">Array</span></a></span></span><a class="reference internal" href="../_modules/jaxgarden/models/llama.html#LlamaAttention.rotate_half"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#jaxgarden.models.LlamaAttention.rotate_half" title="Link to this definition"></a></dt>
+<em class="property"><span class="pre">static</span><span class="w"> </span></em><span class="sig-name descname"><span class="pre">rotate_half</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">x</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><a class="reference external" href="https://docs.jax.dev/en/latest/_autosummary/jax.Array.html#jax.Array" title="(in JAX)"><span class="pre">Array</span></a></span></em><span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><a class="reference external" href="https://docs.jax.dev/en/latest/_autosummary/jax.Array.html#jax.Array" title="(in JAX)"><span class="pre">Array</span></a></span></span><a class="reference internal" href="../_modules/jaxgarden/models/llama.html#LlamaAttention.rotate_half"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#jaxgarden.models.LlamaAttention.rotate_half" title="Link to this definition"></a></dt>
 <dd><p>Rotate half the hidden dims of the input.</p>
 <dl class="field-list simple">
 <dt class="field-odd">Parameters<span class="colon">:</span></dt>
