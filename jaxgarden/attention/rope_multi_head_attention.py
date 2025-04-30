@@ -1,9 +1,10 @@
+
 import flax.linen as nn
 import jax
 import jax.numpy as jnp
 
 
-def rotate_half(x):
+def rotate_half(x: jnp.ndarray) -> jnp.ndarray:
     """Rotates half the hidden dims of the input tensor."""
     x1 = x[..., ::2]
     x2 = x[..., 1::2]
@@ -12,7 +13,7 @@ def rotate_half(x):
     return jnp.concatenate((-x2, x1), axis=-1)
 
 
-def apply_rotary_pos_emb(x, cos_emb, sin_emb):
+def apply_rotary_pos_emb(x: jnp.ndarray, cos_emb: jnp.ndarray, sin_emb: jnp.ndarray) -> jnp.ndarray:
     """Applies Rotary Positional Embedding to the input tensor.
 
     Args:
@@ -33,7 +34,8 @@ def apply_rotary_pos_emb(x, cos_emb, sin_emb):
     return (x * cos_emb) + (rotate_half(x) * sin_emb)
 
 
-def precompute_rotary_embeddings(seq_len, head_dim, base=10000.0):
+def precompute_rotary_embeddings(seq_len: int, head_dim: int,
+    base: float = 10000.0) -> tuple[jnp.ndarray, jnp.ndarray]:
     """Precomputes the RoPE cosine and sine embeddings.
 
     Args:
@@ -76,7 +78,9 @@ class RoPEMultiHeadAttention(nn.Module):
     rope_base: float = 10000.0
     dtype: jnp.dtype = jnp.float32
 
-    def setup(self):
+    # Corrected method definition
+    def setup(self) -> None: # Added -> None return type
+        """Initializes the attention projections."""
         # Check head_dim validity early during setup
         if self.head_dim % 2 != 0:
              raise ValueError(f"head_dim ({self.head_dim}) must be even for RoPE.")
@@ -101,7 +105,9 @@ class RoPEMultiHeadAttention(nn.Module):
 
 
     @nn.compact
-    def __call__(self, x: jnp.ndarray, mask: jnp.ndarray | None = None):
+    # Corrected method definition (return type was missing)
+    # Also using Optional for the mask type hint for clarity with None default
+    def __call__(self, x: jnp.ndarray, mask: jnp.ndarray | None = None) -> jnp.ndarray:
         """Forward pass for RoPE MHA.
 
         Args:
@@ -154,7 +160,8 @@ class RoPEMultiHeadAttention(nn.Module):
 
         # 6. Scaled Dot-Product Attention
         # Attention scores: (batch, num_heads, seq_len, seq_len)
-        attn_scores = jnp.matmul(query, key.transpose((0, 1, 3, 2))) / jnp.sqrt(self.head_dim)
+        attn_scores = jnp.matmul(query, key.transpose((0, 1, 3, 2))) / jnp.sqrt(
+            self.head_dim).astype(self.dtype) # Ensure sqrt is correct dtype
 
         # Apply mask (if provided)
         if mask is not None:
@@ -163,20 +170,35 @@ class RoPEMultiHeadAttention(nn.Module):
             # Check if mask needs broadcasting or conversion
             if mask.ndim == 2: # Likely (seq_len, seq_len)
                  mask = mask[None, None, :, :] # -> (1, 1, seq_len, seq_len)
-            elif mask.ndim == 3: # Likely (batch, seq_len, seq_len) or causal (1, sl, sl)
-                 if mask.shape[0] != batch_size and mask.shape[0] == 1:
-                     mask = mask[None, :, :, :] # Add head dim: (batch, 1, seq_len, seq_len)
-                 else: # Assume (batch, seq_len, seq_len) -> (batch, 1, seq_len, seq_len)
-                     mask = mask[:, None, :, :]
+            elif mask.ndim == 3 and mask.shape[1] != self.num_heads:
+                 # Likely (batch, seq_len, seq_len) or causal (1, sl, sl)
+                mask = mask[:, None, :, :]
+                     # Assume (batch, seq_len, seq_len) -> (batch, 1, seq_len, seq_len)
+
+            # Ensure mask is broadcastable to attn_scores shape
+            mask_shape_expected = (batch_size, self.num_heads, seq_len, seq_len)
+            if mask.shape != mask_shape_expected:
+                 # Attempt broadcasting common causal mask shapes
+                 if mask.shape == (1, 1, seq_len, seq_len) or mask.shape == (batch_size, 1,
+                        seq_len, seq_len): # Causal mask for all batches/heads
+                     mask = jnp.broadcast_to(mask, mask_shape_expected)
+                 # Add other broadcasting cases if needed
+                 else:
+                     raise ValueError(f"Mask shape {mask.shape} != exp shape {mask_shape_expected}")
+
 
             # Apply mask: Use large negative number where mask is True
+            # (or where mask value is 0 if using 0/-inf convention)
             # Assuming boolean mask convention (True = mask) common in Flax examples
-            attn_scores = jnp.where(mask, -jnp.inf, attn_scores)
+            # If using 0/-inf mask, the logic would be: attn_scores = attn_scores + mask
+            attn_scores = jnp.where(mask, jnp.finfo(self.dtype).min, attn_scores)
+
 
         # Softmax to get attention weights
         attn_weights = jax.nn.softmax(
             attn_scores, axis=-1
-        )  # Shape: (batch, num_heads, seq_len, seq_len)
+        ).astype(self.dtype)  # Shape: (batch, num_heads, seq_len, seq_len)
+
 
         # Apply attention weights to Value
         # Output per head: (batch, num_heads, seq_len, head_dim)
