@@ -78,7 +78,6 @@ class RoPEMultiHeadAttention(nn.Module):
     rope_base: float = 10000.0
     dtype: jnp.dtype = jnp.float32
 
-    # Corrected method definition
     def setup(self) -> None: # Added -> None return type
         """Initializes the attention projections."""
         # Check head_dim validity early during setup
@@ -105,7 +104,6 @@ class RoPEMultiHeadAttention(nn.Module):
 
 
     @nn.compact
-    # Corrected method definition (return type was missing)
     # Also using Optional for the mask type hint for clarity with None default
     def __call__(self, x: jnp.ndarray, mask: jnp.ndarray | None = None) -> jnp.ndarray:
         """Forward pass for RoPE MHA.
