@@ -61,7 +61,7 @@ model.from_hf(model_id)
 # but without the dependency of the whole `transformers` library.
 # Instead, we simply extend `tokenizers` package and add some cnvenience code for JAX.
 tokenizer = Tokenizer.from_pretrained(model_id)
-    
+
 text = "The meaning of life is"
 model_inputs = tokenizer.encode(text)
 output = model.generate(**model_inputs, max_length=20, do_sample=True)
@@ -95,6 +95,31 @@ mask = jnp.tril(jnp.ones((2, 1, 128, 128)))  # (batch, 1, q_len, kv_len)
 
 # Apply the model
 output = attention(x, mask=mask)
+```
+
+### RoPEMultiHeadAttention Module (Flax NNX)
+
+```python
+import jax
+import jax.numpy as jnp
+import flax.linen as nn
+from jaxgarden.attention.rope_multi_head_attention import RoPEMultiHeadAttention
+
+# 1. Setup
+key = jax.random.PRNGKey(0)
+batch_size, seq_len = 2, 16
+num_heads, head_dim = 4, 32
+embed_dim = num_heads * head_dim
+x = jnp.ones((batch_size, seq_len, embed_dim))
+
+# 2. Instantiate Module
+attention = RoPEMultiHeadAttention(num_heads=num_heads, head_dim=head_dim)
+
+# 3. Initialize Parameters
+params = attention.init(key, x)['params']
+
+# 4. Apply Module (Forward Pass)
+output = attention.apply({'params': params}, x)
 ```
 
 ### Functional API
