@@ -1,3 +1,16 @@
+"""
+JAX/Flax implementation of Multi-Head Attention with Rotary Positional Embedding (RoPE).
+
+This code implements the RoPE technique within a standard Multi-Head Attention
+framework. RoPE injects relative positional information by rotating pairs of
+features in the Query and Key vectors based on their absolute position before
+the attention calculation.
+
+The method was introduced in the paper:
+"RoFormer: Enhanced Transformer with Rotary Position Embedding"
+by Jianlin Su, Yu Lu, Shengfeng Pan, Ahmed Murtadha, Bo Wen, Yunfeng Liu.
+arXiv:2104.09864v5 [cs.CL] (Submitted on 20 Apr 2021)
+"""
 
 import flax.linen as nn
 import jax
