@@ -50,8 +50,8 @@ dev = [
 ]
 
 [project.urls]
-"Homepage" = "https://github.com/yourusername/jax-layers"
-"Bug Tracker" = "https://github.com/yourusername/jax-layers/issues"
+"Homepage" = "https://github.com/ml-gde/jax-layers"
+"Bug Tracker" = "https://github.com/ml-gde/jax-layers/issues"
 
 [tool.setuptools]
 packages = ["jaxgarden"]
