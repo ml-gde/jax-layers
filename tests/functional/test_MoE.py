@@ -14,7 +14,7 @@ def key():
 def dummy_input_batch():
     """Provides a dummy input batch."""
     # (batch_size, input_dim)
-    return jnp.ones((4, 16)) # Batch of 4, input dimension 16
+    return jnp.ones((4, 16))
 
 def test_expert_initialization_and_call(key, dummy_input_batch):
     """Tests the Expert module initialization and forward pass."""
@@ -25,7 +25,7 @@ def test_expert_initialization_and_call(key, dummy_input_batch):
     output = expert_model.apply({'params': params}, dummy_input_batch)
 
     assert output.shape == (dummy_input_batch.shape[0], expert_output_dim)
-    assert output.dtype == jnp.float32 # Default dtype for Dense
+    assert output.dtype == jnp.float32
 
 def test_gating_network_initialization_and_call(key, dummy_input_batch):
     """Tests the GatingNetwork module initialization and forward pass."""
@@ -60,14 +60,12 @@ def test_mixture_of_experts_output_logic(key, dummy_input_batch):
     """
     num_experts = 2
     expert_output_dim = 3
-    # input_dim = dummy_input_batch.shape[1] # Not strictly needed for this test logic after init
+    # input_dim = dummy_input_batch.shape[1]
 
     # Create an MoE model
     moe_model = MixtureOfExperts(num_experts=num_experts, expert_output_dim=expert_output_dim)
     variables = moe_model.init(key, dummy_input_batch)
     params = variables['params']
-
-    # --- Manually compute expected output for a specific case ---
 
     # Get gate weights by applying a GatingNetwork instance with its specific parameters
     gating_sub_model = GatingNetwork(num_experts=num_experts)
@@ -133,7 +131,8 @@ def test_expert_different_output_dims(key):
 
 def test_gating_network_different_num_experts(key):
     """Tests GatingNetwork with varying number of experts."""
-    input_data = jnp.ones((3, 8)) # batch=3, features=8
+    # (batch,features)
+    input_data = jnp.ones((3, 8))
     for num_exp in [1, 4, 10]:
         gating_model = GatingNetwork(num_experts=num_exp)
         params = gating_model.init(key, input_data)['params']
@@ -144,9 +143,11 @@ def test_gating_network_different_num_experts(key):
 
 def test_mixture_of_experts_different_params(key):
     """Tests MixtureOfExperts with varying numbers of experts and output dimensions."""
-    input_data = jnp.ones((2, 12)) # batch=2, features=12
+    # batch=2, features=12
+    input_data = jnp.ones((2, 12))
+    # num_experts, expert_output_dim
     configurations = [
-        (2, 4),  # num_experts, expert_output_dim
+        (2, 4),
         (4, 8),
         (1, 6),
         (3, 3)

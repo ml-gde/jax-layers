@@ -61,18 +61,12 @@ class MixtureOfExperts(nn.Module):
     num_experts: int
     expert_output_dim: int
 
-    # You could also type self.experts and self.gating_network here for completeness,
-    # though mypy might not require it if they are only set in setup.
-    # experts: List[Expert]
-    # gating_network: GatingNetwork
-
     def setup(self) -> None:
         """
         Initialize the experts and the gating network.
         This method is called by Flax automatically.
         """
         # List of Expert modules
-        # Using nn.scan or vmap can be more efficient for identical experts,
         self.experts = [Expert(num_outputs=self.expert_output_dim,
                                name=f"expert_{i}") for i in range(self.num_experts)]
         # Create the GatingNetwork module
@@ -103,7 +97,6 @@ class MixtureOfExperts(nn.Module):
         # Stacked expert_outputs shape: (batch_size, num_experts, expert_output_dim)
         stacked_expert_outputs = jnp.stack(expert_outputs, axis=1)
 
-        # 3. Combine expert outputs using the gating weights
         # We want to weight each expert's output for each item in the batch.
         # Gate weights shape:      (batch_size, num_experts)
         # Needs to be broadcast to: (batch_size, num_experts, expert_output_dim)
