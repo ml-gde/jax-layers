@@ -47,8 +47,9 @@ def apply_rotary_pos_emb(x: jnp.ndarray, cos_emb: jnp.ndarray, sin_emb: jnp.ndar
     return (x * cos_emb) + (rotate_half(x) * sin_emb)
 
 
-def precompute_rotary_embeddings(seq_len: int, head_dim: int,
-    base: float = 10000.0) -> tuple[jnp.ndarray, jnp.ndarray]:
+def precompute_rotary_embeddings(
+    seq_len: int, head_dim: int, base: float = 10000.0
+) -> tuple[jnp.ndarray, jnp.ndarray]:
     """Precomputes the RoPE cosine and sine embeddings.
 
     Args:
@@ -91,11 +92,11 @@ class RoPEMultiHeadAttention(nn.Module):
     rope_base: float = 10000.0
     dtype: jnp.dtype = jnp.float32
 
-    def setup(self) -> None: # Added -> None return type
+    def setup(self) -> None:  # Added -> None return type
         """Initializes the attention projections."""
         # Check head_dim validity early during setup
         if self.head_dim % 2 != 0:
-             raise ValueError(f"head_dim ({self.head_dim}) must be even for RoPE.")
+            raise ValueError(f"head_dim ({self.head_dim}) must be even for RoPE.")
 
         # Define layers here - they will be initialized when the module is first called
         total_head_dim = self.num_heads * self.head_dim
@@ -109,12 +110,11 @@ class RoPEMultiHeadAttention(nn.Module):
             features=total_head_dim, use_bias=False, dtype=self.dtype, name="value_proj"
         )
         self.output_proj = nn.Dense(
-            features=self.num_heads * self.head_dim, # Output should match embed_dim
+            features=self.num_heads * self.head_dim,  # Output should match embed_dim
             use_bias=False,
             dtype=self.dtype,
-            name="output_proj"
+            name="output_proj",
         )
-
 
     @nn.compact
     # Also using Optional for the mask type hint for clarity with None default
@@ -136,8 +136,7 @@ class RoPEMultiHeadAttention(nn.Module):
 
         if embed_dim != total_head_dim:
             raise ValueError(
-                f"embed_dim ({embed_dim}) must equal num_heads*head_dim"
-                f" ({total_head_dim})"
+                f"embed_dim ({embed_dim}) must equal num_heads*head_dim ({total_head_dim})"
             )
         # Note: head_dim even check moved to setup for earlier failure
 
@@ -159,7 +158,6 @@ class RoPEMultiHeadAttention(nn.Module):
         cos_emb = cos_emb.astype(self.dtype)
         sin_emb = sin_emb.astype(self.dtype)
 
-
         # 4. Apply RoPE to Query and Key
         query = apply_rotary_pos_emb(query, cos_emb, sin_emb)
         key = apply_rotary_pos_emb(key, cos_emb, sin_emb)
@@ -179,12 +177,12 @@ class RoPEMultiHeadAttention(nn.Module):
             # Standard Flax causal mask is boolean (True means mask)
             # nn.make_causal_mask returns (1, seq_len, seq_len) or (batch, 1, seq_len, seq_len)
             # Check if mask needs broadcasting or conversion
-            if mask.ndim == 2: # Likely (seq_len, seq_len)
-                 mask = mask[None, None, :, :] # -> (1, 1, seq_len, seq_len)
+            if mask.ndim == 2:  # Likely (seq_len, seq_len)
+                mask = mask[None, None, :, :]  # -> (1, 1, seq_len, seq_len)
             elif mask.ndim == 3 and mask.shape[1] != self.num_heads:
-                 # Likely (batch, seq_len, seq_len) or causal (1, sl, sl)
+                # Likely (batch, seq_len, seq_len) or causal (1, sl, sl)
                 mask = mask[:, None, :, :]
-                     # Assume (batch, seq_len, seq_len) -> (batch, 1, seq_len, seq_len)
+                # Assume (batch, seq_len, seq_len) -> (batch, 1, seq_len, seq_len)
 
             # Ensure mask is broadcastable to attn_scores shape
             mask_shape_expected = (batch_size, self.num_heads, seq_len, seq_len)
@@ -197,19 +195,17 @@ class RoPEMultiHeadAttention(nn.Module):
                  else:
                      raise ValueError(f"Mask shape {mask.shape} != exp shape {mask_shape_expected}")
 
-
             # Apply mask: Use large negative number where mask is True
             # (or where mask value is 0 if using 0/-inf convention)
             # Assuming boolean mask convention (True = mask) common in Flax examples
             # If using 0/-inf mask, the logic would be: attn_scores = attn_scores + mask
             attn_scores = jnp.where(mask, jnp.finfo(self.dtype).min, attn_scores)
 
-
         # Softmax to get attention weights
+        # Shape: (batch, num_heads, seq_len, seq_len)
         attn_weights = jax.nn.softmax(
             attn_scores, axis=-1
-        ).astype(self.dtype)  # Shape: (batch, num_heads, seq_len, seq_len)
-
+        ).astype(self.dtype)  
 
         # Apply attention weights to Value
         # Output per head: (batch, num_heads, seq_len, head_dim)
@@ -222,6 +218,7 @@ class RoPEMultiHeadAttention(nn.Module):
         attn_output = attn_output.reshape(batch_size, seq_len, total_head_dim)
 
         # Final linear projection
-        output = self.output_proj(attn_output) # Use self.output_proj defined in setup
+        output = self.output_proj(attn_output)  # Use self.output_proj defined in setup
+
 
         return output

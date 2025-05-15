@@ -122,6 +122,39 @@ params = attention.init(key, x)['params']
 output = attention.apply({'params': params}, x)
 ```
 
+### Mixture of Experts (Flax NNX)
+
+```python
+import jax
+import jax.numpy as jnp
+import flax.linen as nn
+from jaxgarden.functional.MoE import MixtureOfExperts
+
+# 1. Setup
+batch_size = 4
+input_dim = 10
+num_experts = 3
+expert_output_dim = 5
+key = jax.random.PRNGKey(0)
+dummy_input = jax.random.normal(key, (batch_size, input_dim))
+
+# 2. Instantiate Module
+moe_model = MixtureOfExperts(num_experts=num_experts, expert_output_dim=expert_output_dim)
+
+# 3. Initialize the model parameters (weights and biases)
+key, params_key = jax.random.split(key)
+params = moe_model.init(params_key, dummy_input)['params']
+
+print("Initialized MoE parameters:", jax.tree_util.tree_map(lambda x: x.shape, params))
+
+# 4. Apply Module (Forward Pass)
+output = moe_model.apply({'params': params}, dummy_input)
+
+print("\nInput shape:", dummy_input.shape)
+print("Output shape:", output.shape)
+```
+
+
 ### Functional API
 
 #### Dot Product Attention with Implementation Selection

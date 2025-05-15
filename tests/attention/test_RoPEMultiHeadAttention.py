@@ -65,7 +65,6 @@ def test_apply_rotary_pos_emb():
     assert not jnp.allclose(rotated_x, x)
 
 
-
 # --- Test RoPEMultiHeadAttention Module ---
 
 @pytest.mark.parametrize("dtype", [jnp.float32, jnp.bfloat16])
@@ -99,7 +98,8 @@ def test_rope_mha_masking():
 
     x = jax.random.normal(key, (batch_size, seq_len, embed_dim))
     # Create a causal mask (True means masked)
-    causal_mask = nn.make_causal_mask(x[:, :, 0]) # Gets (batch, seq, seq) or (1, seq, seq)
+    causal_mask = nn.make_causal_mask(x[:, :, 0])  
+    # Gets (batch, seq, seq) or (1, seq, seq)
 
     rope_mha = RoPEMultiHeadAttention(num_heads=num_heads, head_dim=head_dim)
     params = rope_mha.init(key, x, causal_mask)["params"]
@@ -126,11 +126,9 @@ def test_rope_mha_errors():
 
         rope_mha_odd_dim.init(key, x_dummy_odd)
 
-
     # Test with mismatched embed_dim (should raise error during forward pass / init)
-    rope_mha = RoPEMultiHeadAttention(num_heads=4, head_dim=8) # Expects embed_dim 32
-    x_mismatch = jax.random.normal(key, (2, 16, 100)) # Incorrect embed_dim
+    rope_mha = RoPEMultiHeadAttention(num_heads=4, head_dim=8)  # Expects embed_dim 32
+    x_mismatch = jax.random.normal(key, (2, 16, 100))  # Incorrect embed_dim
 
     with pytest.raises(ValueError, match=r"embed_dim \(\d+\) must equal"):
         rope_mha.init(key, x_mismatch)
-
