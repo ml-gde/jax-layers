@@ -170,8 +170,7 @@ class RoPEMultiHeadAttention(nn.Module):
         # 6. Scaled Dot-Product Attention
         # Attention scores: (batch, num_heads, seq_len, seq_len)
         attn_scores = jnp.matmul(query, key.transpose((0, 1, 3, 2))) / jnp.sqrt(
-            self.head_dim
-        ).astype(self.dtype)  # Ensure sqrt is correct dtype
+            self.head_dim).astype(self.dtype) # Ensure sqrt is correct dtype
 
         # Apply mask (if provided)
         if mask is not None:
@@ -188,17 +187,13 @@ class RoPEMultiHeadAttention(nn.Module):
             # Ensure mask is broadcastable to attn_scores shape
             mask_shape_expected = (batch_size, self.num_heads, seq_len, seq_len)
             if mask.shape != mask_shape_expected:
-                # Attempt broadcasting common causal mask shapes
-                if mask.shape == (1, 1, seq_len, seq_len) or mask.shape == (
-                    batch_size,
-                    1,
-                    seq_len,
-                    seq_len,
-                ):  # Causal mask for all batches/heads
-                    mask = jnp.broadcast_to(mask, mask_shape_expected)
-                # Add other broadcasting cases if needed
-                else:
-                    raise ValueError(f"Mask shape {mask.shape} != exp shape {mask_shape_expected}")
+                 # Attempt broadcasting common causal mask shapes
+                 if mask.shape == (1, 1, seq_len, seq_len) or mask.shape == (batch_size, 1,
+                        seq_len, seq_len): # Causal mask for all batches/heads
+                     mask = jnp.broadcast_to(mask, mask_shape_expected)
+                 # Add other broadcasting cases if needed
+                 else:
+                     raise ValueError(f"Mask shape {mask.shape} != exp shape {mask_shape_expected}")
 
             # Apply mask: Use large negative number where mask is True
             # (or where mask value is 0 if using 0/-inf convention)
@@ -207,9 +202,10 @@ class RoPEMultiHeadAttention(nn.Module):
             attn_scores = jnp.where(mask, jnp.finfo(self.dtype).min, attn_scores)
 
         # Softmax to get attention weights
-        attn_weights = jax.nn.softmax(attn_scores, axis=-1).astype(
-            self.dtype
-        )  # Shape: (batch, num_heads, seq_len, seq_len)
+        # Shape: (batch, num_heads, seq_len, seq_len)
+        attn_weights = jax.nn.softmax(
+            attn_scores, axis=-1
+        ).astype(self.dtype)  
 
         # Apply attention weights to Value
         # Output per head: (batch, num_heads, seq_len, head_dim)
@@ -223,5 +219,6 @@ class RoPEMultiHeadAttention(nn.Module):
 
         # Final linear projection
         output = self.output_proj(attn_output)  # Use self.output_proj defined in setup
+
 
         return output

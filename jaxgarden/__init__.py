@@ -3,6 +3,14 @@
 from jaxgarden.attention.multi_head_attention import MultiHeadAttention
 from jaxgarden.functional.attention import dot_product_attention
 from jaxgarden.models.base import BaseConfig, BaseModel
+from jaxgarden.models.gemma2 import (
+    Gemma2Attention,
+    Gemma2Config,
+    Gemma2ForCausalLM,
+    Gemma2MLP,
+    Gemma2RMSNorm,
+    Gemma2RotaryEmbedding,
+)
 from jaxgarden.models.generation_utils import GenerationMixin
 from jaxgarden.models.llama import (
     LlamaAttention,
@@ -27,9 +35,16 @@ __all__ = [
     # Base classes
     "BaseConfig",
     "BaseModel",
+    # Gemma Models
+    "Gemma2Attention",
+    "Gemma2Config",
+    "Gemma2ForCausalLM",
+    "Gemma2MLP",
+    "Gemma2RMSNorm",
+    "Gemma2RotaryEmbedding",
     # Mixins
     "GenerationMixin",
-    # Models
+    # Llama Models
     "LlamaAttention",
     "LlamaConfig",
     "LlamaForCausalLM",
