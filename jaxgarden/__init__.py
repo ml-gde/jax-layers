@@ -29,7 +29,7 @@ from jaxgarden.models.modernbert import (
     ModernBertLayer,
     ModernBertMLP,
 )
-from jaxgarden.tokenization import Tokenizer
+from jaxgarden.tokenization import Tokenizer  # type: ignore
 
 __all__ = [
     # Base classes
