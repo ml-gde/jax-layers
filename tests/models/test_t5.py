@@ -5,10 +5,12 @@ from flax import nnx
 from jaxgarden.models.t5 import (
     T5MLP,
     T5Attention,
+    T5Block,
     T5Config,
     T5CrossAttention,
     T5LayerNorm,
     T5SelfAttention,
+    T5Stack,
 )
 
 
@@ -100,4 +102,78 @@ def test_t5_cross_attention(hidden_size, dim_kv, dtype, masked):
     output = cross_attention(hidden_states, attention_mask=attention_mask)
 
     assert output.shape == (1, seq_len, hidden_size)
+    assert output.dtype == dtype
+
+
+@pytest.mark.parametrize(
+    ("hidden_size", "dim_kv", "dtype", "masked", "causal"),
+    [
+        (768, 64, jnp.float32, True, True),
+        (768, 64, jnp.float32, False, False),
+        (1024, 128, jnp.float16, True, False),
+        (1024, 128, jnp.float16, False, True),
+    ],
+)
+def test_t5_block(hidden_size, dim_kv, dtype, masked, causal):
+    # small sequence length for testing
+    seq_len = 128
+
+    config = T5Config(hidden_size=hidden_size, dim_kv=dim_kv, dtype=dtype)
+    block = T5Block(config=config, causal=causal, rngs=nnx.Rngs(0))
+
+    hidden_states = jnp.ones((1, seq_len, hidden_size))
+    attention_mask = jnp.ones((1, seq_len)) if masked else None
+
+    output = block(hidden_states, attention_mask=attention_mask, deterministic=True)
+
+    assert output.shape == (1, seq_len, hidden_size)
+    assert output.dtype == dtype
+
+
+@pytest.mark.parametrize("dtype", [jnp.float32, jnp.float16])
+@pytest.mark.parametrize("causal", [True, False])
+@pytest.mark.parametrize("masked", [True, False])
+@pytest.mark.parametrize("with_encoder", [True, False])
+def test_t5_stack(dtype, causal, masked, with_encoder):
+    hidden_size = 768
+    dim_kv = 64
+    vocab_size = 100
+    num_layers = 2
+    seq_len = 8
+    batch_size = 2
+
+    config = T5Config(hidden_size=hidden_size, dim_kv=dim_kv, dtype=dtype)
+    embed_tokens = nnx.Embed(
+        num_embeddings=vocab_size,
+        features=hidden_size,
+        dtype=dtype,
+        rngs=nnx.Rngs(0),
+    )
+    stack = T5Stack(
+        config=config,
+        embed_tokens=embed_tokens,
+        num_layers=num_layers,
+        causal=causal,
+        rngs=nnx.Rngs(0),
+    )
+
+    input_ids = jnp.ones((batch_size, seq_len), dtype=jnp.int32)
+    attention_mask = jnp.ones((batch_size, seq_len), dtype=dtype) if masked else None
+
+    encoder_hidden_states = (
+        jnp.ones((batch_size, seq_len, hidden_size), dtype=dtype) if with_encoder else None
+    )
+    encoder_attention_mask = (
+        jnp.ones((batch_size, seq_len), dtype=dtype) if (with_encoder and masked) else None
+    )
+
+    output = stack(
+        input_ids,
+        attention_mask=attention_mask,
+        encoder_hidden_states=encoder_hidden_states,
+        encoder_attention_mask=encoder_attention_mask,
+        deterministic=True,
+    )
+
+    assert output.shape == (batch_size, seq_len, hidden_size)
     assert output.dtype == dtype

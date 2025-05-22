@@ -1,4 +1,5 @@
 import typing
+from collections.abc import Callable
 from dataclasses import dataclass
 
 import flax.nnx as nnx
@@ -201,7 +202,7 @@ class T5Attention(nnx.Module):
             relative_buckets += (relative_position > 0) * num_buckets
             relative_position = jnp.abs(relative_position)
         else:
-            relative_position = -jnp.clip(relative_position, a_max=0)
+            relative_position = -jnp.clip(relative_position, max=0)
         # now relative_position is in the range [0, inf)
 
         # half of the buckets are for exact increments in positions
@@ -215,7 +216,7 @@ class T5Attention(nnx.Module):
             / jnp.log(max_distance / max_exact)
             * (num_buckets - max_exact)
         )
-        relative_position_if_large = jnp.clip(relative_position_if_large, a_max=num_buckets - 1)
+        relative_position_if_large = jnp.clip(relative_position_if_large, max=num_buckets - 1)
 
         relative_buckets += jnp.where(is_small, relative_position, relative_position_if_large)
         return relative_buckets.astype("i4")
@@ -376,11 +377,17 @@ class T5SelfAttention(nnx.Module):
         self,
         hidden_states: jnp.ndarray,
         attention_mask: jnp.ndarray | None = None,
+        key_value_states: jnp.ndarray | None = None,
+        position_bias: jnp.ndarray | None = None,
         deterministic: bool = True,
     ) -> jnp.ndarray:
         hidden_states = self.layer_norm(hidden_states)
         attn_output = self.attention(
-            hidden_states, attention_mask=attention_mask, deterministic=deterministic
+            hidden_states,
+            attention_mask=attention_mask,
+            key_value_states=key_value_states,
+            position_bias=position_bias,
+            deterministic=deterministic,
         )
         hidden_states = hidden_states + self.dropout(attn_output, deterministic=deterministic)
         return hidden_states.astype(self.config.dtype)
@@ -412,11 +419,215 @@ class T5CrossAttention(nnx.Module):
         self,
         hidden_states: jnp.ndarray,
         attention_mask: jnp.ndarray | None = None,
+        key_value_states: jnp.ndarray | None = None,
+        position_bias: jnp.ndarray | None = None,
         deterministic: bool = True,
     ) -> jnp.ndarray:
         hidden_states = self.layer_norm(hidden_states)
         attn_output = self.attention(
-            hidden_states, attention_mask=attention_mask, deterministic=deterministic
+            hidden_states,
+            attention_mask=attention_mask,
+            key_value_states=key_value_states,
+            position_bias=position_bias,
+            deterministic=deterministic,
         )
         hidden_states = hidden_states + self.dropout(attn_output, deterministic=deterministic)
         return hidden_states.astype(self.config.dtype)
+
+
+class T5Block(nnx.Module):
+    def __init__(
+        self,
+        config: T5Config,
+        causal: bool = True,
+        has_relative_attention_bias: bool = False,
+        *,
+        rngs: nnx.Rngs,
+    ):
+        self.config = config
+        self.causal = causal
+
+        self.layer: list[Callable] = [
+            T5SelfAttention(
+                config=config,
+                causal=causal,
+                has_relative_attention_bias=has_relative_attention_bias,
+                rngs=rngs,
+            )
+        ]
+        if self.causal:
+            self.layer.append(T5CrossAttention(config=config, rngs=rngs))
+
+        self.layer.append(
+            T5MLP(
+                dim=config.hidden_size,
+                intermediate_dim=config.intermediate_dim,
+                initializer_factor=config.initializer_factor,
+                dropout_rate=config.dropout_rate,
+                rngs=rngs,
+            )
+        )
+
+    def __call__(
+        self,
+        hidden_states: jnp.ndarray,
+        attention_mask: jnp.ndarray | None = None,
+        position_bias: jnp.ndarray | None = None,
+        encoder_hidden_states: jnp.ndarray | None = None,
+        encoder_attention_mask: jnp.ndarray | None = None,
+        encoder_decoder_position_bias: jnp.ndarray | None = None,
+        deterministic: bool = True,
+    ) -> jnp.ndarray:
+        hidden_states = self.layer[0](
+            hidden_states,
+            attention_mask=attention_mask,
+            position_bias=position_bias,
+            deterministic=deterministic,
+        )
+
+        do_cross_attn = self.causal and encoder_hidden_states is not None
+        if do_cross_attn:
+            hidden_states = self.layer[1](
+                hidden_states,
+                attention_mask=encoder_attention_mask,
+                key_value_states=encoder_hidden_states,
+                position_bias=encoder_decoder_position_bias,
+                deterministic=deterministic,
+            )
+
+        hidden_states = self.layer[-1](
+            hidden_states,
+            deterministic=deterministic,
+        )
+
+        return hidden_states.astype(self.config.dtype)
+
+
+class T5LayerCollection(nnx.Module):
+    def __init__(
+        self,
+        config: T5Config,
+        causal: bool = True,
+        has_relative_attention_bias: bool = False,
+        *,
+        rngs: nnx.Rngs,
+    ):
+        self.config = config
+        self.block = T5Block(
+            config=config,
+            causal=causal,
+            has_relative_attention_bias=has_relative_attention_bias,
+            rngs=rngs,
+        )
+
+    def __call__(
+        self,
+        hidden_states: jnp.ndarray,
+        attention_mask: jnp.ndarray | None = None,
+        position_bias: jnp.ndarray | None = None,
+        encoder_hidden_states: jnp.ndarray | None = None,
+        encoder_attention_mask: jnp.ndarray | None = None,
+        encoder_decoder_position_bias: jnp.ndarray | None = None,
+        deterministic: bool = True,
+    ) -> jnp.ndarray:
+        return self.block(
+            hidden_states,
+            attention_mask=attention_mask,
+            position_bias=position_bias,
+            encoder_hidden_states=encoder_hidden_states,
+            encoder_attention_mask=encoder_attention_mask,
+            encoder_decoder_position_bias=encoder_decoder_position_bias,
+            deterministic=deterministic,
+        )
+
+
+class T5BlockCollection(nnx.Module):
+    def __init__(
+        self,
+        config: T5Config,
+        num_layers: int,
+        causal: bool = True,
+        *,
+        rngs: nnx.Rngs,
+    ):
+        self.config = config
+        self.causal = causal
+        self.blocks = [
+            T5LayerCollection(
+                config=config,
+                causal=causal,
+                has_relative_attention_bias=(i == 0),
+                rngs=rngs,
+            )
+            for i in range(num_layers)
+        ]
+
+    def __call__(
+        self,
+        hidden_states: jnp.ndarray,
+        attention_mask: jnp.ndarray | None = None,
+        encoder_hidden_states: jnp.ndarray | None = None,
+        encoder_attention_mask: jnp.ndarray | None = None,
+        deterministic: bool = True,
+    ) -> jnp.ndarray:
+        position_bias = None
+        encoder_decoder_position_bias = None
+
+        for layer_module in self.blocks:
+            hidden_states = layer_module(
+                hidden_states,
+                attention_mask=attention_mask,
+                position_bias=position_bias,
+                encoder_hidden_states=encoder_hidden_states,
+                encoder_attention_mask=encoder_attention_mask,
+                encoder_decoder_position_bias=encoder_decoder_position_bias,
+                deterministic=deterministic,
+            )
+        return hidden_states
+
+
+class T5Stack(nnx.Module):
+    def __init__(
+        self,
+        config: T5Config,
+        embed_tokens: nnx.Embed,
+        num_layers: int,
+        causal: bool = True,
+        *,
+        rngs: nnx.Rngs,
+    ):
+        self.config = config
+        self.embed_tokens = embed_tokens
+        self.dropout = nnx.Dropout(rate=config.dropout_rate, rngs=rngs)
+        self.block = T5BlockCollection(
+            config=config,
+            num_layers=num_layers,
+            causal=causal,
+            rngs=rngs,
+        )
+        self.final_layer_norm = T5LayerNorm(
+            dim=config.hidden_size, eps=config.layer_norm_epsilon, dtype=config.dtype, rngs=rngs
+        )
+
+    def __call__(
+        self,
+        input_ids: jnp.ndarray,
+        attention_mask: jnp.ndarray | None = None,
+        encoder_hidden_states: jnp.ndarray | None = None,
+        encoder_attention_mask: jnp.ndarray | None = None,
+        deterministic: bool = True,
+    ) -> jnp.ndarray:
+        hidden_states = self.embed_tokens(input_ids)
+        hidden_states = self.dropout(hidden_states, deterministic=deterministic)
+
+        hidden_states = self.block(
+            hidden_states,
+            attention_mask=attention_mask,
+            encoder_hidden_states=encoder_hidden_states,
+            encoder_attention_mask=encoder_attention_mask,
+            deterministic=deterministic,
+        )
+
+        hidden_states = self.final_layer_norm(hidden_states)
+        hidden_states = self.dropout(hidden_states, deterministic=deterministic)
+        return hidden_states
