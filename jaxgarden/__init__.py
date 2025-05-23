@@ -29,9 +29,21 @@ from jaxgarden.models.modernbert import (
     ModernBertLayer,
     ModernBertMLP,
 )
-from jaxgarden.tokenization import Tokenizer
+from jaxgarden.models.t5 import (
+    T5MLP,
+    T5Attention,
+    T5Block,
+    T5Config,
+    T5CrossAttention,
+    T5ForCausalLM,
+    T5LayerNorm,
+    T5SelfAttention,
+    T5Stack,
+)
+from jaxgarden.tokenization import Tokenizer  # type: ignore
 
 __all__ = [
+    "T5MLP",
     # Base classes
     "BaseConfig",
     "BaseModel",
@@ -60,6 +72,15 @@ __all__ = [
     "ModernBertMLP",
     # Attention modules
     "MultiHeadAttention",
+    # T5 Models
+    "T5Attention",
+    "T5Block",
+    "T5Config",
+    "T5CrossAttention",
+    "T5ForCausalLM",
+    "T5LayerNorm",
+    "T5SelfAttention",
+    "T5Stack",
     # tokenization
     "Tokenizer",
     # Functional interfaces

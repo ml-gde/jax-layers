@@ -20,8 +20,8 @@
                 "python.linting.enabled": true,
                 "editor.formatOnSave": true,
                 "editor.codeActionsOnSave": {
-                    "source.organizeImports": "true",
-                    "source.fixAll": "true"
+                    "source.organizeImports": "always",
+                    "source.fixAll": "always"
                 },
                 "python.formatting.provider": "none",
                 "[python]": {

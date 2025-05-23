@@ -71,7 +71,7 @@ class BaseModel(nnx.Module):
     @property
     def state(self) -> nnx.State:
         """Splits state from the graph and returns it"""
-        return nnx.split(self, nnx.Param, ...)[1]
+        return nnx.split(self, nnx.Param, ...)[1]  # type: ignore
 
     @property
     def state_dict(self) -> dict[str, jnp.ndarray]:

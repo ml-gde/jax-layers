@@ -431,7 +431,7 @@ class LlamaTransformerBlock(nnx.Module):
         return x
 
 
-class LlamaForCausalLM(BaseModel, GenerationMixin):
+class LlamaForCausalLM(GenerationMixin, BaseModel):
     """LLama model for causal language modeling.
 
     This implements the full LLama model for generating text.
@@ -511,7 +511,7 @@ class LlamaForCausalLM(BaseModel, GenerationMixin):
         assert input_ids.shape[0] == 1, "Only batch size 1 is supported"
         print(input_ids.shape)
         position_ids = jnp.arange(input_ids.shape[-1])[None, :].astype(jnp.int32)
-        attention_mask = jnp.where(attention_mask, 0.0, -jnp.inf)[None, None, ...]
+        attention_mask = jnp.where(attention_mask, 0.0, -jnp.inf)[None, None, ...]  # type: ignore
         x = self.token_embed(input_ids)
         for layer in self.layers:
             x = layer(x, position_ids, attention_mask)

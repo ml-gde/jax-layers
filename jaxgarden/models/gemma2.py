@@ -422,7 +422,7 @@ class Gemma2DecoderLayer(nnx.Module):
 
 
 # 3. Main Model
-class Gemma2ForCausalLM(BaseModel, GenerationMixin):
+class Gemma2ForCausalLM(GenerationMixin, BaseModel):
     config: Gemma2Config  # This helps to fix a mypy issue
 
     def __init__(self, config: Gemma2Config, *, rngs: nnx.Rngs) -> None:
