@@ -1,3 +1,11 @@
+"""
+T5 model implementation in JAX using Flax NNX.
+
+This module implements the T5 architecture as described in Google's T5 series of models.
+
+See: https://jmlr.org/papers/volume21/20-074/20-074.pdf
+"""
+
 import typing
 from collections.abc import Callable, Iterator
 from dataclasses import dataclass
@@ -15,6 +23,31 @@ from jaxgarden.models.generation_utils import GenerationMixin
 
 @dataclass
 class T5Config(BaseConfig):
+    """
+    Configuration for T5 model.
+
+    This configuration class extends BaseConfig and contains all the parameters
+    required to initialize a T5 model. It includes settings for model architecture,
+    attention mechanisms, and other hyperparameters.
+
+    This default configuration is based on the original t5-base variant.
+
+    Attributes:
+        vocab_size: Size of vocabulary
+        hidden_size: Size of hidden states
+        dim_ff: Size of feed-forward layer
+        dim_kv: Size of key/value states
+        intermediate_dim: Size of intermediate layer
+        num_heads: Number of attention heads
+        num_layers: Number of layers
+        relative_attention_num_buckets: Number of buckets for relative attention
+        relative_attention_max_distance: Maximum distance for relative attention
+        initializer_factor: Factor for initializing weights
+        dropout_rate: Dropout rate
+        layer_norm_epsilon: Epsilon for layer normalization
+        dtype: Data type for the model
+    """
+
     vocab_size: int = 32128
     hidden_size: int = 768
     dim_ff: int = 3072
@@ -31,6 +64,10 @@ class T5Config(BaseConfig):
 
 
 class T5LayerNorm(nnx.Module):
+    """
+    LayerNorm module in the T5 style; No bias and no subtraction of mean.
+    """
+
     def __init__(
         self,
         dim: int,
