@@ -1,6 +1,7 @@
 import typing
-from collections.abc import Callable
+from collections.abc import Callable, Iterator
 from dataclasses import dataclass
+from typing import Any
 
 import flax.nnx as nnx
 import jax
@@ -8,16 +9,19 @@ import jax.numpy as jnp
 from flax.nnx import combine_masks, dot_product_attention, make_causal_mask
 from jax.typing import ArrayLike
 
-from jaxgarden.models.base import BaseConfig
+from jaxgarden.models.base import BaseConfig, BaseModel
+from jaxgarden.models.generation_utils import GenerationMixin
 
 
 @dataclass
 class T5Config(BaseConfig):
+    vocab_size: int = 32128
     hidden_size: int = 768
     dim_ff: int = 3072
     dim_kv: int = 64
     intermediate_dim: int = 4096
     num_heads: int = 12
+    num_layers: int = 12
     relative_attention_num_buckets: int = 32
     relative_attention_max_distance: int = 128
     initializer_factor: float = 1.0
@@ -37,7 +41,7 @@ class T5LayerNorm(nnx.Module):
     ):
         self.eps = eps
         self.dtype = dtype
-        self.weight = nnx.initializers.ones(rngs.params(), (dim,), dtype=dtype)
+        self.weight = nnx.Param(nnx.initializers.ones(rngs.params(), (dim,), dtype=dtype))
 
     def __call__(self, hidden_states: jnp.ndarray) -> jnp.ndarray:
         variance = jnp.power(hidden_states.astype(jnp.float32), 2).mean(axis=-1, keepdims=True)
@@ -631,3 +635,148 @@ class T5Stack(nnx.Module):
         hidden_states = self.final_layer_norm(hidden_states)
         hidden_states = self.dropout(hidden_states, deterministic=deterministic)
         return hidden_states
+
+
+class T5ForCausalLM(GenerationMixin, BaseModel):
+    config: T5Config
+
+    def __init__(self, config: T5Config, *, rngs: nnx.Rngs) -> None:
+        super().__init__(config, dtype=config.dtype, param_dtype=config.dtype, rngs=rngs)
+
+        self.shared = nnx.Embed(
+            num_embeddings=config.vocab_size,
+            features=config.hidden_size,
+            embedding_init=nnx.initializers.normal(stddev=config.initializer_factor),
+            dtype=config.dtype,
+            rngs=rngs,
+        )
+
+        self.encoder = T5Stack(
+            config=config,
+            embed_tokens=self.shared,
+            num_layers=config.num_layers,
+            causal=False,
+            rngs=rngs,
+        )
+
+        self.decoder = T5Stack(
+            config=config,
+            embed_tokens=self.shared,
+            num_layers=config.num_layers,
+            causal=True,
+            rngs=rngs,
+        )
+
+        self.lm_head = nnx.Linear(
+            in_features=config.hidden_size,
+            out_features=config.vocab_size,
+            kernel_init=nnx.initializers.normal(stddev=config.initializer_factor),
+            use_bias=False,
+            dtype=config.dtype,
+            rngs=rngs,
+        )
+
+    def __call__(
+        self,
+        input_ids: jnp.ndarray,
+        attention_mask: jnp.ndarray | None = None,
+        encoder_hidden_states: jnp.ndarray | None = None,
+        encoder_attention_mask: jnp.ndarray | None = None,
+        deterministic: bool = True,
+    ) -> jnp.ndarray:
+        encoder_hidden_states = self.encoder(
+            input_ids,
+            attention_mask=attention_mask,
+            deterministic=deterministic,
+        )
+
+        decoder_hidden_states = self.decoder(
+            input_ids,
+            attention_mask=attention_mask,
+            encoder_hidden_states=encoder_hidden_states,
+            encoder_attention_mask=encoder_attention_mask,
+            deterministic=deterministic,
+        )
+
+        logits = self.lm_head(decoder_hidden_states)
+        return logits
+
+    @typing.no_type_check
+    def convert_weights_from_hf(
+        self, state: nnx.State | dict[str, jnp.ndarray], weights: Iterator[tuple[Any, Any]]
+    ) -> None:
+        for wholekey, tensor in weights:
+            keys = wholekey.split(".")
+
+            # shared embedding
+            if keys[0] == "shared" and keys[1] == "embedding":
+                state["shared"].embedding.value = tensor
+                # Tie lm_head if needed
+                if "lm_head" in state:
+                    state["lm_head"].kernel.value = tensor.T
+                continue
+
+            # lm_head
+            if keys[0] == "lm_head" and keys[1] == "kernel":
+                state["lm_head"].kernel.value = tensor
+                continue
+
+            # Encoder/Decoder blocks
+            if keys[0] in ("encoder", "decoder") and keys[1] == "block":
+                block_type = keys[0]  # encoder or decoder
+                block_idx = int(keys[2])
+                layer_type = keys[
+                    4
+                ]  # 'SelfAttention', 'EncDecAttention', 'DenseReluDense', 'layer_norm'
+
+                if layer_type in ("SelfAttention", "EncDecAttention"):
+                    if keys[5] in ("q", "k", "v", "o"):
+                        proj = keys[5]
+                        state[block_type]["block"].blocks[block_idx].block.layer[
+                            0
+                        ].attention.__dict__[proj].kernel.value = tensor.T
+                    elif keys[5] == "relative_attention_bias":
+                        if hasattr(
+                            state[block_type]["block"].blocks[block_idx].block.layer[0].attention,
+                            "relative_attention_bias",
+                        ):
+                            state[block_type]["block"].blocks[block_idx].block.layer[
+                                0
+                            ].attention.relative_attention_bias.embedding.value = tensor
+                    continue
+
+                # CrossAttention (decoder only, layer[1])
+                if layer_type == "EncDecAttention":
+                    # CrossAttention is layer[1] in decoder block
+                    if keys[5] in ("q", "k", "v", "o"):
+                        proj = keys[5]
+                        state[block_type]["block"].blocks[block_idx].block.layer[
+                            1
+                        ].attention.__dict__[proj].kernel.value = tensor.T
+                    continue
+
+                # DenseReluDense (MLP)
+                if layer_type == "DenseReluDense":
+                    if keys[5] == "wi":
+                        state[block_type]["block"].blocks[block_idx].block.layer[
+                            -1
+                        ].input_dense.kernel.value = tensor.T
+                    elif keys[5] == "wo":
+                        state[block_type]["block"].blocks[block_idx].block.layer[
+                            -1
+                        ].output_dense.kernel.value = tensor.T
+                    continue
+
+                if layer_type == "layer_norm":
+                    ln_idx = int(keys[3])  # 0 for attn, 1 for mlp
+                    state[block_type]["block"].blocks[block_idx].block.layer[
+                        ln_idx
+                    ].layer_norm.weight.value = tensor
+                    continue
+
+            if keys[0] == "encoder" and keys[1] == "final_layer_norm":
+                state["encoder"]["final_layer_norm"].weight.value = tensor
+                continue
+            if keys[0] == "decoder" and keys[1] == "final_layer_norm":
+                state["decoder"]["final_layer_norm"].weight.value = tensor
+                continue

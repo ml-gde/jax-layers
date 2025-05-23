@@ -1,3 +1,4 @@
+import jax
 import jax.numpy as jnp
 import pytest
 from flax import nnx
@@ -8,10 +9,27 @@ from jaxgarden.models.t5 import (
     T5Block,
     T5Config,
     T5CrossAttention,
+    T5ForCausalLM,
     T5LayerNorm,
     T5SelfAttention,
     T5Stack,
 )
+
+
+@pytest.fixture(scope="module")
+def tiny_config():
+    return T5Config(
+        hidden_size=128,
+        dim_kv=64,
+        num_layers=2,
+        vocab_size=100,
+        dtype=jnp.float32,
+    )
+
+
+@pytest.fixture(scope="module")
+def dummy_rngs():
+    return nnx.Rngs(params=jax.random.PRNGKey(0))
 
 
 @pytest.mark.parametrize(("dim", "dtype"), [(1024, jnp.float32), (2048, jnp.float16)])
@@ -177,3 +195,21 @@ def test_t5_stack(dtype, causal, masked, with_encoder):
 
     assert output.shape == (batch_size, seq_len, hidden_size)
     assert output.dtype == dtype
+
+
+# --- Test Full Model ---
+def test_t5_for_causal_lm(tiny_config, dummy_rngs):
+    # small values for testing
+    seq_len = 8
+    batch = 2
+
+    model = T5ForCausalLM(config=tiny_config, rngs=dummy_rngs)
+
+    input_ids = jnp.ones((batch, seq_len), dtype=jnp.int32)
+    pos_ids = jnp.arange(seq_len)[None, :].repeat(batch, axis=0)
+    attn_mask = None
+
+    out = model(input_ids, pos_ids, attn_mask)
+
+    assert out.shape == (batch, seq_len, tiny_config.vocab_size)
+    assert out.dtype == tiny_config.dtype
