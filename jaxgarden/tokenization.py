@@ -60,32 +60,38 @@ class Tokenizer:
         self.chat_template = chat_template
 
         # --- Special Tokens ---
-        self.bos_token = (
-            bos_token
-            or self.hf_tokenizer.token_to_id("[BOS]")
-            or self.hf_tokenizer.token_to_id("<s>")
-        )  # Common BOS tokens
-        self.eos_token = (
-            eos_token
-            or self.hf_tokenizer.token_to_id("[EOS]")
-            or self.hf_tokenizer.token_to_id("</s>")
-        )  # Common EOS tokens
+        def _resolve_token(token, hf_tokenizer, fallback_names):
+            if token is not None:
+                if isinstance(token, int):
+                    return hf_tokenizer.id_to_token(token)
+                return token
+            # fallbacks
+            for name in fallback_names:
+                tid = hf_tokenizer.token_to_id(name)
+                if tid is not None:
+                    return name
+            return None
+
+        self.bos_token = _resolve_token(bos_token, self.hf_tokenizer, ["[BOS]", "<s>"])
+        self.eos_token = _resolve_token(eos_token, self.hf_tokenizer, ["[EOS]", "</s>"])
 
         # Padding token handling
-        if pad_token:
-            self.pad_token = pad_token
+        if pad_token is not None:
+            if isinstance(pad_token, int):
+                self.pad_token = self.hf_tokenizer.id_to_token(pad_token)
+            else:
+                self.pad_token = pad_token
         elif self.hf_tokenizer.padding and self.hf_tokenizer.padding.get("pad_token"):
             self.pad_token = self.hf_tokenizer.padding["pad_token"]
         elif self.eos_token:
             logger.warning("Using EOS token as pad token.")
             self.pad_token = self.eos_token
         else:
-            # Try finding a generic padding token or raise error
-            pad_tok = self.hf_tokenizer.token_to_id("[PAD]") or self.hf_tokenizer.token_to_id(
+            pad_tok_id = self.hf_tokenizer.token_to_id("[PAD]") or self.hf_tokenizer.token_to_id(
                 "<pad>"
             )
-            if pad_tok is not None:
-                self.pad_token = self.hf_tokenizer.id_to_token(pad_tok)
+            if pad_tok_id is not None:
+                self.pad_token = self.hf_tokenizer.id_to_token(pad_tok_id)
                 logger.warning(f"Using found token {self.pad_token} as pad token.")
             else:
                 raise ValueError(
@@ -93,11 +99,11 @@ class Tokenizer:
                 )
 
         # --- Special Token IDs ---
-        self.bos_token_id = (
-            self.hf_tokenizer.token_to_id(self.bos_token) if self.bos_token else None
-        )
         self.eos_token_id = (
             self.hf_tokenizer.token_to_id(self.eos_token) if self.eos_token else None
+        )
+        self.bos_token_id = (
+            self.hf_tokenizer.token_to_id(self.bos_token) if self.bos_token else None
         )
         self.pad_token_id = self.hf_tokenizer.token_to_id(self.pad_token)
 
