@@ -1,0 +1,860 @@
+
+
+<!DOCTYPE html>
+<html class="writer-html5" lang="en" data-content_root="../../../">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>jaxgarden.models.gemma3 &mdash; JAXgarden 0.1.0 documentation</title>
+      <link rel="stylesheet" type="text/css" href="../../../_static/pygments.css?v=b86133f3" />
+      <link rel="stylesheet" type="text/css" href="../../../_static/css/theme.css?v=e59714d7" />
+
+  
+      <script src="../../../_static/jquery.js?v=5d32c60e"></script>
+      <script src="../../../_static/_sphinx_javascript_frameworks_compat.js?v=2cd50e6c"></script>
+      <script src="../../../_static/documentation_options.js?v=01f34227"></script>
+      <script src="../../../_static/doctools.js?v=9bcbadda"></script>
+      <script src="../../../_static/sphinx_highlight.js?v=dc90522c"></script>
+    <script src="../../../_static/js/theme.js"></script>
+    <link rel="index" title="Index" href="../../../genindex.html" />
+    <link rel="search" title="Search" href="../../../search.html" /> 
+</head>
+
+<body class="wy-body-for-nav"> 
+  <div class="wy-grid-for-nav">
+    <nav data-toggle="wy-nav-shift" class="wy-nav-side">
+      <div class="wy-side-scroll">
+        <div class="wy-side-nav-search" >
+
+          
+          
+          <a href="../../../index.html" class="icon icon-home">
+            JAXgarden
+          </a>
+<div role="search">
+  <form id="rtd-search-form" class="wy-form" action="../../../search.html" method="get">
+    <input type="text" name="q" placeholder="Search docs" aria-label="Search docs" />
+    <input type="hidden" name="check_keywords" value="yes" />
+    <input type="hidden" name="area" value="default" />
+  </form>
+</div>
+        </div><div class="wy-menu wy-menu-vertical" data-spy="affix" role="navigation" aria-label="Navigation menu">
+              <p class="caption" role="heading"><span class="caption-text">Contents:</span></p>
+<ul>
+<li class="toctree-l1"><a class="reference internal" href="../../../modules/index.html">API Documentation</a></li>
+</ul>
+
+        </div>
+      </div>
+    </nav>
+
+    <section data-toggle="wy-nav-shift" class="wy-nav-content-wrap"><nav class="wy-nav-top" aria-label="Mobile navigation menu" >
+          <i data-toggle="wy-nav-top" class="fa fa-bars"></i>
+          <a href="../../../index.html">JAXgarden</a>
+      </nav>
+
+      <div class="wy-nav-content">
+        <div class="rst-content">
+          <div role="navigation" aria-label="Page navigation">
+  <ul class="wy-breadcrumbs">
+      <li><a href="../../../index.html" class="icon icon-home" aria-label="Home"></a></li>
+          <li class="breadcrumb-item"><a href="../../index.html">Module code</a></li>
+      <li class="breadcrumb-item active">jaxgarden.models.gemma3</li>
+      <li class="wy-breadcrumbs-aside">
+      </li>
+  </ul>
+  <hr/>
+</div>
+          <div role="main" class="document" itemscope="itemscope" itemtype="http://schema.org/Article">
+           <div itemprop="articleBody">
+             
+  <h1>Source code for jaxgarden.models.gemma3</h1><div class="highlight"><pre>
+<span></span><span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">Gemma 3 model implementation for JAXgarden, based on the implementation in Transformers&quot;&quot;&quot;</span>
+
+<span class="kn">from</span><span class="w"> </span><span class="nn">dataclasses</span><span class="w"> </span><span class="kn">import</span> <span class="n">dataclass</span><span class="p">,</span> <span class="n">field</span>
+<span class="kn">from</span><span class="w"> </span><span class="nn">typing</span><span class="w"> </span><span class="kn">import</span> <span class="n">Any</span>
+
+<span class="kn">import</span><span class="w"> </span><span class="nn">jax</span>
+<span class="kn">import</span><span class="w"> </span><span class="nn">jax.numpy</span><span class="w"> </span><span class="k">as</span><span class="w"> </span><span class="nn">jnp</span>
+<span class="kn">from</span><span class="w"> </span><span class="nn">flax</span><span class="w"> </span><span class="kn">import</span> <span class="n">nnx</span>
+
+<span class="kn">from</span><span class="w"> </span><span class="nn">jaxgarden.models.base</span><span class="w"> </span><span class="kn">import</span> <span class="n">BaseConfig</span><span class="p">,</span> <span class="n">BaseModel</span>
+<span class="kn">from</span><span class="w"> </span><span class="nn">jaxgarden.models.generation_utils</span><span class="w"> </span><span class="kn">import</span> <span class="n">GenerationMixin</span>
+
+
+<div class="viewcode-block" id="Gemma3Config">
+<a class="viewcode-back" href="../../../modules/index.html#jaxgarden.models.Gemma3Config">[docs]</a>
+<span class="nd">@dataclass</span>
+<span class="k">class</span><span class="w"> </span><span class="nc">Gemma3Config</span><span class="p">(</span><span class="n">BaseConfig</span><span class="p">):</span>
+<span class="w">    </span><span class="sd">&quot;&quot;&quot;Configuration for Gemma3 model.</span>
+
+<span class="sd">    This configuration class extends BaseConfig and contains all the parameters</span>
+<span class="sd">    required to initialize a Gemma3 model. It includes settings for model architecture,</span>
+<span class="sd">    attention mechanisms, and other hyperparameters.</span>
+
+<span class="sd">    Attributes:</span>
+<span class="sd">        vocab_size: Size of vocabulary</span>
+<span class="sd">        hidden_size: Size of hidden states</span>
+<span class="sd">        intermediate_size: Size of MLP intermediate layer</span>
+<span class="sd">        num_hidden_layers: Number of transformer layers</span>
+<span class="sd">        num_attention_heads: Number of attention heads</span>
+<span class="sd">        num_key_value_heads: Number of key/value heads (for group query attention)</span>
+<span class="sd">        head_dim: Dimension of each attention head</span>
+<span class="sd">        rms_norm_eps: Epsilon for RMS normalization</span>
+<span class="sd">        rope_theta: Base period for rotary position embeddings</span>
+<span class="sd">        rope_local_base_freq: Base frequency for RoPE in local attention</span>
+<span class="sd">        max_position_embeddings: Maximum sequence length that this model might ever be used with</span>
+<span class="sd">        initializer_range: Standard deviation for weight initialization</span>
+<span class="sd">        attention_bias: Whether to use bias in attention projections</span>
+<span class="sd">        attention_dropout: Dropout probability for attention weights</span>
+<span class="sd">        query_pre_attn_scalar: Scaling factor for attention scores before softmax</span>
+<span class="sd">        sliding_window: Size of sliding window for local attention</span>
+<span class="sd">        sliding_window_pattern: Pattern for alternating global/local attention (every N layers)</span>
+<span class="sd">        final_logit_soft_cap: Soft cap for final logits</span>
+<span class="sd">        attn_logit_soft_cap: Soft cap for attention logits</span>
+<span class="sd">        pad_token_id: ID of padding token</span>
+<span class="sd">        eos_token_id: ID of end-of-sequence token</span>
+<span class="sd">        bos_token_id: ID of beginning-of-sequence token</span>
+<span class="sd">        tie_word_embeddings: Whether to tie input and output embeddings</span>
+<span class="sd">        rope_scaling: Configuration for RoPE scaling</span>
+<span class="sd">        hidden_activation: Activation function in MLP</span>
+<span class="sd">        use_cache: Whether to use KV cache during generation</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+
+    <span class="n">vocab_size</span><span class="p">:</span> <span class="nb">int</span> <span class="o">=</span> <span class="mi">262_208</span>
+    <span class="n">hidden_size</span><span class="p">:</span> <span class="nb">int</span> <span class="o">=</span> <span class="mi">2304</span>
+    <span class="n">intermediate_size</span><span class="p">:</span> <span class="nb">int</span> <span class="o">=</span> <span class="mi">9216</span>
+    <span class="n">num_hidden_layers</span><span class="p">:</span> <span class="nb">int</span> <span class="o">=</span> <span class="mi">26</span>
+    <span class="n">num_attention_heads</span><span class="p">:</span> <span class="nb">int</span> <span class="o">=</span> <span class="mi">8</span>
+    <span class="n">num_key_value_heads</span><span class="p">:</span> <span class="nb">int</span> <span class="o">=</span> <span class="mi">4</span>
+    <span class="n">head_dim</span><span class="p">:</span> <span class="nb">int</span> <span class="o">=</span> <span class="mi">256</span>
+    <span class="n">rms_norm_eps</span><span class="p">:</span> <span class="nb">float</span> <span class="o">=</span> <span class="mf">1e-6</span>
+    <span class="n">rope_theta</span><span class="p">:</span> <span class="nb">float</span> <span class="o">=</span> <span class="mf">1_000_000.0</span>
+    <span class="n">rope_local_base_freq</span><span class="p">:</span> <span class="nb">float</span> <span class="o">=</span> <span class="mf">10_000.0</span>
+    <span class="n">max_position_embeddings</span><span class="p">:</span> <span class="nb">int</span> <span class="o">=</span> <span class="mi">131_072</span>
+    <span class="n">initializer_range</span><span class="p">:</span> <span class="nb">float</span> <span class="o">=</span> <span class="mf">0.02</span>
+    <span class="n">attention_bias</span><span class="p">:</span> <span class="nb">bool</span> <span class="o">=</span> <span class="kc">False</span>
+    <span class="n">attention_dropout</span><span class="p">:</span> <span class="nb">float</span> <span class="o">=</span> <span class="mf">0.0</span>
+    <span class="n">query_pre_attn_scalar</span><span class="p">:</span> <span class="nb">float</span> <span class="o">=</span> <span class="mf">256.0</span>
+    <span class="n">sliding_window</span><span class="p">:</span> <span class="nb">int</span> <span class="o">=</span> <span class="mi">4096</span>
+    <span class="n">sliding_window_pattern</span><span class="p">:</span> <span class="nb">int</span> <span class="o">=</span> <span class="mi">6</span>
+    <span class="n">final_logit_soft_cap</span><span class="p">:</span> <span class="nb">float</span> <span class="o">|</span> <span class="kc">None</span> <span class="o">=</span> <span class="kc">None</span>
+    <span class="n">attn_logit_soft_cap</span><span class="p">:</span> <span class="nb">float</span> <span class="o">|</span> <span class="kc">None</span> <span class="o">=</span> <span class="kc">None</span>
+    <span class="n">pad_token_id</span><span class="p">:</span> <span class="nb">int</span> <span class="o">=</span> <span class="mi">0</span>
+    <span class="n">eos_token_id</span><span class="p">:</span> <span class="nb">int</span> <span class="o">=</span> <span class="mi">1</span>
+    <span class="n">bos_token_id</span><span class="p">:</span> <span class="nb">int</span> <span class="o">=</span> <span class="mi">2</span>
+    <span class="n">tie_word_embeddings</span><span class="p">:</span> <span class="nb">bool</span> <span class="o">=</span> <span class="kc">True</span>
+    <span class="n">rope_scaling</span><span class="p">:</span> <span class="nb">dict</span><span class="p">[</span><span class="nb">str</span><span class="p">,</span> <span class="n">Any</span><span class="p">]</span> <span class="o">|</span> <span class="kc">None</span> <span class="o">=</span> <span class="kc">None</span>
+    <span class="n">hidden_activation</span><span class="p">:</span> <span class="nb">str</span> <span class="o">=</span> <span class="s2">&quot;gelu_pytorch_tanh&quot;</span>
+    <span class="n">use_cache</span><span class="p">:</span> <span class="nb">bool</span> <span class="o">=</span> <span class="kc">True</span>
+    <span class="n">param_dtype</span><span class="p">:</span> <span class="n">Any</span> <span class="o">=</span> <span class="n">field</span><span class="p">(</span><span class="n">default</span><span class="o">=</span><span class="n">jnp</span><span class="o">.</span><span class="n">bfloat16</span><span class="p">,</span> <span class="n">metadata</span><span class="o">=</span><span class="p">{</span><span class="s2">&quot;dtype&quot;</span><span class="p">:</span> <span class="kc">True</span><span class="p">})</span>
+    <span class="n">dtype</span><span class="p">:</span> <span class="n">Any</span> <span class="o">=</span> <span class="n">field</span><span class="p">(</span><span class="n">default</span><span class="o">=</span><span class="n">jnp</span><span class="o">.</span><span class="n">bfloat16</span><span class="p">,</span> <span class="n">metadata</span><span class="o">=</span><span class="p">{</span><span class="s2">&quot;dtype&quot;</span><span class="p">:</span> <span class="kc">True</span><span class="p">})</span>
+
+    <span class="k">def</span><span class="w"> </span><span class="nf">__post_init__</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="kc">None</span><span class="p">:</span>
+        <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">num_key_value_heads</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">num_key_value_heads</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">num_attention_heads</span> <span class="o">//</span> <span class="mi">2</span>
+        <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">head_dim</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">head_dim</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">hidden_size</span> <span class="o">//</span> <span class="bp">self</span><span class="o">.</span><span class="n">num_attention_heads</span>
+        <span class="k">assert</span> <span class="bp">self</span><span class="o">.</span><span class="n">num_attention_heads</span> <span class="o">%</span> <span class="bp">self</span><span class="o">.</span><span class="n">num_key_value_heads</span> <span class="o">==</span> <span class="mi">0</span><span class="p">,</span> <span class="p">(</span>
+            <span class="s2">&quot;GQA: num_attention_heads must be divisible by num_key_value_heads&quot;</span>
+        <span class="p">)</span>
+
+        <span class="c1"># Validate RoPE scaling config if provided</span>
+        <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">rope_scaling</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span><span class="p">:</span>
+            <span class="n">rope_type</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">rope_scaling</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s2">&quot;rope_type&quot;</span><span class="p">,</span> <span class="s2">&quot;default&quot;</span><span class="p">)</span>
+            <span class="k">if</span> <span class="n">rope_type</span> <span class="ow">not</span> <span class="ow">in</span> <span class="p">[</span><span class="s2">&quot;default&quot;</span><span class="p">,</span> <span class="s2">&quot;linear&quot;</span><span class="p">,</span> <span class="s2">&quot;dynamic&quot;</span><span class="p">,</span> <span class="s2">&quot;yarn&quot;</span><span class="p">,</span> <span class="s2">&quot;longrope&quot;</span><span class="p">,</span> <span class="s2">&quot;llama3&quot;</span><span class="p">]:</span>
+                <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;Unknown RoPE scaling type: </span><span class="si">{</span><span class="n">rope_type</span><span class="si">}</span><span class="s2">&quot;</span><span class="p">)</span>
+
+            <span class="k">if</span> <span class="n">rope_type</span> <span class="o">!=</span> <span class="s2">&quot;default&quot;</span> <span class="ow">and</span> <span class="s2">&quot;factor&quot;</span> <span class="ow">not</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">rope_scaling</span><span class="p">:</span>
+                <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;RoPE scaling type </span><span class="si">{</span><span class="n">rope_type</span><span class="si">}</span><span class="s2"> requires &#39;factor&#39; parameter&quot;</span><span class="p">)</span>
+
+            <span class="k">if</span> <span class="p">(</span>
+                <span class="n">rope_type</span> <span class="ow">in</span> <span class="p">[</span><span class="s2">&quot;dynamic&quot;</span><span class="p">,</span> <span class="s2">&quot;longrope&quot;</span><span class="p">,</span> <span class="s2">&quot;llama3&quot;</span><span class="p">]</span>
+                <span class="ow">and</span> <span class="s2">&quot;original_max_position_embeddings&quot;</span> <span class="ow">not</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">rope_scaling</span>
+            <span class="p">):</span>
+                <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span>
+                    <span class="sa">f</span><span class="s2">&quot;RoPE scaling type </span><span class="si">{</span><span class="n">rope_type</span><span class="si">}</span><span class="s2"> requires &quot;</span>
+                    <span class="o">+</span> <span class="s2">&quot;&#39;original_max_position_embeddings&#39; parameter&quot;</span>
+                <span class="p">)</span>
+
+            <span class="k">if</span> <span class="n">rope_type</span> <span class="o">==</span> <span class="s2">&quot;yarn&quot;</span><span class="p">:</span>
+                <span class="bp">self</span><span class="o">.</span><span class="n">rope_scaling</span><span class="o">.</span><span class="n">setdefault</span><span class="p">(</span><span class="s2">&quot;beta_fast&quot;</span><span class="p">,</span> <span class="mf">32.0</span><span class="p">)</span>
+                <span class="bp">self</span><span class="o">.</span><span class="n">rope_scaling</span><span class="o">.</span><span class="n">setdefault</span><span class="p">(</span><span class="s2">&quot;beta_slow&quot;</span><span class="p">,</span> <span class="mf">1.0</span><span class="p">)</span>
+
+            <span class="k">if</span> <span class="n">rope_type</span> <span class="o">==</span> <span class="s2">&quot;longrope&quot;</span><span class="p">:</span>
+                <span class="n">head_dim</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">head_dim</span> <span class="o">//</span> <span class="mi">2</span>  <span class="c1"># RoPE applies to half of head dim</span>
+                <span class="k">if</span> <span class="p">(</span>
+                    <span class="s2">&quot;short_factor&quot;</span> <span class="ow">not</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">rope_scaling</span>
+                    <span class="ow">or</span> <span class="s2">&quot;long_factor&quot;</span> <span class="ow">not</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">rope_scaling</span>
+                <span class="p">):</span>
+                    <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span>
+                        <span class="s2">&quot;LongRoPE requires both &#39;short_factor&#39; and &#39;long_factor&#39; lists&quot;</span>
+                    <span class="p">)</span>
+                <span class="k">if</span> <span class="nb">len</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">rope_scaling</span><span class="p">[</span><span class="s2">&quot;short_factor&quot;</span><span class="p">])</span> <span class="o">!=</span> <span class="n">head_dim</span><span class="p">:</span>
+                    <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span>
+                        <span class="sa">f</span><span class="s2">&quot;LongRoPE short_factor length </span><span class="si">{</span><span class="nb">len</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">rope_scaling</span><span class="p">[</span><span class="s1">&#39;short_factor&#39;</span><span class="p">])</span><span class="si">}</span><span class="s2"> &quot;</span>
+                        <span class="sa">f</span><span class="s2">&quot;does not match head_dim/2 </span><span class="si">{</span><span class="n">head_dim</span><span class="si">}</span><span class="s2">&quot;</span>
+                    <span class="p">)</span>
+                <span class="k">if</span> <span class="nb">len</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">rope_scaling</span><span class="p">[</span><span class="s2">&quot;long_factor&quot;</span><span class="p">])</span> <span class="o">!=</span> <span class="n">head_dim</span><span class="p">:</span>
+                    <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span>
+                        <span class="sa">f</span><span class="s2">&quot;LongRoPE long_factor length </span><span class="si">{</span><span class="nb">len</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">rope_scaling</span><span class="p">[</span><span class="s1">&#39;long_factor&#39;</span><span class="p">])</span><span class="si">}</span><span class="s2"> &quot;</span>
+                        <span class="sa">f</span><span class="s2">&quot;does not match head_dim/2 </span><span class="si">{</span><span class="n">head_dim</span><span class="si">}</span><span class="s2">&quot;</span>
+                    <span class="p">)</span>
+
+            <span class="k">if</span> <span class="n">rope_type</span> <span class="o">==</span> <span class="s2">&quot;llama3&quot;</span><span class="p">:</span>
+                <span class="k">if</span> <span class="s2">&quot;low_freq_factor&quot;</span> <span class="ow">not</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">rope_scaling</span><span class="p">:</span>
+                    <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span><span class="s2">&quot;Llama3 RoPE requires &#39;low_freq_factor&#39; parameter&quot;</span><span class="p">)</span>
+                <span class="k">if</span> <span class="s2">&quot;high_freq_factor&quot;</span> <span class="ow">not</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">rope_scaling</span><span class="p">:</span>
+                    <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span><span class="s2">&quot;Llama3 RoPE requires &#39;high_freq_factor&#39; parameter&quot;</span><span class="p">)</span>
+
+        <span class="c1"># Generate layer types based on sliding window pattern</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">layer_types</span> <span class="o">=</span> <span class="p">[</span>
+            <span class="s2">&quot;sliding_attention&quot;</span> <span class="k">if</span> <span class="nb">bool</span><span class="p">((</span><span class="n">i</span> <span class="o">+</span> <span class="mi">1</span><span class="p">)</span> <span class="o">%</span> <span class="bp">self</span><span class="o">.</span><span class="n">sliding_window_pattern</span><span class="p">)</span> <span class="k">else</span> <span class="s2">&quot;full_attention&quot;</span>
+            <span class="k">for</span> <span class="n">i</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">num_hidden_layers</span><span class="p">)</span>
+        <span class="p">]</span></div>
+
+
+
+<div class="viewcode-block" id="Gemma3RMSNorm">
+<a class="viewcode-back" href="../../../modules/index.html#jaxgarden.models.Gemma3RMSNorm">[docs]</a>
+<span class="k">class</span><span class="w"> </span><span class="nc">Gemma3RMSNorm</span><span class="p">(</span><span class="n">nnx</span><span class="o">.</span><span class="n">Module</span><span class="p">):</span>
+<span class="w">    </span><span class="sd">&quot;&quot;&quot;Root Mean Square Layer Normalization.</span>
+
+<span class="sd">    This implementation follows the RMSNorm implementation in Transformers.</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+
+    <span class="k">def</span><span class="w"> </span><span class="fm">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">dim</span><span class="p">:</span> <span class="nb">int</span><span class="p">,</span> <span class="o">*</span><span class="p">,</span> <span class="n">eps</span><span class="p">:</span> <span class="nb">float</span> <span class="o">=</span> <span class="mf">1e-6</span><span class="p">,</span> <span class="n">rngs</span><span class="p">:</span> <span class="n">nnx</span><span class="o">.</span><span class="n">Rngs</span><span class="p">):</span>
+        <span class="nb">super</span><span class="p">()</span><span class="o">.</span><span class="fm">__init__</span><span class="p">()</span>
+        <span class="c1"># Initialize weight/scale parameter to zeros, following the (1 + scale) pattern</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">weight</span> <span class="o">=</span> <span class="n">nnx</span><span class="o">.</span><span class="n">Param</span><span class="p">(</span><span class="n">jnp</span><span class="o">.</span><span class="n">zeros</span><span class="p">((</span><span class="n">dim</span><span class="p">,),</span> <span class="n">dtype</span><span class="o">=</span><span class="n">jnp</span><span class="o">.</span><span class="n">bfloat16</span><span class="p">))</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">eps</span> <span class="o">=</span> <span class="n">eps</span>
+
+    <span class="nd">@nnx</span><span class="o">.</span><span class="n">jit</span><span class="p">()</span>
+    <span class="k">def</span><span class="w"> </span><span class="fm">__call__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">x</span><span class="p">:</span> <span class="n">jnp</span><span class="o">.</span><span class="n">ndarray</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">jnp</span><span class="o">.</span><span class="n">ndarray</span><span class="p">:</span>
+        <span class="n">orig_dtype</span> <span class="o">=</span> <span class="n">x</span><span class="o">.</span><span class="n">dtype</span>
+        <span class="n">x_f32</span> <span class="o">=</span> <span class="n">x</span><span class="o">.</span><span class="n">astype</span><span class="p">(</span><span class="n">jnp</span><span class="o">.</span><span class="n">float32</span><span class="p">)</span>
+        <span class="n">variance</span> <span class="o">=</span> <span class="n">jnp</span><span class="o">.</span><span class="n">mean</span><span class="p">(</span><span class="n">jnp</span><span class="o">.</span><span class="n">square</span><span class="p">(</span><span class="n">x_f32</span><span class="p">),</span> <span class="n">axis</span><span class="o">=-</span><span class="mi">1</span><span class="p">,</span> <span class="n">keepdims</span><span class="o">=</span><span class="kc">True</span><span class="p">)</span>
+        <span class="n">x_norm</span> <span class="o">=</span> <span class="n">x_f32</span> <span class="o">*</span> <span class="n">jax</span><span class="o">.</span><span class="n">lax</span><span class="o">.</span><span class="n">rsqrt</span><span class="p">(</span><span class="n">variance</span> <span class="o">+</span> <span class="bp">self</span><span class="o">.</span><span class="n">eps</span><span class="p">)</span>
+
+        <span class="c1"># Reshape weight to match rank of x_norm for explicit broadcasting</span>
+        <span class="n">weight_f32</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">weight</span><span class="o">.</span><span class="n">astype</span><span class="p">(</span><span class="n">jnp</span><span class="o">.</span><span class="n">float32</span><span class="p">)</span>
+        <span class="n">reshaped_weight</span> <span class="o">=</span> <span class="n">jnp</span><span class="o">.</span><span class="n">expand_dims</span><span class="p">(</span><span class="n">weight_f32</span><span class="p">,</span> <span class="n">axis</span><span class="o">=</span><span class="nb">range</span><span class="p">(</span><span class="n">x_norm</span><span class="o">.</span><span class="n">ndim</span> <span class="o">-</span> <span class="mi">1</span><span class="p">))</span>
+
+        <span class="c1"># Apply scale as (1 + weight)</span>
+        <span class="n">scaled_x</span> <span class="o">=</span> <span class="n">x_norm</span> <span class="o">*</span> <span class="p">(</span><span class="mi">1</span> <span class="o">+</span> <span class="n">reshaped_weight</span><span class="p">)</span>
+        <span class="k">return</span> <span class="n">scaled_x</span><span class="o">.</span><span class="n">astype</span><span class="p">(</span><span class="n">orig_dtype</span><span class="p">)</span></div>
+
+
+
+<div class="viewcode-block" id="Gemma3RotaryEmbedding">
+<a class="viewcode-back" href="../../../modules/index.html#jaxgarden.models.Gemma3RotaryEmbedding">[docs]</a>
+<span class="k">class</span><span class="w"> </span><span class="nc">Gemma3RotaryEmbedding</span><span class="p">(</span><span class="n">nnx</span><span class="o">.</span><span class="n">Module</span><span class="p">):</span>
+<span class="w">    </span><span class="sd">&quot;&quot;&quot;Applies Rotary Position Embedding (RoPE) to input tensors.&quot;&quot;&quot;</span>
+
+    <span class="k">def</span><span class="w"> </span><span class="fm">__init__</span><span class="p">(</span>
+        <span class="bp">self</span><span class="p">,</span>
+        <span class="n">dim</span><span class="p">:</span> <span class="nb">int</span><span class="p">,</span>
+        <span class="n">max_position_embeddings</span><span class="p">:</span> <span class="nb">int</span> <span class="o">=</span> <span class="mi">8192</span><span class="p">,</span>  <span class="c1"># Default from Gemma3</span>
+        <span class="n">theta</span><span class="p">:</span> <span class="nb">float</span> <span class="o">=</span> <span class="mf">10000.0</span><span class="p">,</span>
+        <span class="n">rope_scaling</span><span class="p">:</span> <span class="nb">dict</span><span class="p">[</span><span class="nb">str</span><span class="p">,</span> <span class="n">Any</span><span class="p">]</span> <span class="o">|</span> <span class="kc">None</span> <span class="o">=</span> <span class="kc">None</span><span class="p">,</span>
+        <span class="n">is_local_attention</span><span class="p">:</span> <span class="nb">bool</span> <span class="o">=</span> <span class="kc">False</span><span class="p">,</span>
+    <span class="p">):</span>
+        <span class="nb">super</span><span class="p">()</span><span class="o">.</span><span class="fm">__init__</span><span class="p">()</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">dim</span> <span class="o">=</span> <span class="n">dim</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">max_position_embeddings</span> <span class="o">=</span> <span class="n">max_position_embeddings</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">theta</span> <span class="o">=</span> <span class="n">theta</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">rope_scaling</span> <span class="o">=</span> <span class="n">rope_scaling</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">is_local_attention</span> <span class="o">=</span> <span class="n">is_local_attention</span>
+
+        <span class="c1"># Precompute inverse frequency</span>
+        <span class="k">if</span> <span class="n">rope_scaling</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span> <span class="ow">and</span> <span class="n">rope_scaling</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s2">&quot;rope_type&quot;</span><span class="p">)</span> <span class="o">==</span> <span class="s2">&quot;llama3&quot;</span><span class="p">:</span>
+            <span class="c1"># Llama3 RoPE uses separate scaling for low and high frequencies</span>
+            <span class="n">low_freq_factor</span> <span class="o">=</span> <span class="n">rope_scaling</span><span class="p">[</span><span class="s2">&quot;low_freq_factor&quot;</span><span class="p">]</span>
+            <span class="n">high_freq_factor</span> <span class="o">=</span> <span class="n">rope_scaling</span><span class="p">[</span><span class="s2">&quot;high_freq_factor&quot;</span><span class="p">]</span>
+            <span class="n">half_dim</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">dim</span> <span class="o">//</span> <span class="mi">2</span>
+            <span class="n">quarter_dim</span> <span class="o">=</span> <span class="n">half_dim</span> <span class="o">//</span> <span class="mi">2</span>
+            <span class="c1"># First quarter: low frequency</span>
+            <span class="n">inv_freq_low</span> <span class="o">=</span> <span class="mf">1.0</span> <span class="o">/</span> <span class="p">(</span>
+                <span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">theta</span> <span class="o">**</span> <span class="p">(</span><span class="n">jnp</span><span class="o">.</span><span class="n">arange</span><span class="p">(</span><span class="mi">0</span><span class="p">,</span> <span class="n">quarter_dim</span><span class="p">,</span> <span class="n">dtype</span><span class="o">=</span><span class="n">jnp</span><span class="o">.</span><span class="n">float32</span><span class="p">)</span> <span class="o">/</span> <span class="n">quarter_dim</span><span class="p">))</span>
+                <span class="o">*</span> <span class="n">low_freq_factor</span>
+            <span class="p">)</span>
+            <span class="c1"># Second quarter: high frequency</span>
+            <span class="n">inv_freq_high</span> <span class="o">=</span> <span class="mf">1.0</span> <span class="o">/</span> <span class="p">(</span>
+                <span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">theta</span> <span class="o">**</span> <span class="p">(</span><span class="n">jnp</span><span class="o">.</span><span class="n">arange</span><span class="p">(</span><span class="mi">0</span><span class="p">,</span> <span class="n">quarter_dim</span><span class="p">,</span> <span class="n">dtype</span><span class="o">=</span><span class="n">jnp</span><span class="o">.</span><span class="n">float32</span><span class="p">)</span> <span class="o">/</span> <span class="n">quarter_dim</span><span class="p">))</span>
+                <span class="o">*</span> <span class="n">high_freq_factor</span>
+            <span class="p">)</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">inv_freq</span> <span class="o">=</span> <span class="n">jnp</span><span class="o">.</span><span class="n">concatenate</span><span class="p">([</span><span class="n">inv_freq_low</span><span class="p">,</span> <span class="n">inv_freq_high</span><span class="p">])</span>
+        <span class="k">else</span><span class="p">:</span>
+            <span class="c1"># Default RoPE or other scaling types</span>
+            <span class="n">base_freq</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">theta</span>
+            <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">is_local_attention</span><span class="p">:</span>
+                <span class="n">base_freq</span> <span class="o">=</span> <span class="mf">10000.0</span>  <span class="c1"># Local attention uses fixed base frequency</span>
+
+            <span class="k">if</span> <span class="n">rope_scaling</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span><span class="p">:</span>
+                <span class="n">rope_type</span> <span class="o">=</span> <span class="n">rope_scaling</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s2">&quot;rope_type&quot;</span><span class="p">,</span> <span class="s2">&quot;default&quot;</span><span class="p">)</span>
+                <span class="k">if</span> <span class="n">rope_type</span> <span class="o">!=</span> <span class="s2">&quot;default&quot;</span><span class="p">:</span>
+                    <span class="n">scaling_factor</span> <span class="o">=</span> <span class="n">rope_scaling</span><span class="p">[</span><span class="s2">&quot;factor&quot;</span><span class="p">]</span>
+                    <span class="k">if</span> <span class="n">rope_type</span> <span class="o">==</span> <span class="s2">&quot;linear&quot;</span><span class="p">:</span>
+                        <span class="n">base_freq</span> <span class="o">=</span> <span class="n">base_freq</span> <span class="o">*</span> <span class="n">scaling_factor</span>
+                    <span class="k">elif</span> <span class="n">rope_type</span> <span class="o">==</span> <span class="s2">&quot;dynamic&quot;</span><span class="p">:</span>
+                        <span class="n">orig_max_pos</span> <span class="o">=</span> <span class="n">rope_scaling</span><span class="p">[</span><span class="s2">&quot;original_max_position_embeddings&quot;</span><span class="p">]</span>
+                        <span class="n">base_freq</span> <span class="o">=</span> <span class="n">base_freq</span> <span class="o">*</span> <span class="p">(</span><span class="n">orig_max_pos</span> <span class="o">/</span> <span class="n">max_position_embeddings</span><span class="p">)</span>
+                    <span class="k">elif</span> <span class="n">rope_type</span> <span class="o">==</span> <span class="s2">&quot;yarn&quot;</span><span class="p">:</span>
+                        <span class="c1"># YARN (Yet Another RoPE extensioN)</span>
+                        <span class="n">beta_fast</span> <span class="o">=</span> <span class="n">rope_scaling</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s2">&quot;beta_fast&quot;</span><span class="p">,</span> <span class="mf">32.0</span><span class="p">)</span>
+                        <span class="n">beta_slow</span> <span class="o">=</span> <span class="n">rope_scaling</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s2">&quot;beta_slow&quot;</span><span class="p">,</span> <span class="mf">1.0</span><span class="p">)</span>
+                        <span class="n">pos_ratio</span> <span class="o">=</span> <span class="p">(</span>
+                            <span class="n">max_position_embeddings</span>
+                            <span class="o">/</span> <span class="n">rope_scaling</span><span class="p">[</span><span class="s2">&quot;original_max_position_embeddings&quot;</span><span class="p">]</span>
+                        <span class="p">)</span>
+                        <span class="n">alpha</span> <span class="o">=</span> <span class="p">(</span><span class="n">pos_ratio</span> <span class="o">-</span> <span class="mi">1</span><span class="p">)</span> <span class="o">/</span> <span class="p">(</span><span class="n">beta_fast</span> <span class="o">*</span> <span class="n">pos_ratio</span><span class="p">)</span>
+                        <span class="n">base_freq</span> <span class="o">=</span> <span class="n">base_freq</span> <span class="o">*</span> <span class="p">(</span><span class="mi">1</span> <span class="o">/</span> <span class="p">(</span><span class="mi">1</span> <span class="o">+</span> <span class="n">alpha</span> <span class="o">*</span> <span class="n">beta_slow</span><span class="p">))</span>
+
+            <span class="bp">self</span><span class="o">.</span><span class="n">inv_freq</span> <span class="o">=</span> <span class="mf">1.0</span> <span class="o">/</span> <span class="p">(</span>
+                <span class="n">base_freq</span> <span class="o">**</span> <span class="p">(</span><span class="n">jnp</span><span class="o">.</span><span class="n">arange</span><span class="p">(</span><span class="mi">0</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">dim</span><span class="p">,</span> <span class="mi">2</span><span class="p">,</span> <span class="n">dtype</span><span class="o">=</span><span class="n">jnp</span><span class="o">.</span><span class="n">float32</span><span class="p">)</span> <span class="o">/</span> <span class="bp">self</span><span class="o">.</span><span class="n">dim</span><span class="p">)</span>
+            <span class="p">)</span>
+
+        <span class="c1"># Build cos and sin cached up to max_position_embeddings</span>
+        <span class="n">t</span> <span class="o">=</span> <span class="n">jnp</span><span class="o">.</span><span class="n">arange</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">max_position_embeddings</span><span class="p">,</span> <span class="n">dtype</span><span class="o">=</span><span class="n">jnp</span><span class="o">.</span><span class="n">float32</span><span class="p">)</span>
+        <span class="c1"># Use the direct attribute value</span>
+        <span class="n">freqs</span> <span class="o">=</span> <span class="n">jnp</span><span class="o">.</span><span class="n">einsum</span><span class="p">(</span><span class="s2">&quot;i,j-&gt;ij&quot;</span><span class="p">,</span> <span class="n">t</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">inv_freq</span><span class="p">)</span>
+        <span class="c1"># For longrope, apply separate scaling factors</span>
+        <span class="k">if</span> <span class="n">rope_scaling</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span> <span class="ow">and</span> <span class="n">rope_scaling</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s2">&quot;rope_type&quot;</span><span class="p">)</span> <span class="o">==</span> <span class="s2">&quot;longrope&quot;</span><span class="p">:</span>
+            <span class="n">short_factor</span> <span class="o">=</span> <span class="n">jnp</span><span class="o">.</span><span class="n">array</span><span class="p">(</span><span class="n">rope_scaling</span><span class="p">[</span><span class="s2">&quot;short_factor&quot;</span><span class="p">])</span>
+            <span class="n">long_factor</span> <span class="o">=</span> <span class="n">jnp</span><span class="o">.</span><span class="n">array</span><span class="p">(</span><span class="n">rope_scaling</span><span class="p">[</span><span class="s2">&quot;long_factor&quot;</span><span class="p">])</span>
+            <span class="n">orig_max_pos</span> <span class="o">=</span> <span class="n">rope_scaling</span><span class="p">[</span><span class="s2">&quot;original_max_position_embeddings&quot;</span><span class="p">]</span>
+            <span class="c1"># Apply short/long scaling based on position</span>
+            <span class="n">scaling</span> <span class="o">=</span> <span class="n">jnp</span><span class="o">.</span><span class="n">where</span><span class="p">(</span>
+                <span class="n">t</span><span class="p">[:,</span> <span class="kc">None</span><span class="p">]</span> <span class="o">&lt;</span> <span class="n">orig_max_pos</span><span class="p">,</span>
+                <span class="n">short_factor</span><span class="p">[</span><span class="kc">None</span><span class="p">,</span> <span class="p">:],</span>
+                <span class="n">long_factor</span><span class="p">[</span><span class="kc">None</span><span class="p">,</span> <span class="p">:],</span>
+            <span class="p">)</span>
+            <span class="n">freqs</span> <span class="o">=</span> <span class="n">freqs</span> <span class="o">*</span> <span class="n">scaling</span>
+
+        <span class="bp">self</span><span class="o">.</span><span class="n">_cos_cached</span> <span class="o">=</span> <span class="n">jnp</span><span class="o">.</span><span class="n">cos</span><span class="p">(</span><span class="n">freqs</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">_sin_cached</span> <span class="o">=</span> <span class="n">jnp</span><span class="o">.</span><span class="n">sin</span><span class="p">(</span><span class="n">freqs</span><span class="p">)</span>
+
+<div class="viewcode-block" id="Gemma3RotaryEmbedding.__call__">
+<a class="viewcode-back" href="../../../modules/index.html#jaxgarden.models.Gemma3RotaryEmbedding.__call__">[docs]</a>
+    <span class="nd">@nnx</span><span class="o">.</span><span class="n">jit</span><span class="p">()</span>
+    <span class="k">def</span><span class="w"> </span><span class="fm">__call__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">x</span><span class="p">:</span> <span class="n">jnp</span><span class="o">.</span><span class="n">ndarray</span><span class="p">,</span> <span class="n">position_ids</span><span class="p">:</span> <span class="n">jnp</span><span class="o">.</span><span class="n">ndarray</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">jnp</span><span class="o">.</span><span class="n">ndarray</span><span class="p">:</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;Applies RoPE to the input tensor using cached sin/cos values.</span>
+
+<span class="sd">        Args:</span>
+<span class="sd">            x: Input tensor of shape [B, L, N, H].</span>
+<span class="sd">            position_ids: Position indices of shape [B, L].</span>
+
+<span class="sd">        Returns:</span>
+<span class="sd">            Rotated tensor of the same shape as x.</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="n">orig_dtype</span> <span class="o">=</span> <span class="n">x</span><span class="o">.</span><span class="n">dtype</span>
+        <span class="c1"># x shape: [B, L, N, H]</span>
+        <span class="c1"># position_ids shape: [B, L]</span>
+
+        <span class="c1"># --- Fetch cos and sin from cache ---</span>
+        <span class="c1"># Access direct attributes</span>
+        <span class="c1"># self._cos_cached shape: [max_pos, H/2]</span>
+        <span class="c1"># self._sin_cached shape: [max_pos, H/2]</span>
+
+        <span class="c1"># Gather from cache: shapes become [B, L, H/2]</span>
+        <span class="c1"># Access direct attributes</span>
+        <span class="n">cos_gathered</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_cos_cached</span><span class="p">[</span><span class="n">position_ids</span><span class="p">]</span>
+        <span class="n">sin_gathered</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_sin_cached</span><span class="p">[</span><span class="n">position_ids</span><span class="p">]</span>
+
+        <span class="c1"># Expand dims for broadcasting over heads: [B, L, 1, H/2]</span>
+        <span class="n">cos</span> <span class="o">=</span> <span class="n">cos_gathered</span><span class="p">[:,</span> <span class="p">:,</span> <span class="kc">None</span><span class="p">,</span> <span class="p">:]</span><span class="o">.</span><span class="n">astype</span><span class="p">(</span><span class="n">orig_dtype</span><span class="p">)</span>
+        <span class="n">sin</span> <span class="o">=</span> <span class="n">sin_gathered</span><span class="p">[:,</span> <span class="p">:,</span> <span class="kc">None</span><span class="p">,</span> <span class="p">:]</span><span class="o">.</span><span class="n">astype</span><span class="p">(</span><span class="n">orig_dtype</span><span class="p">)</span>
+
+        <span class="c1"># --- Apply rotation ---</span>
+        <span class="n">x1</span><span class="p">,</span> <span class="n">x2</span> <span class="o">=</span> <span class="n">jnp</span><span class="o">.</span><span class="n">split</span><span class="p">(</span><span class="n">x</span><span class="p">,</span> <span class="mi">2</span><span class="p">,</span> <span class="n">axis</span><span class="o">=-</span><span class="mi">1</span><span class="p">)</span>  <span class="c1"># x1, x2 shape: [B, L, N, H/2]</span>
+        <span class="c1"># cos, sin shape: [B, L, 1, H/2] - Broadcasts over N dimension</span>
+        <span class="n">rotated_x1</span> <span class="o">=</span> <span class="n">x1</span> <span class="o">*</span> <span class="n">cos</span> <span class="o">-</span> <span class="n">x2</span> <span class="o">*</span> <span class="n">sin</span>
+        <span class="n">rotated_x2</span> <span class="o">=</span> <span class="n">x1</span> <span class="o">*</span> <span class="n">sin</span> <span class="o">+</span> <span class="n">x2</span> <span class="o">*</span> <span class="n">cos</span>
+        <span class="n">x_embed</span> <span class="o">=</span> <span class="n">jnp</span><span class="o">.</span><span class="n">concatenate</span><span class="p">((</span><span class="n">rotated_x1</span><span class="p">,</span> <span class="n">rotated_x2</span><span class="p">),</span> <span class="n">axis</span><span class="o">=-</span><span class="mi">1</span><span class="p">)</span>
+
+        <span class="k">return</span> <span class="n">x_embed</span><span class="o">.</span><span class="n">astype</span><span class="p">(</span><span class="n">orig_dtype</span><span class="p">)</span></div>
+</div>
+
+
+
+<div class="viewcode-block" id="Gemma3Attention">
+<a class="viewcode-back" href="../../../modules/index.html#jaxgarden.models.Gemma3Attention">[docs]</a>
+<span class="k">class</span><span class="w"> </span><span class="nc">Gemma3Attention</span><span class="p">(</span><span class="n">nnx</span><span class="o">.</span><span class="n">Module</span><span class="p">):</span>
+<span class="w">    </span><span class="sd">&quot;&quot;&quot;Gemma3 attention module with support for GQA and sliding window.&quot;&quot;&quot;</span>
+
+    <span class="k">def</span><span class="w"> </span><span class="fm">__init__</span><span class="p">(</span>
+        <span class="bp">self</span><span class="p">,</span>
+        <span class="n">layer_idx</span><span class="p">:</span> <span class="nb">int</span><span class="p">,</span>
+        <span class="n">config</span><span class="p">:</span> <span class="n">Gemma3Config</span><span class="p">,</span>
+        <span class="o">*</span><span class="p">,</span>
+        <span class="n">attention_type</span><span class="p">:</span> <span class="nb">str</span><span class="p">,</span>
+        <span class="n">rngs</span><span class="p">:</span> <span class="n">nnx</span><span class="o">.</span><span class="n">Rngs</span><span class="p">,</span>
+    <span class="p">):</span>
+        <span class="nb">super</span><span class="p">()</span><span class="o">.</span><span class="fm">__init__</span><span class="p">()</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">config</span> <span class="o">=</span> <span class="n">config</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">layer_idx</span> <span class="o">=</span> <span class="n">layer_idx</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">attention_type</span> <span class="o">=</span> <span class="n">attention_type</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">hidden_size</span> <span class="o">=</span> <span class="n">config</span><span class="o">.</span><span class="n">hidden_size</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">num_heads</span> <span class="o">=</span> <span class="n">config</span><span class="o">.</span><span class="n">num_attention_heads</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">num_kv_heads</span> <span class="o">=</span> <span class="n">config</span><span class="o">.</span><span class="n">num_key_value_heads</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">head_dim</span> <span class="o">=</span> <span class="n">config</span><span class="o">.</span><span class="n">head_dim</span>
+
+        <span class="bp">self</span><span class="o">.</span><span class="n">num_key_value_groups</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">num_heads</span> <span class="o">//</span> <span class="bp">self</span><span class="o">.</span><span class="n">num_kv_heads</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">scaling</span> <span class="o">=</span> <span class="n">config</span><span class="o">.</span><span class="n">query_pre_attn_scalar</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">attn_logit_soft_cap</span> <span class="o">=</span> <span class="n">config</span><span class="o">.</span><span class="n">attn_logit_soft_cap</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">is_local_attn</span> <span class="o">=</span> <span class="p">(</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">config</span><span class="o">.</span><span class="n">layer_types</span><span class="p">[</span><span class="n">layer_idx</span><span class="p">]</span> <span class="o">==</span> <span class="s2">&quot;sliding_attention&quot;</span>
+            <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">config</span><span class="o">.</span><span class="n">layer_types</span>
+            <span class="k">else</span> <span class="p">(</span><span class="n">layer_idx</span> <span class="o">%</span> <span class="mi">2</span> <span class="o">!=</span> <span class="mi">0</span><span class="p">)</span> <span class="ow">and</span> <span class="p">(</span><span class="n">config</span><span class="o">.</span><span class="n">sliding_window</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span><span class="p">)</span>
+        <span class="p">)</span>
+
+        <span class="bp">self</span><span class="o">.</span><span class="n">q_norm</span> <span class="o">=</span> <span class="n">Gemma3RMSNorm</span><span class="p">(</span><span class="n">config</span><span class="o">.</span><span class="n">head_dim</span><span class="p">,</span> <span class="n">eps</span><span class="o">=</span><span class="n">config</span><span class="o">.</span><span class="n">rms_norm_eps</span><span class="p">,</span> <span class="n">rngs</span><span class="o">=</span><span class="n">rngs</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">k_norm</span> <span class="o">=</span> <span class="n">Gemma3RMSNorm</span><span class="p">(</span><span class="n">config</span><span class="o">.</span><span class="n">head_dim</span><span class="p">,</span> <span class="n">eps</span><span class="o">=</span><span class="n">config</span><span class="o">.</span><span class="n">rms_norm_eps</span><span class="p">,</span> <span class="n">rngs</span><span class="o">=</span><span class="n">rngs</span><span class="p">)</span>
+
+        <span class="bp">self</span><span class="o">.</span><span class="n">q_proj</span> <span class="o">=</span> <span class="n">nnx</span><span class="o">.</span><span class="n">Linear</span><span class="p">(</span>
+            <span class="n">config</span><span class="o">.</span><span class="n">hidden_size</span><span class="p">,</span>
+            <span class="n">config</span><span class="o">.</span><span class="n">num_attention_heads</span> <span class="o">*</span> <span class="n">config</span><span class="o">.</span><span class="n">head_dim</span><span class="p">,</span>
+            <span class="n">use_bias</span><span class="o">=</span><span class="n">config</span><span class="o">.</span><span class="n">attention_bias</span><span class="p">,</span>
+            <span class="n">param_dtype</span><span class="o">=</span><span class="n">config</span><span class="o">.</span><span class="n">param_dtype</span><span class="p">,</span>
+            <span class="n">rngs</span><span class="o">=</span><span class="n">rngs</span><span class="p">,</span>
+        <span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">k_proj</span> <span class="o">=</span> <span class="n">nnx</span><span class="o">.</span><span class="n">Linear</span><span class="p">(</span>
+            <span class="n">config</span><span class="o">.</span><span class="n">hidden_size</span><span class="p">,</span>
+            <span class="n">config</span><span class="o">.</span><span class="n">num_key_value_heads</span> <span class="o">*</span> <span class="n">config</span><span class="o">.</span><span class="n">head_dim</span><span class="p">,</span>
+            <span class="n">use_bias</span><span class="o">=</span><span class="n">config</span><span class="o">.</span><span class="n">attention_bias</span><span class="p">,</span>
+            <span class="n">param_dtype</span><span class="o">=</span><span class="n">config</span><span class="o">.</span><span class="n">param_dtype</span><span class="p">,</span>
+            <span class="n">rngs</span><span class="o">=</span><span class="n">rngs</span><span class="p">,</span>
+        <span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">v_proj</span> <span class="o">=</span> <span class="n">nnx</span><span class="o">.</span><span class="n">Linear</span><span class="p">(</span>
+            <span class="n">config</span><span class="o">.</span><span class="n">hidden_size</span><span class="p">,</span>
+            <span class="n">config</span><span class="o">.</span><span class="n">num_key_value_heads</span> <span class="o">*</span> <span class="n">config</span><span class="o">.</span><span class="n">head_dim</span><span class="p">,</span>
+            <span class="n">use_bias</span><span class="o">=</span><span class="n">config</span><span class="o">.</span><span class="n">attention_bias</span><span class="p">,</span>
+            <span class="n">param_dtype</span><span class="o">=</span><span class="n">config</span><span class="o">.</span><span class="n">param_dtype</span><span class="p">,</span>
+            <span class="n">rngs</span><span class="o">=</span><span class="n">rngs</span><span class="p">,</span>
+        <span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">o_proj</span> <span class="o">=</span> <span class="n">nnx</span><span class="o">.</span><span class="n">Linear</span><span class="p">(</span>
+            <span class="n">config</span><span class="o">.</span><span class="n">num_attention_heads</span> <span class="o">*</span> <span class="n">config</span><span class="o">.</span><span class="n">head_dim</span><span class="p">,</span>
+            <span class="n">config</span><span class="o">.</span><span class="n">hidden_size</span><span class="p">,</span>
+            <span class="n">use_bias</span><span class="o">=</span><span class="n">config</span><span class="o">.</span><span class="n">attention_bias</span><span class="p">,</span>
+            <span class="n">param_dtype</span><span class="o">=</span><span class="n">config</span><span class="o">.</span><span class="n">param_dtype</span><span class="p">,</span>
+            <span class="n">rngs</span><span class="o">=</span><span class="n">rngs</span><span class="p">,</span>
+        <span class="p">)</span>
+
+        <span class="bp">self</span><span class="o">.</span><span class="n">rope</span> <span class="o">=</span> <span class="n">Gemma3RotaryEmbedding</span><span class="p">(</span>
+            <span class="n">dim</span><span class="o">=</span><span class="n">config</span><span class="o">.</span><span class="n">head_dim</span><span class="p">,</span>
+            <span class="n">max_position_embeddings</span><span class="o">=</span><span class="n">config</span><span class="o">.</span><span class="n">max_position_embeddings</span><span class="p">,</span>
+            <span class="n">theta</span><span class="o">=</span><span class="n">config</span><span class="o">.</span><span class="n">rope_theta</span><span class="p">,</span>
+            <span class="n">rope_scaling</span><span class="o">=</span><span class="n">config</span><span class="o">.</span><span class="n">rope_scaling</span><span class="p">,</span>
+            <span class="n">is_local_attention</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">is_local_attn</span><span class="p">,</span>
+        <span class="p">)</span>
+
+        <span class="c1"># Create attention dropout layer</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">attn_dropout</span> <span class="o">=</span> <span class="n">nnx</span><span class="o">.</span><span class="n">Dropout</span><span class="p">(</span>
+            <span class="n">rate</span><span class="o">=</span><span class="n">config</span><span class="o">.</span><span class="n">attention_dropout</span><span class="p">,</span>
+            <span class="n">broadcast_dims</span><span class="o">=</span><span class="p">(</span><span class="mi">1</span><span class="p">,),</span>  <span class="c1"># Broadcast over head dimension</span>
+            <span class="n">rngs</span><span class="o">=</span><span class="n">rngs</span><span class="p">,</span>
+        <span class="p">)</span>
+
+    <span class="k">def</span><span class="w"> </span><span class="nf">_make_sliding_window_mask</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">q_len</span><span class="p">:</span> <span class="nb">int</span><span class="p">,</span> <span class="n">kv_len</span><span class="p">:</span> <span class="nb">int</span><span class="p">,</span> <span class="n">dtype</span><span class="p">:</span> <span class="n">jnp</span><span class="o">.</span><span class="n">dtype</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">jnp</span><span class="o">.</span><span class="n">ndarray</span><span class="p">:</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;Creates a combined causal and sliding window mask. True allows attention.&quot;&quot;&quot;</span>
+        <span class="c1"># Creates the lower triangular part for causality</span>
+        <span class="n">causal_mask</span> <span class="o">=</span> <span class="n">jnp</span><span class="o">.</span><span class="n">tril</span><span class="p">(</span><span class="n">jnp</span><span class="o">.</span><span class="n">ones</span><span class="p">((</span><span class="n">q_len</span><span class="p">,</span> <span class="n">kv_len</span><span class="p">),</span> <span class="n">dtype</span><span class="o">=</span><span class="n">jnp</span><span class="o">.</span><span class="n">bool_</span><span class="p">))</span>
+
+        <span class="c1"># If global attention or no sliding window, causal mask is sufficient</span>
+        <span class="k">if</span> <span class="ow">not</span> <span class="bp">self</span><span class="o">.</span><span class="n">is_local_attn</span> <span class="ow">or</span> <span class="bp">self</span><span class="o">.</span><span class="n">config</span><span class="o">.</span><span class="n">sliding_window</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span>
+            <span class="k">return</span> <span class="n">causal_mask</span><span class="p">[</span><span class="kc">None</span><span class="p">,</span> <span class="kc">None</span><span class="p">,</span> <span class="p">:,</span> <span class="p">:]</span>  <span class="c1"># Add batch and head dims</span>
+
+        <span class="n">window</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">config</span><span class="o">.</span><span class="n">sliding_window</span>
+
+        <span class="c1"># Position indices for query and key/value sequences</span>
+        <span class="c1"># Query positions are relative to the end of the kv sequence</span>
+        <span class="c1"># Key positions range from 0 to kv_len - 1</span>
+        <span class="n">q_pos</span> <span class="o">=</span> <span class="n">jnp</span><span class="o">.</span><span class="n">arange</span><span class="p">(</span><span class="n">kv_len</span> <span class="o">-</span> <span class="n">q_len</span><span class="p">,</span> <span class="n">kv_len</span><span class="p">)[:,</span> <span class="kc">None</span><span class="p">]</span>  <span class="c1"># Shape [q_len, 1]</span>
+        <span class="n">kv_pos</span> <span class="o">=</span> <span class="n">jnp</span><span class="o">.</span><span class="n">arange</span><span class="p">(</span><span class="n">kv_len</span><span class="p">)[</span><span class="kc">None</span><span class="p">,</span> <span class="p">:]</span>  <span class="c1"># Shape [1, kv_len]</span>
+
+        <span class="c1"># Sliding window constraint: key_pos &gt; query_pos - window</span>
+        <span class="n">window_mask</span> <span class="o">=</span> <span class="n">kv_pos</span> <span class="o">&gt;</span> <span class="p">(</span><span class="n">q_pos</span> <span class="o">-</span> <span class="n">window</span><span class="p">)</span>  <span class="c1"># Shape [q_len, kv_len]</span>
+
+        <span class="c1"># Combine causal and sliding window</span>
+        <span class="n">final_mask</span> <span class="o">=</span> <span class="n">jnp</span><span class="o">.</span><span class="n">logical_and</span><span class="p">(</span><span class="n">causal_mask</span><span class="p">,</span> <span class="n">window_mask</span><span class="p">)</span>
+
+        <span class="c1"># Expand dims: [q_len, kv_len] -&gt; [1, 1, q_len, kv_len]</span>
+        <span class="k">return</span> <span class="n">final_mask</span><span class="p">[</span><span class="kc">None</span><span class="p">,</span> <span class="kc">None</span><span class="p">,</span> <span class="p">:,</span> <span class="p">:]</span><span class="o">.</span><span class="n">astype</span><span class="p">(</span><span class="n">dtype</span><span class="p">)</span>
+
+    <span class="k">def</span><span class="w"> </span><span class="nf">_repeat_kv</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">x</span><span class="p">:</span> <span class="n">jnp</span><span class="o">.</span><span class="n">ndarray</span><span class="p">,</span> <span class="n">n_rep</span><span class="p">:</span> <span class="nb">int</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">jnp</span><span class="o">.</span><span class="n">ndarray</span><span class="p">:</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;Repeats the key/value heads along the head dimension (axis=1) for GQA.&quot;&quot;&quot;</span>
+        <span class="c1"># x shape: [B, N_kv, S, H]</span>
+        <span class="k">if</span> <span class="n">n_rep</span> <span class="o">==</span> <span class="mi">1</span><span class="p">:</span>
+            <span class="k">return</span> <span class="n">x</span>
+        <span class="c1"># Repeat along the N_kv dimension (axis=1)</span>
+        <span class="c1"># Output shape: [B, N_kv * n_rep, S, H] = [B, N_q, S, H]</span>
+        <span class="k">return</span> <span class="n">jnp</span><span class="o">.</span><span class="n">repeat</span><span class="p">(</span><span class="n">x</span><span class="p">,</span> <span class="n">n_rep</span><span class="p">,</span> <span class="n">axis</span><span class="o">=</span><span class="mi">1</span><span class="p">)</span>
+
+<div class="viewcode-block" id="Gemma3Attention.apply_soft_cap">
+<a class="viewcode-back" href="../../../modules/index.html#jaxgarden.models.Gemma3Attention.apply_soft_cap">[docs]</a>
+    <span class="nd">@staticmethod</span>
+    <span class="k">def</span><span class="w"> </span><span class="nf">apply_soft_cap</span><span class="p">(</span><span class="n">x</span><span class="p">:</span> <span class="n">jnp</span><span class="o">.</span><span class="n">ndarray</span><span class="p">,</span> <span class="n">cap</span><span class="p">:</span> <span class="nb">float</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">jnp</span><span class="o">.</span><span class="n">ndarray</span><span class="p">:</span>
+        <span class="k">return</span> <span class="n">cap</span> <span class="o">*</span> <span class="n">jnp</span><span class="o">.</span><span class="n">tanh</span><span class="p">(</span><span class="n">x</span> <span class="o">/</span> <span class="n">cap</span><span class="p">)</span></div>
+
+
+    <span class="nd">@nnx</span><span class="o">.</span><span class="n">jit</span><span class="p">()</span>
+    <span class="k">def</span><span class="w"> </span><span class="fm">__call__</span><span class="p">(</span>
+        <span class="bp">self</span><span class="p">,</span>
+        <span class="n">hidden_states</span><span class="p">:</span> <span class="n">jnp</span><span class="o">.</span><span class="n">ndarray</span><span class="p">,</span>
+        <span class="n">position_ids</span><span class="p">:</span> <span class="n">jnp</span><span class="o">.</span><span class="n">ndarray</span><span class="p">,</span>
+        <span class="n">attention_mask</span><span class="p">:</span> <span class="n">jnp</span><span class="o">.</span><span class="n">ndarray</span> <span class="o">|</span> <span class="kc">None</span> <span class="o">=</span> <span class="kc">None</span><span class="p">,</span>  <span class="c1"># Boolean Input Padding Mask [B, kv_len]</span>
+        <span class="n">cache</span><span class="p">:</span> <span class="nb">tuple</span><span class="p">[</span><span class="n">jnp</span><span class="o">.</span><span class="n">ndarray</span><span class="p">,</span> <span class="n">jnp</span><span class="o">.</span><span class="n">ndarray</span><span class="p">]</span> <span class="o">|</span> <span class="kc">None</span> <span class="o">=</span> <span class="kc">None</span><span class="p">,</span>  <span class="c1"># (k_cache, v_cache)</span>
+        <span class="n">deterministic</span><span class="p">:</span> <span class="nb">bool</span> <span class="o">=</span> <span class="kc">True</span><span class="p">,</span>  <span class="c1"># Used for dropout in training</span>
+    <span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">tuple</span><span class="p">[</span><span class="n">jnp</span><span class="o">.</span><span class="n">ndarray</span><span class="p">,</span> <span class="nb">tuple</span><span class="p">[</span><span class="n">jnp</span><span class="o">.</span><span class="n">ndarray</span><span class="p">,</span> <span class="n">jnp</span><span class="o">.</span><span class="n">ndarray</span><span class="p">]]:</span>
+        <span class="n">batch_size</span><span class="p">,</span> <span class="n">q_len</span><span class="p">,</span> <span class="n">_</span> <span class="o">=</span> <span class="n">hidden_states</span><span class="o">.</span><span class="n">shape</span>
+
+        <span class="c1"># Project to Q, K, V</span>
+        <span class="n">query_states</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">q_proj</span><span class="p">(</span><span class="n">hidden_states</span><span class="p">)</span><span class="o">.</span><span class="n">reshape</span><span class="p">(</span>
+            <span class="n">batch_size</span><span class="p">,</span> <span class="n">q_len</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">num_heads</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">head_dim</span>
+        <span class="p">)</span>
+        <span class="n">key_states</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">k_proj</span><span class="p">(</span><span class="n">hidden_states</span><span class="p">)</span><span class="o">.</span><span class="n">reshape</span><span class="p">(</span>
+            <span class="n">batch_size</span><span class="p">,</span> <span class="n">q_len</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">num_kv_heads</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">head_dim</span>
+        <span class="p">)</span>
+        <span class="n">value_states</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">v_proj</span><span class="p">(</span><span class="n">hidden_states</span><span class="p">)</span><span class="o">.</span><span class="n">reshape</span><span class="p">(</span>
+            <span class="n">batch_size</span><span class="p">,</span> <span class="n">q_len</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">num_kv_heads</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">head_dim</span>
+        <span class="p">)</span>
+
+        <span class="c1"># Apply RMSNorm to Q, K</span>
+        <span class="n">query_states</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">q_norm</span><span class="p">(</span><span class="n">query_states</span><span class="p">)</span>
+        <span class="n">key_states</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">k_norm</span><span class="p">(</span><span class="n">key_states</span><span class="p">)</span>
+
+        <span class="c1"># Apply RoPE to Q, K</span>
+        <span class="n">query_states</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">rope</span><span class="p">(</span><span class="n">query_states</span><span class="p">,</span> <span class="n">position_ids</span><span class="p">)</span>
+        <span class="n">key_states</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">rope</span><span class="p">(</span><span class="n">key_states</span><span class="p">,</span> <span class="n">position_ids</span><span class="p">)</span>
+
+        <span class="c1"># Transpose to [B, heads, seq, head_dim]</span>
+        <span class="n">query_states</span> <span class="o">=</span> <span class="n">query_states</span><span class="o">.</span><span class="n">transpose</span><span class="p">(</span><span class="mi">0</span><span class="p">,</span> <span class="mi">2</span><span class="p">,</span> <span class="mi">1</span><span class="p">,</span> <span class="mi">3</span><span class="p">)</span>
+        <span class="n">key_states</span> <span class="o">=</span> <span class="n">key_states</span><span class="o">.</span><span class="n">transpose</span><span class="p">(</span><span class="mi">0</span><span class="p">,</span> <span class="mi">2</span><span class="p">,</span> <span class="mi">1</span><span class="p">,</span> <span class="mi">3</span><span class="p">)</span>
+        <span class="n">value_states</span> <span class="o">=</span> <span class="n">value_states</span><span class="o">.</span><span class="n">transpose</span><span class="p">(</span><span class="mi">0</span><span class="p">,</span> <span class="mi">2</span><span class="p">,</span> <span class="mi">1</span><span class="p">,</span> <span class="mi">3</span><span class="p">)</span>
+
+        <span class="c1"># Repeat K/V heads for GQA</span>
+        <span class="n">key_states</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_repeat_kv</span><span class="p">(</span><span class="n">key_states</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">num_key_value_groups</span><span class="p">)</span>
+        <span class="n">value_states</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_repeat_kv</span><span class="p">(</span><span class="n">value_states</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">num_key_value_groups</span><span class="p">)</span>
+
+        <span class="c1"># KV caching: concatenate along sequence axis (axis=2)</span>
+        <span class="k">if</span> <span class="n">cache</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span><span class="p">:</span>
+            <span class="n">k_cache</span><span class="p">,</span> <span class="n">v_cache</span> <span class="o">=</span> <span class="n">cache</span>  <span class="c1"># both [B, num_heads, cache_len, head_dim]</span>
+            <span class="n">key_states</span> <span class="o">=</span> <span class="n">jnp</span><span class="o">.</span><span class="n">concatenate</span><span class="p">([</span><span class="n">k_cache</span><span class="p">,</span> <span class="n">key_states</span><span class="p">],</span> <span class="n">axis</span><span class="o">=</span><span class="mi">2</span><span class="p">)</span>
+            <span class="n">value_states</span> <span class="o">=</span> <span class="n">jnp</span><span class="o">.</span><span class="n">concatenate</span><span class="p">([</span><span class="n">v_cache</span><span class="p">,</span> <span class="n">value_states</span><span class="p">],</span> <span class="n">axis</span><span class="o">=</span><span class="mi">2</span><span class="p">)</span>
+        <span class="n">updated_cache</span> <span class="o">=</span> <span class="p">(</span><span class="n">key_states</span><span class="p">,</span> <span class="n">value_states</span><span class="p">)</span>
+        <span class="n">kv_seq_len</span> <span class="o">=</span> <span class="n">key_states</span><span class="o">.</span><span class="n">shape</span><span class="p">[</span><span class="mi">2</span><span class="p">]</span>  <span class="c1"># Total sequence length including cache</span>
+
+        <span class="c1"># Compute attention weights with scaling</span>
+        <span class="n">attn_weights</span> <span class="o">=</span> <span class="n">jnp</span><span class="o">.</span><span class="n">matmul</span><span class="p">(</span><span class="n">query_states</span><span class="p">,</span> <span class="n">key_states</span><span class="o">.</span><span class="n">transpose</span><span class="p">(</span><span class="mi">0</span><span class="p">,</span> <span class="mi">1</span><span class="p">,</span> <span class="mi">3</span><span class="p">,</span> <span class="mi">2</span><span class="p">))</span> <span class="o">*</span> <span class="bp">self</span><span class="o">.</span><span class="n">scaling</span>
+
+        <span class="c1"># Apply attention logits soft cap (BEFORE masking)</span>
+        <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">attn_logit_soft_cap</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span><span class="p">:</span>
+            <span class="n">attn_weights</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">apply_soft_cap</span><span class="p">(</span><span class="n">attn_weights</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">attn_logit_soft_cap</span><span class="p">)</span>
+
+        <span class="c1"># --- Apply Mask ---</span>
+        <span class="k">if</span> <span class="n">attention_mask</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span> <span class="ow">and</span> <span class="n">attention_mask</span><span class="o">.</span><span class="n">ndim</span> <span class="o">==</span> <span class="mi">4</span><span class="p">:</span>
+            <span class="c1"># Direct additive mask: shape [B, 1, q_len, kv_seq_len]</span>
+            <span class="n">attn_weights</span> <span class="o">=</span> <span class="n">attn_weights</span> <span class="o">+</span> <span class="n">attention_mask</span><span class="o">.</span><span class="n">astype</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">config</span><span class="o">.</span><span class="n">dtype</span><span class="p">)</span>
+        <span class="k">else</span><span class="p">:</span>
+            <span class="c1"># 1. Causal/Sliding Window Mask [1, 1, q_len, kv_seq_len]</span>
+            <span class="n">attn_internal_mask</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_make_sliding_window_mask</span><span class="p">(</span><span class="n">q_len</span><span class="p">,</span> <span class="n">kv_seq_len</span><span class="p">,</span> <span class="n">dtype</span><span class="o">=</span><span class="n">jnp</span><span class="o">.</span><span class="n">bool_</span><span class="p">)</span>
+            <span class="c1"># 2. Combine with padding mask if provided (boolean 2D mask [B, kv_seq_len])</span>
+            <span class="k">if</span> <span class="n">attention_mask</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span><span class="p">:</span>
+                <span class="c1"># Ensure shape [B, kv_seq_len]</span>
+                <span class="k">assert</span> <span class="n">attention_mask</span><span class="o">.</span><span class="n">shape</span> <span class="o">==</span> <span class="p">(</span><span class="n">batch_size</span><span class="p">,</span> <span class="n">kv_seq_len</span><span class="p">),</span> <span class="p">(</span>
+                    <span class="sa">f</span><span class="s2">&quot;Input attention_mask shape </span><span class="si">{</span><span class="n">attention_mask</span><span class="o">.</span><span class="n">shape</span><span class="si">}</span><span class="s2"> does not match &quot;</span>
+                    <span class="sa">f</span><span class="s2">&quot;expected (</span><span class="si">{</span><span class="n">batch_size</span><span class="si">}</span><span class="s2">, </span><span class="si">{</span><span class="n">kv_seq_len</span><span class="si">}</span><span class="s2">)&quot;</span>
+                <span class="p">)</span>
+                <span class="n">padding_mask</span> <span class="o">=</span> <span class="n">attention_mask</span><span class="p">[:,</span> <span class="kc">None</span><span class="p">,</span> <span class="kc">None</span><span class="p">,</span> <span class="p">:]</span><span class="o">.</span><span class="n">astype</span><span class="p">(</span><span class="n">jnp</span><span class="o">.</span><span class="n">bool_</span><span class="p">)</span>
+                <span class="n">final_mask</span> <span class="o">=</span> <span class="n">jnp</span><span class="o">.</span><span class="n">logical_and</span><span class="p">(</span><span class="n">attn_internal_mask</span><span class="p">,</span> <span class="n">padding_mask</span><span class="p">)</span>
+            <span class="k">else</span><span class="p">:</span>
+                <span class="c1"># Broadcast internal mask to batch</span>
+                <span class="n">final_mask</span> <span class="o">=</span> <span class="n">jnp</span><span class="o">.</span><span class="n">broadcast_to</span><span class="p">(</span>
+                    <span class="n">attn_internal_mask</span><span class="p">,</span> <span class="p">(</span><span class="n">batch_size</span><span class="p">,</span> <span class="mi">1</span><span class="p">,</span> <span class="n">q_len</span><span class="p">,</span> <span class="n">kv_seq_len</span><span class="p">)</span>
+                <span class="p">)</span>
+            <span class="c1"># Apply additive mask bias: 0 for keep, large negative for mask</span>
+            <span class="n">neg_inf</span> <span class="o">=</span> <span class="n">jnp</span><span class="o">.</span><span class="n">finfo</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">config</span><span class="o">.</span><span class="n">dtype</span><span class="p">)</span><span class="o">.</span><span class="n">min</span>
+            <span class="n">attention_bias</span> <span class="o">=</span> <span class="n">jnp</span><span class="o">.</span><span class="n">where</span><span class="p">(</span><span class="n">final_mask</span><span class="p">,</span> <span class="mf">0.0</span><span class="p">,</span> <span class="n">neg_inf</span><span class="p">)</span><span class="o">.</span><span class="n">astype</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">config</span><span class="o">.</span><span class="n">dtype</span><span class="p">)</span>
+            <span class="n">attn_weights</span> <span class="o">=</span> <span class="n">attn_weights</span> <span class="o">+</span> <span class="n">attention_bias</span>
+
+        <span class="c1"># --- Softmax &amp; Output ---</span>
+        <span class="n">attn_weights</span> <span class="o">=</span> <span class="n">jax</span><span class="o">.</span><span class="n">nn</span><span class="o">.</span><span class="n">softmax</span><span class="p">(</span><span class="n">attn_weights</span><span class="p">,</span> <span class="n">axis</span><span class="o">=-</span><span class="mi">1</span><span class="p">)</span><span class="o">.</span><span class="n">astype</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">config</span><span class="o">.</span><span class="n">dtype</span><span class="p">)</span>
+
+        <span class="c1"># Apply attention dropout during training</span>
+        <span class="k">if</span> <span class="ow">not</span> <span class="n">deterministic</span> <span class="ow">and</span> <span class="bp">self</span><span class="o">.</span><span class="n">config</span><span class="o">.</span><span class="n">attention_dropout</span> <span class="o">&gt;</span> <span class="mi">0</span><span class="p">:</span>
+            <span class="n">attn_weights</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">attn_dropout</span><span class="p">(</span><span class="n">attn_weights</span><span class="p">,</span> <span class="n">deterministic</span><span class="o">=</span><span class="n">deterministic</span><span class="p">)</span>
+
+        <span class="c1"># Apply attention weights to value states</span>
+        <span class="n">attn_output</span> <span class="o">=</span> <span class="n">jnp</span><span class="o">.</span><span class="n">matmul</span><span class="p">(</span><span class="n">attn_weights</span><span class="p">,</span> <span class="n">value_states</span><span class="p">)</span>
+
+        <span class="c1"># --- Reshape and Output --- #</span>
+        <span class="c1"># Transpose back to [B, q_len, num_heads, head_dim]</span>
+        <span class="n">attn_output</span> <span class="o">=</span> <span class="n">attn_output</span><span class="o">.</span><span class="n">transpose</span><span class="p">(</span><span class="mi">0</span><span class="p">,</span> <span class="mi">2</span><span class="p">,</span> <span class="mi">1</span><span class="p">,</span> <span class="mi">3</span><span class="p">)</span>
+        <span class="c1"># Reshape to [B, q_len, hidden_size]</span>
+        <span class="n">attn_output</span> <span class="o">=</span> <span class="n">attn_output</span><span class="o">.</span><span class="n">reshape</span><span class="p">(</span><span class="n">batch_size</span><span class="p">,</span> <span class="n">q_len</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">hidden_size</span><span class="p">)</span>
+
+        <span class="c1"># Apply output projection</span>
+        <span class="n">attn_output</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">o_proj</span><span class="p">(</span><span class="n">attn_output</span><span class="p">)</span>
+
+        <span class="k">return</span> <span class="n">attn_output</span><span class="p">,</span> <span class="n">updated_cache</span></div>
+
+
+
+<div class="viewcode-block" id="Gemma3MLP">
+<a class="viewcode-back" href="../../../modules/index.html#jaxgarden.models.Gemma3MLP">[docs]</a>
+<span class="k">class</span><span class="w"> </span><span class="nc">Gemma3MLP</span><span class="p">(</span><span class="n">nnx</span><span class="o">.</span><span class="n">Module</span><span class="p">):</span>
+<span class="w">    </span><span class="sd">&quot;&quot;&quot;Gemma3 MLP module with GeGLU activation.&quot;&quot;&quot;</span>
+
+    <span class="k">def</span><span class="w"> </span><span class="fm">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">config</span><span class="p">:</span> <span class="n">Gemma3Config</span><span class="p">,</span> <span class="o">*</span><span class="p">,</span> <span class="n">rngs</span><span class="p">:</span> <span class="n">nnx</span><span class="o">.</span><span class="n">Rngs</span><span class="p">):</span>
+        <span class="nb">super</span><span class="p">()</span><span class="o">.</span><span class="fm">__init__</span><span class="p">()</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">config</span> <span class="o">=</span> <span class="n">config</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">gate_proj</span> <span class="o">=</span> <span class="n">nnx</span><span class="o">.</span><span class="n">Linear</span><span class="p">(</span>
+            <span class="n">config</span><span class="o">.</span><span class="n">hidden_size</span><span class="p">,</span>
+            <span class="n">config</span><span class="o">.</span><span class="n">intermediate_size</span><span class="p">,</span>
+            <span class="n">use_bias</span><span class="o">=</span><span class="kc">False</span><span class="p">,</span>
+            <span class="n">param_dtype</span><span class="o">=</span><span class="n">config</span><span class="o">.</span><span class="n">param_dtype</span><span class="p">,</span>
+            <span class="n">rngs</span><span class="o">=</span><span class="n">rngs</span><span class="p">,</span>
+        <span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">up_proj</span> <span class="o">=</span> <span class="n">nnx</span><span class="o">.</span><span class="n">Linear</span><span class="p">(</span>
+            <span class="n">config</span><span class="o">.</span><span class="n">hidden_size</span><span class="p">,</span>
+            <span class="n">config</span><span class="o">.</span><span class="n">intermediate_size</span><span class="p">,</span>
+            <span class="n">use_bias</span><span class="o">=</span><span class="kc">False</span><span class="p">,</span>
+            <span class="n">param_dtype</span><span class="o">=</span><span class="n">config</span><span class="o">.</span><span class="n">param_dtype</span><span class="p">,</span>
+            <span class="n">rngs</span><span class="o">=</span><span class="n">rngs</span><span class="p">,</span>
+        <span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">down_proj</span> <span class="o">=</span> <span class="n">nnx</span><span class="o">.</span><span class="n">Linear</span><span class="p">(</span>
+            <span class="n">config</span><span class="o">.</span><span class="n">intermediate_size</span><span class="p">,</span>
+            <span class="n">config</span><span class="o">.</span><span class="n">hidden_size</span><span class="p">,</span>
+            <span class="n">use_bias</span><span class="o">=</span><span class="kc">False</span><span class="p">,</span>
+            <span class="n">param_dtype</span><span class="o">=</span><span class="n">config</span><span class="o">.</span><span class="n">param_dtype</span><span class="p">,</span>
+            <span class="n">rngs</span><span class="o">=</span><span class="n">rngs</span><span class="p">,</span>
+        <span class="p">)</span>
+
+    <span class="k">def</span><span class="w"> </span><span class="nf">_gelu_pytorch_tanh</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">x</span><span class="p">:</span> <span class="n">jnp</span><span class="o">.</span><span class="n">ndarray</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">jnp</span><span class="o">.</span><span class="n">ndarray</span><span class="p">:</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;PyTorch&#39;s approximate GELU with tanh activation.&quot;&quot;&quot;</span>
+        <span class="c1"># Constant values from PyTorch&#39;s implementation</span>
+        <span class="c1"># https://github.com/pytorch/pytorch/blob/main/aten/src/ATen/native/cuda/ActivationGeluKernel.cu</span>
+        <span class="n">k_beta</span> <span class="o">=</span> <span class="mf">0.79788456</span>  <span class="c1"># sqrt(2/pi)</span>
+        <span class="n">k_kappa</span> <span class="o">=</span> <span class="mf">0.044715</span>
+        <span class="n">x_cube</span> <span class="o">=</span> <span class="n">x</span> <span class="o">*</span> <span class="n">x</span> <span class="o">*</span> <span class="n">x</span>
+        <span class="n">inner</span> <span class="o">=</span> <span class="n">k_beta</span> <span class="o">*</span> <span class="p">(</span><span class="n">x</span> <span class="o">+</span> <span class="n">k_kappa</span> <span class="o">*</span> <span class="n">x_cube</span><span class="p">)</span>
+        <span class="k">return</span> <span class="mf">0.5</span> <span class="o">*</span> <span class="n">x</span> <span class="o">*</span> <span class="p">(</span><span class="mf">1.0</span> <span class="o">+</span> <span class="n">jnp</span><span class="o">.</span><span class="n">tanh</span><span class="p">(</span><span class="n">inner</span><span class="p">))</span>
+
+    <span class="nd">@nnx</span><span class="o">.</span><span class="n">jit</span><span class="p">()</span>
+    <span class="k">def</span><span class="w"> </span><span class="fm">__call__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">x</span><span class="p">:</span> <span class="n">jnp</span><span class="o">.</span><span class="n">ndarray</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">jnp</span><span class="o">.</span><span class="n">ndarray</span><span class="p">:</span>
+        <span class="n">gate</span> <span class="o">=</span> <span class="p">(</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">_gelu_pytorch_tanh</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">gate_proj</span><span class="p">(</span><span class="n">x</span><span class="p">))</span>
+            <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">config</span><span class="o">.</span><span class="n">hidden_activation</span> <span class="o">==</span> <span class="s2">&quot;gelu_pytorch_tanh&quot;</span>
+            <span class="k">else</span> <span class="n">jax</span><span class="o">.</span><span class="n">nn</span><span class="o">.</span><span class="n">gelu</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">gate_proj</span><span class="p">(</span><span class="n">x</span><span class="p">))</span>
+        <span class="p">)</span>
+        <span class="n">up</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">up_proj</span><span class="p">(</span><span class="n">x</span><span class="p">)</span>
+        <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">down_proj</span><span class="p">(</span><span class="n">gate</span> <span class="o">*</span> <span class="n">up</span><span class="p">)</span></div>
+
+
+
+<span class="k">class</span><span class="w"> </span><span class="nc">Gemma3DecoderLayer</span><span class="p">(</span><span class="n">nnx</span><span class="o">.</span><span class="n">Module</span><span class="p">):</span>
+<span class="w">    </span><span class="sd">&quot;&quot;&quot;Gemma3 decoder layer combining attention and MLP.&quot;&quot;&quot;</span>
+
+    <span class="k">def</span><span class="w"> </span><span class="fm">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">layer_idx</span><span class="p">:</span> <span class="nb">int</span><span class="p">,</span> <span class="n">config</span><span class="p">:</span> <span class="n">Gemma3Config</span><span class="p">,</span> <span class="o">*</span><span class="p">,</span> <span class="n">rngs</span><span class="p">:</span> <span class="n">nnx</span><span class="o">.</span><span class="n">Rngs</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="kc">None</span><span class="p">:</span>
+        <span class="nb">super</span><span class="p">()</span><span class="o">.</span><span class="fm">__init__</span><span class="p">()</span>
+        <span class="c1"># Alternate global/local per layer</span>
+        <span class="n">attention_type</span> <span class="o">=</span> <span class="s2">&quot;global&quot;</span> <span class="k">if</span> <span class="n">layer_idx</span> <span class="o">%</span> <span class="mi">2</span> <span class="o">==</span> <span class="mi">0</span> <span class="k">else</span> <span class="s2">&quot;local&quot;</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">input_layernorm</span> <span class="o">=</span> <span class="n">Gemma3RMSNorm</span><span class="p">(</span><span class="n">config</span><span class="o">.</span><span class="n">hidden_size</span><span class="p">,</span> <span class="n">eps</span><span class="o">=</span><span class="n">config</span><span class="o">.</span><span class="n">rms_norm_eps</span><span class="p">,</span> <span class="n">rngs</span><span class="o">=</span><span class="n">rngs</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">post_attention_layernorm</span> <span class="o">=</span> <span class="n">Gemma3RMSNorm</span><span class="p">(</span>
+            <span class="n">config</span><span class="o">.</span><span class="n">hidden_size</span><span class="p">,</span> <span class="n">eps</span><span class="o">=</span><span class="n">config</span><span class="o">.</span><span class="n">rms_norm_eps</span><span class="p">,</span> <span class="n">rngs</span><span class="o">=</span><span class="n">rngs</span>
+        <span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">pre_feedforward_layernorm</span> <span class="o">=</span> <span class="n">Gemma3RMSNorm</span><span class="p">(</span>
+            <span class="n">config</span><span class="o">.</span><span class="n">hidden_size</span><span class="p">,</span> <span class="n">eps</span><span class="o">=</span><span class="n">config</span><span class="o">.</span><span class="n">rms_norm_eps</span><span class="p">,</span> <span class="n">rngs</span><span class="o">=</span><span class="n">rngs</span>
+        <span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">post_feedforward_layernorm</span> <span class="o">=</span> <span class="n">Gemma3RMSNorm</span><span class="p">(</span>
+            <span class="n">config</span><span class="o">.</span><span class="n">hidden_size</span><span class="p">,</span> <span class="n">eps</span><span class="o">=</span><span class="n">config</span><span class="o">.</span><span class="n">rms_norm_eps</span><span class="p">,</span> <span class="n">rngs</span><span class="o">=</span><span class="n">rngs</span>
+        <span class="p">)</span>
+
+        <span class="bp">self</span><span class="o">.</span><span class="n">self_attn</span> <span class="o">=</span> <span class="n">Gemma3Attention</span><span class="p">(</span>
+            <span class="n">layer_idx</span><span class="p">,</span> <span class="n">config</span><span class="p">,</span> <span class="n">attention_type</span><span class="o">=</span><span class="n">attention_type</span><span class="p">,</span> <span class="n">rngs</span><span class="o">=</span><span class="n">rngs</span>
+        <span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">mlp</span> <span class="o">=</span> <span class="n">Gemma3MLP</span><span class="p">(</span><span class="n">config</span><span class="p">,</span> <span class="n">rngs</span><span class="o">=</span><span class="n">rngs</span><span class="p">)</span>
+
+    <span class="nd">@nnx</span><span class="o">.</span><span class="n">jit</span><span class="p">()</span>
+    <span class="k">def</span><span class="w"> </span><span class="fm">__call__</span><span class="p">(</span>
+        <span class="bp">self</span><span class="p">,</span>
+        <span class="n">x</span><span class="p">:</span> <span class="n">jnp</span><span class="o">.</span><span class="n">ndarray</span><span class="p">,</span>
+        <span class="n">position_ids</span><span class="p">:</span> <span class="n">jnp</span><span class="o">.</span><span class="n">ndarray</span><span class="p">,</span>
+        <span class="n">attention_mask</span><span class="p">:</span> <span class="n">jnp</span><span class="o">.</span><span class="n">ndarray</span> <span class="o">|</span> <span class="kc">None</span> <span class="o">=</span> <span class="kc">None</span><span class="p">,</span>  <span class="c1"># Boolean Input Padding Mask [B, kv_len]</span>
+        <span class="n">cache</span><span class="p">:</span> <span class="nb">tuple</span><span class="p">[</span><span class="n">jnp</span><span class="o">.</span><span class="n">ndarray</span><span class="p">,</span> <span class="n">jnp</span><span class="o">.</span><span class="n">ndarray</span><span class="p">]</span> <span class="o">|</span> <span class="kc">None</span> <span class="o">=</span> <span class="kc">None</span><span class="p">,</span>  <span class="c1"># (k_cache, v_cache)</span>
+        <span class="n">deterministic</span><span class="p">:</span> <span class="nb">bool</span> <span class="o">=</span> <span class="kc">True</span><span class="p">,</span>
+    <span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">tuple</span><span class="p">[</span><span class="n">jnp</span><span class="o">.</span><span class="n">ndarray</span><span class="p">,</span> <span class="nb">tuple</span><span class="p">[</span><span class="n">jnp</span><span class="o">.</span><span class="n">ndarray</span><span class="p">,</span> <span class="n">jnp</span><span class="o">.</span><span class="n">ndarray</span><span class="p">]]:</span>
+        <span class="c1"># 1. Pre-Attention Norm and Attention</span>
+        <span class="n">residual</span> <span class="o">=</span> <span class="n">x</span>
+        <span class="n">hidden_states</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">input_layernorm</span><span class="p">(</span><span class="n">x</span><span class="p">)</span>
+        <span class="n">attn_output</span><span class="p">,</span> <span class="n">updated_cache</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">self_attn</span><span class="p">(</span>
+            <span class="n">hidden_states</span><span class="p">,</span> <span class="n">position_ids</span><span class="p">,</span> <span class="n">attention_mask</span><span class="p">,</span> <span class="n">cache</span><span class="p">,</span> <span class="n">deterministic</span><span class="o">=</span><span class="n">deterministic</span>
+        <span class="p">)</span>
+        <span class="n">hidden_states</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">post_attention_layernorm</span><span class="p">(</span><span class="n">attn_output</span><span class="p">)</span>
+        <span class="n">hidden_states</span> <span class="o">=</span> <span class="n">residual</span> <span class="o">+</span> <span class="n">hidden_states</span>
+
+        <span class="c1"># 2. Pre-MLP Norm and MLP</span>
+        <span class="n">residual</span> <span class="o">=</span> <span class="n">hidden_states</span>
+        <span class="n">hidden_states</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">pre_feedforward_layernorm</span><span class="p">(</span><span class="n">hidden_states</span><span class="p">)</span>
+        <span class="n">hidden_states</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">mlp</span><span class="p">(</span><span class="n">hidden_states</span><span class="p">)</span>
+        <span class="n">hidden_states</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">post_feedforward_layernorm</span><span class="p">(</span><span class="n">hidden_states</span><span class="p">)</span>
+        <span class="n">hidden_states</span> <span class="o">=</span> <span class="n">residual</span> <span class="o">+</span> <span class="n">hidden_states</span>
+
+        <span class="k">return</span> <span class="n">hidden_states</span><span class="p">,</span> <span class="n">updated_cache</span>
+
+
+<div class="viewcode-block" id="Gemma3ForCausalLM">
+<a class="viewcode-back" href="../../../modules/index.html#jaxgarden.models.Gemma3ForCausalLM">[docs]</a>
+<span class="k">class</span><span class="w"> </span><span class="nc">Gemma3ForCausalLM</span><span class="p">(</span><span class="n">GenerationMixin</span><span class="p">,</span> <span class="n">BaseModel</span><span class="p">):</span>
+<span class="w">    </span><span class="sd">&quot;&quot;&quot;Gemma3 model for causal language modeling.&quot;&quot;&quot;</span>
+
+    <span class="n">config</span><span class="p">:</span> <span class="n">Gemma3Config</span>  <span class="c1"># This helps to fix a mypy issue</span>
+
+    <span class="k">def</span><span class="w"> </span><span class="fm">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">config</span><span class="p">:</span> <span class="n">Gemma3Config</span><span class="p">,</span> <span class="o">*</span><span class="p">,</span> <span class="n">rngs</span><span class="p">:</span> <span class="n">nnx</span><span class="o">.</span><span class="n">Rngs</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="kc">None</span><span class="p">:</span>
+        <span class="nb">super</span><span class="p">()</span><span class="o">.</span><span class="fm">__init__</span><span class="p">(</span><span class="n">config</span><span class="p">,</span> <span class="n">dtype</span><span class="o">=</span><span class="n">config</span><span class="o">.</span><span class="n">dtype</span><span class="p">,</span> <span class="n">param_dtype</span><span class="o">=</span><span class="n">config</span><span class="o">.</span><span class="n">param_dtype</span><span class="p">,</span> <span class="n">rngs</span><span class="o">=</span><span class="n">rngs</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">embed_tokens</span> <span class="o">=</span> <span class="n">nnx</span><span class="o">.</span><span class="n">Embed</span><span class="p">(</span>
+            <span class="n">num_embeddings</span><span class="o">=</span><span class="n">config</span><span class="o">.</span><span class="n">vocab_size</span><span class="p">,</span>
+            <span class="n">features</span><span class="o">=</span><span class="n">config</span><span class="o">.</span><span class="n">hidden_size</span><span class="p">,</span>
+            <span class="n">dtype</span><span class="o">=</span><span class="n">config</span><span class="o">.</span><span class="n">dtype</span><span class="p">,</span>
+            <span class="n">rngs</span><span class="o">=</span><span class="n">rngs</span><span class="p">,</span>
+        <span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">layers</span> <span class="o">=</span> <span class="p">[</span>
+            <span class="n">Gemma3DecoderLayer</span><span class="p">(</span><span class="n">idx</span><span class="p">,</span> <span class="n">config</span><span class="p">,</span> <span class="n">rngs</span><span class="o">=</span><span class="n">rngs</span><span class="p">)</span> <span class="k">for</span> <span class="n">idx</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="n">config</span><span class="o">.</span><span class="n">num_hidden_layers</span><span class="p">)</span>
+        <span class="p">]</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">norm</span> <span class="o">=</span> <span class="n">Gemma3RMSNorm</span><span class="p">(</span><span class="n">config</span><span class="o">.</span><span class="n">hidden_size</span><span class="p">,</span> <span class="n">eps</span><span class="o">=</span><span class="n">config</span><span class="o">.</span><span class="n">rms_norm_eps</span><span class="p">,</span> <span class="n">rngs</span><span class="o">=</span><span class="n">rngs</span><span class="p">)</span>
+
+    <span class="nd">@nnx</span><span class="o">.</span><span class="n">jit</span><span class="p">()</span>
+    <span class="k">def</span><span class="w"> </span><span class="fm">__call__</span><span class="p">(</span>
+        <span class="bp">self</span><span class="p">,</span>
+        <span class="n">input_ids</span><span class="p">:</span> <span class="n">jnp</span><span class="o">.</span><span class="n">ndarray</span><span class="p">,</span>  <span class="c1"># [B, S]</span>
+        <span class="n">position_ids</span><span class="p">:</span> <span class="n">jnp</span><span class="o">.</span><span class="n">ndarray</span> <span class="o">|</span> <span class="kc">None</span> <span class="o">=</span> <span class="kc">None</span><span class="p">,</span>
+        <span class="n">attention_mask</span><span class="p">:</span> <span class="n">jnp</span><span class="o">.</span><span class="n">ndarray</span>
+        <span class="o">|</span> <span class="kc">None</span> <span class="o">=</span> <span class="kc">None</span><span class="p">,</span>  <span class="c1"># [B, S], True for valid tokens, used for padding</span>
+        <span class="n">cache</span><span class="p">:</span> <span class="nb">list</span><span class="p">[</span><span class="nb">tuple</span><span class="p">[</span><span class="n">jnp</span><span class="o">.</span><span class="n">ndarray</span><span class="p">,</span> <span class="n">jnp</span><span class="o">.</span><span class="n">ndarray</span><span class="p">]]</span>
+        <span class="o">|</span> <span class="kc">None</span> <span class="o">=</span> <span class="kc">None</span><span class="p">,</span>  <span class="c1"># List of (k_cache, v_cache) per layer</span>
+        <span class="n">deterministic</span><span class="p">:</span> <span class="nb">bool</span> <span class="o">=</span> <span class="kc">True</span><span class="p">,</span>
+        <span class="n">use_cache</span><span class="p">:</span> <span class="nb">bool</span> <span class="o">|</span> <span class="kc">None</span> <span class="o">=</span> <span class="kc">None</span><span class="p">,</span>
+    <span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">tuple</span><span class="p">[</span><span class="n">jnp</span><span class="o">.</span><span class="n">ndarray</span><span class="p">,</span> <span class="nb">list</span><span class="p">[</span><span class="nb">tuple</span><span class="p">[</span><span class="n">jnp</span><span class="o">.</span><span class="n">ndarray</span><span class="p">,</span> <span class="n">jnp</span><span class="o">.</span><span class="n">ndarray</span><span class="p">]]</span> <span class="o">|</span> <span class="kc">None</span><span class="p">]:</span>
+        <span class="n">batch_size</span><span class="p">,</span> <span class="n">seq_length</span> <span class="o">=</span> <span class="n">input_ids</span><span class="o">.</span><span class="n">shape</span>
+
+        <span class="c1"># --- Input Embeddings ---</span>
+        <span class="n">hidden_states</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">embed_tokens</span><span class="p">(</span><span class="n">input_ids</span><span class="p">)</span>
+        <span class="c1"># Scale embeddings by sqrt(hidden_size)</span>
+        <span class="n">hidden_states</span> <span class="o">=</span> <span class="n">hidden_states</span> <span class="o">*</span> <span class="n">jnp</span><span class="o">.</span><span class="n">sqrt</span><span class="p">(</span><span class="nb">float</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">config</span><span class="o">.</span><span class="n">hidden_size</span><span class="p">))</span>
+        <span class="n">hidden_states</span> <span class="o">=</span> <span class="n">hidden_states</span><span class="o">.</span><span class="n">astype</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">config</span><span class="o">.</span><span class="n">dtype</span><span class="p">)</span>
+
+        <span class="c1"># --- Prepare Inputs for Layers ---</span>
+        <span class="c1"># Compute cache and kv sequence lengths</span>
+        <span class="n">cache_len</span> <span class="o">=</span> <span class="n">cache</span><span class="p">[</span><span class="mi">0</span><span class="p">][</span><span class="mi">0</span><span class="p">]</span><span class="o">.</span><span class="n">shape</span><span class="p">[</span><span class="mi">2</span><span class="p">]</span> <span class="k">if</span> <span class="n">cache</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span> <span class="k">else</span> <span class="mi">0</span>
+        <span class="n">kv_seq_len</span> <span class="o">=</span> <span class="n">cache_len</span> <span class="o">+</span> <span class="n">seq_length</span>
+
+        <span class="c1"># Prepare position_ids</span>
+        <span class="k">if</span> <span class="n">position_ids</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span>
+            <span class="c1"># If no cache, positions are [0, ..., S-1]</span>
+            <span class="c1"># If cache, positions are [cache_len, ..., cache_len + S - 1]</span>
+            <span class="n">position_ids</span> <span class="o">=</span> <span class="n">jnp</span><span class="o">.</span><span class="n">arange</span><span class="p">(</span><span class="n">cache_len</span><span class="p">,</span> <span class="n">kv_seq_len</span><span class="p">,</span> <span class="n">dtype</span><span class="o">=</span><span class="n">jnp</span><span class="o">.</span><span class="n">int32</span><span class="p">)[</span><span class="kc">None</span><span class="p">,</span> <span class="p">:]</span>
+            <span class="c1"># position_ids should match the query sequence length (seq_length)</span>
+            <span class="n">position_ids</span> <span class="o">=</span> <span class="n">position_ids</span><span class="p">[:,</span> <span class="o">-</span><span class="n">seq_length</span><span class="p">:]</span>  <span class="c1"># Ensure shape [1, S]</span>
+            <span class="n">position_ids</span> <span class="o">=</span> <span class="n">jnp</span><span class="o">.</span><span class="n">broadcast_to</span><span class="p">(</span><span class="n">position_ids</span><span class="p">,</span> <span class="p">(</span><span class="n">batch_size</span><span class="p">,</span> <span class="n">seq_length</span><span class="p">))</span>
+        <span class="k">elif</span> <span class="n">position_ids</span><span class="o">.</span><span class="n">shape</span><span class="p">[</span><span class="o">-</span><span class="mi">1</span><span class="p">]</span> <span class="o">!=</span> <span class="n">seq_length</span><span class="p">:</span>
+            <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span>
+                <span class="s2">&quot;position_ids shape does not match input_ids shape &quot;</span>
+                <span class="sa">f</span><span class="s2">&quot;(position_ids: </span><span class="si">{</span><span class="n">position_ids</span><span class="o">.</span><span class="n">shape</span><span class="si">}</span><span class="s2">, input_ids: </span><span class="si">{</span><span class="n">input_ids</span><span class="o">.</span><span class="n">shape</span><span class="si">}</span><span class="s2">)&quot;</span>
+            <span class="p">)</span>
+
+        <span class="c1"># Prepare attention_mask (padding mask)</span>
+        <span class="c1"># This mask should cover the entire kv_seq_len for keys/values</span>
+        <span class="k">if</span> <span class="n">attention_mask</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span><span class="p">:</span>
+            <span class="c1"># The input attention_mask corresponds to input_ids [B, S]</span>
+            <span class="c1"># We need to extend it for the cached keys/values.</span>
+            <span class="c1"># Assume cached tokens were valid.</span>
+            <span class="k">if</span> <span class="n">cache</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span><span class="p">:</span>
+                <span class="c1"># Create mask for cached part (all True)</span>
+                <span class="n">cache_mask</span> <span class="o">=</span> <span class="n">jnp</span><span class="o">.</span><span class="n">ones</span><span class="p">((</span><span class="n">batch_size</span><span class="p">,</span> <span class="n">cache_len</span><span class="p">),</span> <span class="n">dtype</span><span class="o">=</span><span class="n">jnp</span><span class="o">.</span><span class="n">bool_</span><span class="p">)</span>
+                <span class="c1"># Concatenate with the input mask</span>
+                <span class="n">padding_mask_2d</span> <span class="o">=</span> <span class="n">jnp</span><span class="o">.</span><span class="n">concatenate</span><span class="p">([</span><span class="n">cache_mask</span><span class="p">,</span> <span class="n">attention_mask</span><span class="p">],</span> <span class="n">axis</span><span class="o">=</span><span class="mi">1</span><span class="p">)</span>
+            <span class="k">else</span><span class="p">:</span>
+                <span class="n">padding_mask_2d</span> <span class="o">=</span> <span class="n">attention_mask</span>  <span class="c1"># No cache, use input mask directly</span>
+
+            <span class="c1"># Final shape check for the 2D padding mask</span>
+            <span class="k">if</span> <span class="n">padding_mask_2d</span><span class="o">.</span><span class="n">shape</span> <span class="o">!=</span> <span class="p">(</span><span class="n">batch_size</span><span class="p">,</span> <span class="n">kv_seq_len</span><span class="p">):</span>
+                <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span>
+                    <span class="sa">f</span><span class="s2">&quot;Constructed 2D padding mask shape </span><span class="si">{</span><span class="n">padding_mask_2d</span><span class="o">.</span><span class="n">shape</span><span class="si">}</span><span class="s2"> &quot;</span>
+                    <span class="sa">f</span><span class="s2">&quot;does not match expected (</span><span class="si">{</span><span class="n">batch_size</span><span class="si">}</span><span class="s2">, </span><span class="si">{</span><span class="n">kv_seq_len</span><span class="si">}</span><span class="s2">)&quot;</span>
+                <span class="p">)</span>
+        <span class="k">else</span><span class="p">:</span>
+            <span class="c1"># If no mask provided, assume all tokens are valid</span>
+            <span class="n">padding_mask_2d</span> <span class="o">=</span> <span class="n">jnp</span><span class="o">.</span><span class="n">ones</span><span class="p">((</span><span class="n">batch_size</span><span class="p">,</span> <span class="n">kv_seq_len</span><span class="p">),</span> <span class="n">dtype</span><span class="o">=</span><span class="n">jnp</span><span class="o">.</span><span class="n">bool_</span><span class="p">)</span>
+
+        <span class="c1"># Reshape the 2D boolean padding mask to 4D log-mask for attention calculation</span>
+        <span class="c1"># Shape: [B, 1, 1, kv_len]. Log-mask: 0.0 for attend, -inf for ignore.</span>
+        <span class="c1"># Use the validated `padding_mask_2d` here</span>
+        <span class="n">attn_mask_4d</span> <span class="o">=</span> <span class="n">jnp</span><span class="o">.</span><span class="n">where</span><span class="p">(</span>
+            <span class="n">padding_mask_2d</span><span class="p">[:,</span> <span class="kc">None</span><span class="p">,</span> <span class="kc">None</span><span class="p">,</span> <span class="p">:],</span> <span class="mf">0.0</span><span class="p">,</span> <span class="n">jnp</span><span class="o">.</span><span class="n">finfo</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">config</span><span class="o">.</span><span class="n">dtype</span><span class="p">)</span><span class="o">.</span><span class="n">min</span>
+        <span class="p">)</span>
+
+        <span class="c1"># --- Pass through Decoder Layers ---</span>
+        <span class="n">next_cache_list</span> <span class="o">=</span> <span class="p">[]</span>
+        <span class="k">for</span> <span class="n">i</span><span class="p">,</span> <span class="n">layer</span> <span class="ow">in</span> <span class="nb">enumerate</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">layers</span><span class="p">):</span>
+            <span class="n">layer_cache</span> <span class="o">=</span> <span class="n">cache</span><span class="p">[</span><span class="n">i</span><span class="p">]</span> <span class="k">if</span> <span class="n">cache</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span> <span class="k">else</span> <span class="kc">None</span>
+            <span class="n">hidden_states</span><span class="p">,</span> <span class="n">updated_layer_cache</span> <span class="o">=</span> <span class="n">layer</span><span class="p">(</span>
+                <span class="n">hidden_states</span><span class="p">,</span>
+                <span class="n">position_ids</span><span class="p">,</span>
+                <span class="n">attention_mask</span><span class="o">=</span><span class="n">attn_mask_4d</span><span class="p">,</span>  <span class="c1"># Pass the 4D log-mask [B, 1, 1, kv_len]</span>
+                <span class="n">cache</span><span class="o">=</span><span class="n">layer_cache</span><span class="p">,</span>
+                <span class="n">deterministic</span><span class="o">=</span><span class="n">deterministic</span><span class="p">,</span>
+            <span class="p">)</span>
+            <span class="c1"># Always append the updated cache from the layer</span>
+            <span class="n">next_cache_list</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">updated_layer_cache</span><span class="p">)</span>
+
+        <span class="n">hidden_states</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">norm</span><span class="p">(</span><span class="n">hidden_states</span><span class="p">)</span>
+
+        <span class="c1"># --- Logits Calculation --- #</span>
+        <span class="c1"># Final projection using embedding weights (weight tying)</span>
+        <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">config</span><span class="o">.</span><span class="n">tie_word_embeddings</span><span class="p">:</span>
+            <span class="n">logits</span> <span class="o">=</span> <span class="n">hidden_states</span> <span class="o">@</span> <span class="bp">self</span><span class="o">.</span><span class="n">embed_tokens</span><span class="o">.</span><span class="n">embedding</span><span class="o">.</span><span class="n">T</span>
+        <span class="k">else</span><span class="p">:</span>
+            <span class="c1"># TODO: Add final LM head linear layer if not tied</span>
+            <span class="k">raise</span> <span class="ne">NotImplementedError</span><span class="p">(</span><span class="s2">&quot;Separate LM head not implemented yet.&quot;</span><span class="p">)</span>
+
+        <span class="c1"># Apply final logit soft capping if specified</span>
+        <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">config</span><span class="o">.</span><span class="n">final_logit_soft_cap</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span><span class="p">:</span>
+            <span class="n">logits</span> <span class="o">=</span> <span class="n">logits</span> <span class="o">/</span> <span class="bp">self</span><span class="o">.</span><span class="n">config</span><span class="o">.</span><span class="n">final_logit_soft_cap</span>
+            <span class="n">logits</span> <span class="o">=</span> <span class="n">jnp</span><span class="o">.</span><span class="n">tanh</span><span class="p">(</span><span class="n">logits</span><span class="p">)</span>
+            <span class="n">logits</span> <span class="o">=</span> <span class="n">logits</span> <span class="o">*</span> <span class="bp">self</span><span class="o">.</span><span class="n">config</span><span class="o">.</span><span class="n">final_logit_soft_cap</span>
+
+        <span class="c1"># Return cache only if requested</span>
+        <span class="n">use_cache</span> <span class="o">=</span> <span class="n">use_cache</span> <span class="k">if</span> <span class="n">use_cache</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span> <span class="k">else</span> <span class="bp">self</span><span class="o">.</span><span class="n">config</span><span class="o">.</span><span class="n">use_cache</span>
+        <span class="k">return</span> <span class="n">logits</span><span class="p">,</span> <span class="n">next_cache_list</span> <span class="k">if</span> <span class="n">use_cache</span> <span class="k">else</span> <span class="kc">None</span></div>
+
+</pre></div>
+
+           </div>
+          </div>
+          <footer>
+
+  <hr/>
+
+  <div role="contentinfo">
+    <p>&#169; Copyright 2025, JAXgarden Contributors.</p>
+  </div>
+
+  Built with <a href="https://www.sphinx-doc.org/">Sphinx</a> using a
+    <a href="https://github.com/readthedocs/sphinx_rtd_theme">theme</a>
+    provided by <a href="https://readthedocs.org">Read the Docs</a>.
+   
+
+</footer>
+        </div>
+      </div>
+    </section>
+  </div>
+  <script>
+      jQuery(function () {
+          SphinxRtdTheme.Navigation.enable(true);
+      });
+  </script> 
+
+</body>
+</html>

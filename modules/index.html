@@ -115,6 +115,77 @@
 <li class="toctree-l4"><a class="reference internal" href="#jaxgarden.models.Gemma2RotaryEmbedding.__call__"><code class="docutils literal notranslate"><span class="pre">Gemma2RotaryEmbedding.__call__()</span></code></a></li>
 </ul>
 </li>
+<li class="toctree-l3"><a class="reference internal" href="#jaxgarden.models.Gemma3Attention"><code class="docutils literal notranslate"><span class="pre">Gemma3Attention</span></code></a><ul>
+<li class="toctree-l4"><a class="reference internal" href="#jaxgarden.models.Gemma3Attention.apply_soft_cap"><code class="docutils literal notranslate"><span class="pre">Gemma3Attention.apply_soft_cap()</span></code></a></li>
+</ul>
+</li>
+<li class="toctree-l3"><a class="reference internal" href="#jaxgarden.models.Gemma3Config"><code class="docutils literal notranslate"><span class="pre">Gemma3Config</span></code></a><ul>
+<li class="toctree-l4"><a class="reference internal" href="#jaxgarden.models.Gemma3Config.vocab_size"><code class="docutils literal notranslate"><span class="pre">Gemma3Config.vocab_size</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="#jaxgarden.models.Gemma3Config.hidden_size"><code class="docutils literal notranslate"><span class="pre">Gemma3Config.hidden_size</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="#jaxgarden.models.Gemma3Config.intermediate_size"><code class="docutils literal notranslate"><span class="pre">Gemma3Config.intermediate_size</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="#jaxgarden.models.Gemma3Config.num_hidden_layers"><code class="docutils literal notranslate"><span class="pre">Gemma3Config.num_hidden_layers</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="#jaxgarden.models.Gemma3Config.num_attention_heads"><code class="docutils literal notranslate"><span class="pre">Gemma3Config.num_attention_heads</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="#jaxgarden.models.Gemma3Config.num_key_value_heads"><code class="docutils literal notranslate"><span class="pre">Gemma3Config.num_key_value_heads</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="#jaxgarden.models.Gemma3Config.head_dim"><code class="docutils literal notranslate"><span class="pre">Gemma3Config.head_dim</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="#jaxgarden.models.Gemma3Config.rms_norm_eps"><code class="docutils literal notranslate"><span class="pre">Gemma3Config.rms_norm_eps</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="#jaxgarden.models.Gemma3Config.rope_theta"><code class="docutils literal notranslate"><span class="pre">Gemma3Config.rope_theta</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="#jaxgarden.models.Gemma3Config.rope_local_base_freq"><code class="docutils literal notranslate"><span class="pre">Gemma3Config.rope_local_base_freq</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="#jaxgarden.models.Gemma3Config.max_position_embeddings"><code class="docutils literal notranslate"><span class="pre">Gemma3Config.max_position_embeddings</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="#jaxgarden.models.Gemma3Config.initializer_range"><code class="docutils literal notranslate"><span class="pre">Gemma3Config.initializer_range</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="#jaxgarden.models.Gemma3Config.attention_bias"><code class="docutils literal notranslate"><span class="pre">Gemma3Config.attention_bias</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="#jaxgarden.models.Gemma3Config.attention_dropout"><code class="docutils literal notranslate"><span class="pre">Gemma3Config.attention_dropout</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="#jaxgarden.models.Gemma3Config.query_pre_attn_scalar"><code class="docutils literal notranslate"><span class="pre">Gemma3Config.query_pre_attn_scalar</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="#jaxgarden.models.Gemma3Config.sliding_window"><code class="docutils literal notranslate"><span class="pre">Gemma3Config.sliding_window</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="#jaxgarden.models.Gemma3Config.sliding_window_pattern"><code class="docutils literal notranslate"><span class="pre">Gemma3Config.sliding_window_pattern</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="#jaxgarden.models.Gemma3Config.final_logit_soft_cap"><code class="docutils literal notranslate"><span class="pre">Gemma3Config.final_logit_soft_cap</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="#jaxgarden.models.Gemma3Config.attn_logit_soft_cap"><code class="docutils literal notranslate"><span class="pre">Gemma3Config.attn_logit_soft_cap</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="#jaxgarden.models.Gemma3Config.pad_token_id"><code class="docutils literal notranslate"><span class="pre">Gemma3Config.pad_token_id</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="#jaxgarden.models.Gemma3Config.eos_token_id"><code class="docutils literal notranslate"><span class="pre">Gemma3Config.eos_token_id</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="#jaxgarden.models.Gemma3Config.bos_token_id"><code class="docutils literal notranslate"><span class="pre">Gemma3Config.bos_token_id</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="#jaxgarden.models.Gemma3Config.tie_word_embeddings"><code class="docutils literal notranslate"><span class="pre">Gemma3Config.tie_word_embeddings</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="#jaxgarden.models.Gemma3Config.rope_scaling"><code class="docutils literal notranslate"><span class="pre">Gemma3Config.rope_scaling</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="#jaxgarden.models.Gemma3Config.hidden_activation"><code class="docutils literal notranslate"><span class="pre">Gemma3Config.hidden_activation</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="#jaxgarden.models.Gemma3Config.use_cache"><code class="docutils literal notranslate"><span class="pre">Gemma3Config.use_cache</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="#id0"><code class="docutils literal notranslate"><span class="pre">Gemma3Config.attention_bias</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="#id9"><code class="docutils literal notranslate"><span class="pre">Gemma3Config.attention_dropout</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="#id10"><code class="docutils literal notranslate"><span class="pre">Gemma3Config.attn_logit_soft_cap</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="#id11"><code class="docutils literal notranslate"><span class="pre">Gemma3Config.bos_token_id</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="#jaxgarden.models.Gemma3Config.dtype"><code class="docutils literal notranslate"><span class="pre">Gemma3Config.dtype</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="#id12"><code class="docutils literal notranslate"><span class="pre">Gemma3Config.eos_token_id</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="#id13"><code class="docutils literal notranslate"><span class="pre">Gemma3Config.final_logit_soft_cap</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="#id14"><code class="docutils literal notranslate"><span class="pre">Gemma3Config.head_dim</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="#id15"><code class="docutils literal notranslate"><span class="pre">Gemma3Config.hidden_activation</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="#id16"><code class="docutils literal notranslate"><span class="pre">Gemma3Config.hidden_size</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="#id17"><code class="docutils literal notranslate"><span class="pre">Gemma3Config.initializer_range</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="#id18"><code class="docutils literal notranslate"><span class="pre">Gemma3Config.intermediate_size</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="#id19"><code class="docutils literal notranslate"><span class="pre">Gemma3Config.max_position_embeddings</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="#id20"><code class="docutils literal notranslate"><span class="pre">Gemma3Config.num_attention_heads</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="#id21"><code class="docutils literal notranslate"><span class="pre">Gemma3Config.num_hidden_layers</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="#id22"><code class="docutils literal notranslate"><span class="pre">Gemma3Config.num_key_value_heads</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="#id23"><code class="docutils literal notranslate"><span class="pre">Gemma3Config.pad_token_id</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="#jaxgarden.models.Gemma3Config.param_dtype"><code class="docutils literal notranslate"><span class="pre">Gemma3Config.param_dtype</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="#id24"><code class="docutils literal notranslate"><span class="pre">Gemma3Config.query_pre_attn_scalar</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="#id25"><code class="docutils literal notranslate"><span class="pre">Gemma3Config.rms_norm_eps</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="#id26"><code class="docutils literal notranslate"><span class="pre">Gemma3Config.rope_local_base_freq</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="#id27"><code class="docutils literal notranslate"><span class="pre">Gemma3Config.rope_scaling</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="#id28"><code class="docutils literal notranslate"><span class="pre">Gemma3Config.rope_theta</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="#id29"><code class="docutils literal notranslate"><span class="pre">Gemma3Config.sliding_window</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="#id30"><code class="docutils literal notranslate"><span class="pre">Gemma3Config.sliding_window_pattern</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="#id31"><code class="docutils literal notranslate"><span class="pre">Gemma3Config.tie_word_embeddings</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="#id32"><code class="docutils literal notranslate"><span class="pre">Gemma3Config.use_cache</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="#id33"><code class="docutils literal notranslate"><span class="pre">Gemma3Config.vocab_size</span></code></a></li>
+</ul>
+</li>
+<li class="toctree-l3"><a class="reference internal" href="#jaxgarden.models.Gemma3ForCausalLM"><code class="docutils literal notranslate"><span class="pre">Gemma3ForCausalLM</span></code></a><ul>
+<li class="toctree-l4"><a class="reference internal" href="#jaxgarden.models.Gemma3ForCausalLM.config"><code class="docutils literal notranslate"><span class="pre">Gemma3ForCausalLM.config</span></code></a></li>
+</ul>
+</li>
+<li class="toctree-l3"><a class="reference internal" href="#jaxgarden.models.Gemma3MLP"><code class="docutils literal notranslate"><span class="pre">Gemma3MLP</span></code></a></li>
+<li class="toctree-l3"><a class="reference internal" href="#jaxgarden.models.Gemma3RMSNorm"><code class="docutils literal notranslate"><span class="pre">Gemma3RMSNorm</span></code></a></li>
+<li class="toctree-l3"><a class="reference internal" href="#jaxgarden.models.Gemma3RotaryEmbedding"><code class="docutils literal notranslate"><span class="pre">Gemma3RotaryEmbedding</span></code></a><ul>
+<li class="toctree-l4"><a class="reference internal" href="#jaxgarden.models.Gemma3RotaryEmbedding.__call__"><code class="docutils literal notranslate"><span class="pre">Gemma3RotaryEmbedding.__call__()</span></code></a></li>
+</ul>
+</li>
 <li class="toctree-l3"><a class="reference internal" href="#jaxgarden.models.GenerationMixin"><code class="docutils literal notranslate"><span class="pre">GenerationMixin</span></code></a><ul>
 <li class="toctree-l4"><a class="reference internal" href="#jaxgarden.models.GenerationMixin.generate"><code class="docutils literal notranslate"><span class="pre">GenerationMixin.generate()</span></code></a></li>
 </ul>
@@ -146,16 +217,16 @@
 <li class="toctree-l4"><a class="reference internal" href="#jaxgarden.models.LlamaConfig.multiple_of"><code class="docutils literal notranslate"><span class="pre">LlamaConfig.multiple_of</span></code></a></li>
 <li class="toctree-l4"><a class="reference internal" href="#jaxgarden.models.LlamaConfig.norm_eps"><code class="docutils literal notranslate"><span class="pre">LlamaConfig.norm_eps</span></code></a></li>
 <li class="toctree-l4"><a class="reference internal" href="#jaxgarden.models.LlamaConfig.rope_theta"><code class="docutils literal notranslate"><span class="pre">LlamaConfig.rope_theta</span></code></a></li>
-<li class="toctree-l4"><a class="reference internal" href="#id0"><code class="docutils literal notranslate"><span class="pre">LlamaConfig.dim</span></code></a></li>
-<li class="toctree-l4"><a class="reference internal" href="#id9"><code class="docutils literal notranslate"><span class="pre">LlamaConfig.head_dim</span></code></a></li>
-<li class="toctree-l4"><a class="reference internal" href="#id10"><code class="docutils literal notranslate"><span class="pre">LlamaConfig.intermediate_size</span></code></a></li>
-<li class="toctree-l4"><a class="reference internal" href="#id11"><code class="docutils literal notranslate"><span class="pre">LlamaConfig.multiple_of</span></code></a></li>
-<li class="toctree-l4"><a class="reference internal" href="#id12"><code class="docutils literal notranslate"><span class="pre">LlamaConfig.n_heads</span></code></a></li>
-<li class="toctree-l4"><a class="reference internal" href="#id13"><code class="docutils literal notranslate"><span class="pre">LlamaConfig.n_kv_heads</span></code></a></li>
-<li class="toctree-l4"><a class="reference internal" href="#id14"><code class="docutils literal notranslate"><span class="pre">LlamaConfig.n_layers</span></code></a></li>
-<li class="toctree-l4"><a class="reference internal" href="#id15"><code class="docutils literal notranslate"><span class="pre">LlamaConfig.norm_eps</span></code></a></li>
-<li class="toctree-l4"><a class="reference internal" href="#id16"><code class="docutils literal notranslate"><span class="pre">LlamaConfig.rope_theta</span></code></a></li>
-<li class="toctree-l4"><a class="reference internal" href="#id17"><code class="docutils literal notranslate"><span class="pre">LlamaConfig.vocab_size</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="#id34"><code class="docutils literal notranslate"><span class="pre">LlamaConfig.dim</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="#id35"><code class="docutils literal notranslate"><span class="pre">LlamaConfig.head_dim</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="#id36"><code class="docutils literal notranslate"><span class="pre">LlamaConfig.intermediate_size</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="#id37"><code class="docutils literal notranslate"><span class="pre">LlamaConfig.multiple_of</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="#id38"><code class="docutils literal notranslate"><span class="pre">LlamaConfig.n_heads</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="#id39"><code class="docutils literal notranslate"><span class="pre">LlamaConfig.n_kv_heads</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="#id40"><code class="docutils literal notranslate"><span class="pre">LlamaConfig.n_layers</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="#id41"><code class="docutils literal notranslate"><span class="pre">LlamaConfig.norm_eps</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="#id42"><code class="docutils literal notranslate"><span class="pre">LlamaConfig.rope_theta</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="#id43"><code class="docutils literal notranslate"><span class="pre">LlamaConfig.vocab_size</span></code></a></li>
 </ul>
 </li>
 <li class="toctree-l3"><a class="reference internal" href="#jaxgarden.models.LlamaForCausalLM"><code class="docutils literal notranslate"><span class="pre">LlamaForCausalLM</span></code></a><ul>
@@ -718,6 +789,507 @@ after conversion.</p></li>
 </dd></dl>
 
 <dl class="py class">
+<dt class="sig sig-object py" id="jaxgarden.models.Gemma3Attention">
+<em class="property"><span class="pre">class</span><span class="w"> </span></em><span class="sig-prename descclassname"><span class="pre">jaxgarden.models.</span></span><span class="sig-name descname"><span class="pre">Gemma3Attention</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="o"><span class="pre">*</span></span><span class="n"><span class="pre">args</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">Any</span></span></em>, <em class="sig-param"><span class="o"><span class="pre">**</span></span><span class="n"><span class="pre">kwargs</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">Any</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/jaxgarden/models/gemma3.html#Gemma3Attention"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#jaxgarden.models.Gemma3Attention" title="Link to this definition"></a></dt>
+<dd><p>Bases: <a class="reference external" href="https://flax.readthedocs.io/en/latest/api_reference/flax.nnx/module.html#flax.nnx.Module" title="(in Flax)"><code class="xref py py-class docutils literal notranslate"><span class="pre">Module</span></code></a></p>
+<p>Gemma3 attention module with support for GQA and sliding window.</p>
+<dl class="py method">
+<dt class="sig sig-object py" id="jaxgarden.models.Gemma3Attention.apply_soft_cap">
+<em class="property"><span class="pre">static</span><span class="w"> </span></em><span class="sig-name descname"><span class="pre">apply_soft_cap</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">x</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><a class="reference external" href="https://docs.jax.dev/en/latest/_autosummary/jax.Array.html#jax.Array" title="(in JAX)"><span class="pre">Array</span></a></span></em>, <em class="sig-param"><span class="n"><span class="pre">cap</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><a class="reference external" href="https://docs.python.org/3/library/functions.html#float" title="(in Python v3.13)"><span class="pre">float</span></a></span></em><span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><a class="reference external" href="https://docs.jax.dev/en/latest/_autosummary/jax.Array.html#jax.Array" title="(in JAX)"><span class="pre">Array</span></a></span></span><a class="reference internal" href="../_modules/jaxgarden/models/gemma3.html#Gemma3Attention.apply_soft_cap"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#jaxgarden.models.Gemma3Attention.apply_soft_cap" title="Link to this definition"></a></dt>
+<dd></dd></dl>
+
+</dd></dl>
+
+<dl class="py class">
+<dt class="sig sig-object py" id="jaxgarden.models.Gemma3Config">
+<em class="property"><span class="pre">class</span><span class="w"> </span></em><span class="sig-prename descclassname"><span class="pre">jaxgarden.models.</span></span><span class="sig-name descname"><span class="pre">Gemma3Config</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">seed:</span> <span class="pre">int</span> <span class="pre">=</span> <span class="pre">42</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">log_level:</span> <span class="pre">str</span> <span class="pre">=</span> <span class="pre">'info'</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">extra:</span> <span class="pre">dict[str</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">~typing.Any]</span> <span class="pre">=</span> <span class="pre">&lt;factory&gt;</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">vocab_size:</span> <span class="pre">int</span> <span class="pre">=</span> <span class="pre">262208</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">hidden_size:</span> <span class="pre">int</span> <span class="pre">=</span> <span class="pre">2304</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">intermediate_size:</span> <span class="pre">int</span> <span class="pre">=</span> <span class="pre">9216</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">num_hidden_layers:</span> <span class="pre">int</span> <span class="pre">=</span> <span class="pre">26</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">num_attention_heads:</span> <span class="pre">int</span> <span class="pre">=</span> <span class="pre">8</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">num_key_value_heads:</span> <span class="pre">int</span> <span class="pre">=</span> <span class="pre">4</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">head_dim:</span> <span class="pre">int</span> <span class="pre">=</span> <span class="pre">256</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">rms_norm_eps:</span> <span class="pre">float</span> <span class="pre">=</span> <span class="pre">1e-06</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">rope_theta:</span> <span class="pre">float</span> <span class="pre">=</span> <span class="pre">1000000.0</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">rope_local_base_freq:</span> <span class="pre">float</span> <span class="pre">=</span> <span class="pre">10000.0</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">max_position_embeddings:</span> <span class="pre">int</span> <span class="pre">=</span> <span class="pre">131072</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">initializer_range:</span> <span class="pre">float</span> <span class="pre">=</span> <span class="pre">0.02</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">attention_bias:</span> <span class="pre">bool</span> <span class="pre">=</span> <span class="pre">False</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">attention_dropout:</span> <span class="pre">float</span> <span class="pre">=</span> <span class="pre">0.0</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">query_pre_attn_scalar:</span> <span class="pre">float</span> <span class="pre">=</span> <span class="pre">256.0</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">sliding_window:</span> <span class="pre">int</span> <span class="pre">=</span> <span class="pre">4096</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">sliding_window_pattern:</span> <span class="pre">int</span> <span class="pre">=</span> <span class="pre">6</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">final_logit_soft_cap:</span> <span class="pre">float</span> <span class="pre">|</span> <span class="pre">None</span> <span class="pre">=</span> <span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">attn_logit_soft_cap:</span> <span class="pre">float</span> <span class="pre">|</span> <span class="pre">None</span> <span class="pre">=</span> <span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">pad_token_id:</span> <span class="pre">int</span> <span class="pre">=</span> <span class="pre">0</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">eos_token_id:</span> <span class="pre">int</span> <span class="pre">=</span> <span class="pre">1</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">bos_token_id:</span> <span class="pre">int</span> <span class="pre">=</span> <span class="pre">2</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">tie_word_embeddings:</span> <span class="pre">bool</span> <span class="pre">=</span> <span class="pre">True</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">rope_scaling:</span> <span class="pre">dict[str</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">~typing.Any]</span> <span class="pre">|</span> <span class="pre">None</span> <span class="pre">=</span> <span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">hidden_activation:</span> <span class="pre">str</span> <span class="pre">=</span> <span class="pre">'gelu_pytorch_tanh'</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">use_cache:</span> <span class="pre">bool</span> <span class="pre">=</span> <span class="pre">True</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">param_dtype:</span> <span class="pre">~typing.Any</span> <span class="pre">=</span> <span class="pre">&lt;class</span> <span class="pre">'jax.numpy.bfloat16'&gt;</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">dtype:</span> <span class="pre">~typing.Any</span> <span class="pre">=</span> <span class="pre">&lt;class</span> <span class="pre">'jax.numpy.bfloat16'&gt;</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/jaxgarden/models/gemma3.html#Gemma3Config"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#jaxgarden.models.Gemma3Config" title="Link to this definition"></a></dt>
+<dd><p>Bases: <a class="reference internal" href="#jaxgarden.models.BaseConfig" title="jaxgarden.models.base.BaseConfig"><code class="xref py py-class docutils literal notranslate"><span class="pre">BaseConfig</span></code></a></p>
+<p>Configuration for Gemma3 model.</p>
+<p>This configuration class extends BaseConfig and contains all the parameters
+required to initialize a Gemma3 model. It includes settings for model architecture,
+attention mechanisms, and other hyperparameters.</p>
+<dl class="py attribute">
+<dt class="sig sig-object py" id="jaxgarden.models.Gemma3Config.vocab_size">
+<span class="sig-name descname"><span class="pre">vocab_size</span></span><a class="headerlink" href="#jaxgarden.models.Gemma3Config.vocab_size" title="Link to this definition"></a></dt>
+<dd><p>Size of vocabulary</p>
+<dl class="field-list simple">
+<dt class="field-odd">Type<span class="colon">:</span></dt>
+<dd class="field-odd"><p><a class="reference external" href="https://docs.python.org/3/library/functions.html#int" title="(in Python v3.13)">int</a></p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py attribute">
+<dt class="sig sig-object py" id="jaxgarden.models.Gemma3Config.hidden_size">
+<span class="sig-name descname"><span class="pre">hidden_size</span></span><a class="headerlink" href="#jaxgarden.models.Gemma3Config.hidden_size" title="Link to this definition"></a></dt>
+<dd><p>Size of hidden states</p>
+<dl class="field-list simple">
+<dt class="field-odd">Type<span class="colon">:</span></dt>
+<dd class="field-odd"><p><a class="reference external" href="https://docs.python.org/3/library/functions.html#int" title="(in Python v3.13)">int</a></p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py attribute">
+<dt class="sig sig-object py" id="jaxgarden.models.Gemma3Config.intermediate_size">
+<span class="sig-name descname"><span class="pre">intermediate_size</span></span><a class="headerlink" href="#jaxgarden.models.Gemma3Config.intermediate_size" title="Link to this definition"></a></dt>
+<dd><p>Size of MLP intermediate layer</p>
+<dl class="field-list simple">
+<dt class="field-odd">Type<span class="colon">:</span></dt>
+<dd class="field-odd"><p><a class="reference external" href="https://docs.python.org/3/library/functions.html#int" title="(in Python v3.13)">int</a></p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py attribute">
+<dt class="sig sig-object py" id="jaxgarden.models.Gemma3Config.num_hidden_layers">
+<span class="sig-name descname"><span class="pre">num_hidden_layers</span></span><a class="headerlink" href="#jaxgarden.models.Gemma3Config.num_hidden_layers" title="Link to this definition"></a></dt>
+<dd><p>Number of transformer layers</p>
+<dl class="field-list simple">
+<dt class="field-odd">Type<span class="colon">:</span></dt>
+<dd class="field-odd"><p><a class="reference external" href="https://docs.python.org/3/library/functions.html#int" title="(in Python v3.13)">int</a></p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py attribute">
+<dt class="sig sig-object py" id="jaxgarden.models.Gemma3Config.num_attention_heads">
+<span class="sig-name descname"><span class="pre">num_attention_heads</span></span><a class="headerlink" href="#jaxgarden.models.Gemma3Config.num_attention_heads" title="Link to this definition"></a></dt>
+<dd><p>Number of attention heads</p>
+<dl class="field-list simple">
+<dt class="field-odd">Type<span class="colon">:</span></dt>
+<dd class="field-odd"><p><a class="reference external" href="https://docs.python.org/3/library/functions.html#int" title="(in Python v3.13)">int</a></p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py attribute">
+<dt class="sig sig-object py" id="jaxgarden.models.Gemma3Config.num_key_value_heads">
+<span class="sig-name descname"><span class="pre">num_key_value_heads</span></span><a class="headerlink" href="#jaxgarden.models.Gemma3Config.num_key_value_heads" title="Link to this definition"></a></dt>
+<dd><p>Number of key/value heads (for group query attention)</p>
+<dl class="field-list simple">
+<dt class="field-odd">Type<span class="colon">:</span></dt>
+<dd class="field-odd"><p><a class="reference external" href="https://docs.python.org/3/library/functions.html#int" title="(in Python v3.13)">int</a></p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py attribute">
+<dt class="sig sig-object py" id="jaxgarden.models.Gemma3Config.head_dim">
+<span class="sig-name descname"><span class="pre">head_dim</span></span><a class="headerlink" href="#jaxgarden.models.Gemma3Config.head_dim" title="Link to this definition"></a></dt>
+<dd><p>Dimension of each attention head</p>
+<dl class="field-list simple">
+<dt class="field-odd">Type<span class="colon">:</span></dt>
+<dd class="field-odd"><p><a class="reference external" href="https://docs.python.org/3/library/functions.html#int" title="(in Python v3.13)">int</a></p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py attribute">
+<dt class="sig sig-object py" id="jaxgarden.models.Gemma3Config.rms_norm_eps">
+<span class="sig-name descname"><span class="pre">rms_norm_eps</span></span><a class="headerlink" href="#jaxgarden.models.Gemma3Config.rms_norm_eps" title="Link to this definition"></a></dt>
+<dd><p>Epsilon for RMS normalization</p>
+<dl class="field-list simple">
+<dt class="field-odd">Type<span class="colon">:</span></dt>
+<dd class="field-odd"><p><a class="reference external" href="https://docs.python.org/3/library/functions.html#float" title="(in Python v3.13)">float</a></p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py attribute">
+<dt class="sig sig-object py" id="jaxgarden.models.Gemma3Config.rope_theta">
+<span class="sig-name descname"><span class="pre">rope_theta</span></span><a class="headerlink" href="#jaxgarden.models.Gemma3Config.rope_theta" title="Link to this definition"></a></dt>
+<dd><p>Base period for rotary position embeddings</p>
+<dl class="field-list simple">
+<dt class="field-odd">Type<span class="colon">:</span></dt>
+<dd class="field-odd"><p><a class="reference external" href="https://docs.python.org/3/library/functions.html#float" title="(in Python v3.13)">float</a></p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py attribute">
+<dt class="sig sig-object py" id="jaxgarden.models.Gemma3Config.rope_local_base_freq">
+<span class="sig-name descname"><span class="pre">rope_local_base_freq</span></span><a class="headerlink" href="#jaxgarden.models.Gemma3Config.rope_local_base_freq" title="Link to this definition"></a></dt>
+<dd><p>Base frequency for RoPE in local attention</p>
+<dl class="field-list simple">
+<dt class="field-odd">Type<span class="colon">:</span></dt>
+<dd class="field-odd"><p><a class="reference external" href="https://docs.python.org/3/library/functions.html#float" title="(in Python v3.13)">float</a></p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py attribute">
+<dt class="sig sig-object py" id="jaxgarden.models.Gemma3Config.max_position_embeddings">
+<span class="sig-name descname"><span class="pre">max_position_embeddings</span></span><a class="headerlink" href="#jaxgarden.models.Gemma3Config.max_position_embeddings" title="Link to this definition"></a></dt>
+<dd><p>Maximum sequence length that this model might ever be used with</p>
+<dl class="field-list simple">
+<dt class="field-odd">Type<span class="colon">:</span></dt>
+<dd class="field-odd"><p><a class="reference external" href="https://docs.python.org/3/library/functions.html#int" title="(in Python v3.13)">int</a></p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py attribute">
+<dt class="sig sig-object py" id="jaxgarden.models.Gemma3Config.initializer_range">
+<span class="sig-name descname"><span class="pre">initializer_range</span></span><a class="headerlink" href="#jaxgarden.models.Gemma3Config.initializer_range" title="Link to this definition"></a></dt>
+<dd><p>Standard deviation for weight initialization</p>
+<dl class="field-list simple">
+<dt class="field-odd">Type<span class="colon">:</span></dt>
+<dd class="field-odd"><p><a class="reference external" href="https://docs.python.org/3/library/functions.html#float" title="(in Python v3.13)">float</a></p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py attribute">
+<dt class="sig sig-object py" id="jaxgarden.models.Gemma3Config.attention_bias">
+<span class="sig-name descname"><span class="pre">attention_bias</span></span><a class="headerlink" href="#jaxgarden.models.Gemma3Config.attention_bias" title="Link to this definition"></a></dt>
+<dd><p>Whether to use bias in attention projections</p>
+<dl class="field-list simple">
+<dt class="field-odd">Type<span class="colon">:</span></dt>
+<dd class="field-odd"><p><a class="reference external" href="https://docs.python.org/3/library/functions.html#bool" title="(in Python v3.13)">bool</a></p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py attribute">
+<dt class="sig sig-object py" id="jaxgarden.models.Gemma3Config.attention_dropout">
+<span class="sig-name descname"><span class="pre">attention_dropout</span></span><a class="headerlink" href="#jaxgarden.models.Gemma3Config.attention_dropout" title="Link to this definition"></a></dt>
+<dd><p>Dropout probability for attention weights</p>
+<dl class="field-list simple">
+<dt class="field-odd">Type<span class="colon">:</span></dt>
+<dd class="field-odd"><p><a class="reference external" href="https://docs.python.org/3/library/functions.html#float" title="(in Python v3.13)">float</a></p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py attribute">
+<dt class="sig sig-object py" id="jaxgarden.models.Gemma3Config.query_pre_attn_scalar">
+<span class="sig-name descname"><span class="pre">query_pre_attn_scalar</span></span><a class="headerlink" href="#jaxgarden.models.Gemma3Config.query_pre_attn_scalar" title="Link to this definition"></a></dt>
+<dd><p>Scaling factor for attention scores before softmax</p>
+<dl class="field-list simple">
+<dt class="field-odd">Type<span class="colon">:</span></dt>
+<dd class="field-odd"><p><a class="reference external" href="https://docs.python.org/3/library/functions.html#float" title="(in Python v3.13)">float</a></p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py attribute">
+<dt class="sig sig-object py" id="jaxgarden.models.Gemma3Config.sliding_window">
+<span class="sig-name descname"><span class="pre">sliding_window</span></span><a class="headerlink" href="#jaxgarden.models.Gemma3Config.sliding_window" title="Link to this definition"></a></dt>
+<dd><p>Size of sliding window for local attention</p>
+<dl class="field-list simple">
+<dt class="field-odd">Type<span class="colon">:</span></dt>
+<dd class="field-odd"><p><a class="reference external" href="https://docs.python.org/3/library/functions.html#int" title="(in Python v3.13)">int</a></p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py attribute">
+<dt class="sig sig-object py" id="jaxgarden.models.Gemma3Config.sliding_window_pattern">
+<span class="sig-name descname"><span class="pre">sliding_window_pattern</span></span><a class="headerlink" href="#jaxgarden.models.Gemma3Config.sliding_window_pattern" title="Link to this definition"></a></dt>
+<dd><p>Pattern for alternating global/local attention (every N layers)</p>
+<dl class="field-list simple">
+<dt class="field-odd">Type<span class="colon">:</span></dt>
+<dd class="field-odd"><p><a class="reference external" href="https://docs.python.org/3/library/functions.html#int" title="(in Python v3.13)">int</a></p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py attribute">
+<dt class="sig sig-object py" id="jaxgarden.models.Gemma3Config.final_logit_soft_cap">
+<span class="sig-name descname"><span class="pre">final_logit_soft_cap</span></span><a class="headerlink" href="#jaxgarden.models.Gemma3Config.final_logit_soft_cap" title="Link to this definition"></a></dt>
+<dd><p>Soft cap for final logits</p>
+<dl class="field-list simple">
+<dt class="field-odd">Type<span class="colon">:</span></dt>
+<dd class="field-odd"><p><a class="reference external" href="https://docs.python.org/3/library/functions.html#float" title="(in Python v3.13)">float</a> | None</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py attribute">
+<dt class="sig sig-object py" id="jaxgarden.models.Gemma3Config.attn_logit_soft_cap">
+<span class="sig-name descname"><span class="pre">attn_logit_soft_cap</span></span><a class="headerlink" href="#jaxgarden.models.Gemma3Config.attn_logit_soft_cap" title="Link to this definition"></a></dt>
+<dd><p>Soft cap for attention logits</p>
+<dl class="field-list simple">
+<dt class="field-odd">Type<span class="colon">:</span></dt>
+<dd class="field-odd"><p><a class="reference external" href="https://docs.python.org/3/library/functions.html#float" title="(in Python v3.13)">float</a> | None</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py attribute">
+<dt class="sig sig-object py" id="jaxgarden.models.Gemma3Config.pad_token_id">
+<span class="sig-name descname"><span class="pre">pad_token_id</span></span><a class="headerlink" href="#jaxgarden.models.Gemma3Config.pad_token_id" title="Link to this definition"></a></dt>
+<dd><p>ID of padding token</p>
+<dl class="field-list simple">
+<dt class="field-odd">Type<span class="colon">:</span></dt>
+<dd class="field-odd"><p><a class="reference external" href="https://docs.python.org/3/library/functions.html#int" title="(in Python v3.13)">int</a></p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py attribute">
+<dt class="sig sig-object py" id="jaxgarden.models.Gemma3Config.eos_token_id">
+<span class="sig-name descname"><span class="pre">eos_token_id</span></span><a class="headerlink" href="#jaxgarden.models.Gemma3Config.eos_token_id" title="Link to this definition"></a></dt>
+<dd><p>ID of end-of-sequence token</p>
+<dl class="field-list simple">
+<dt class="field-odd">Type<span class="colon">:</span></dt>
+<dd class="field-odd"><p><a class="reference external" href="https://docs.python.org/3/library/functions.html#int" title="(in Python v3.13)">int</a></p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py attribute">
+<dt class="sig sig-object py" id="jaxgarden.models.Gemma3Config.bos_token_id">
+<span class="sig-name descname"><span class="pre">bos_token_id</span></span><a class="headerlink" href="#jaxgarden.models.Gemma3Config.bos_token_id" title="Link to this definition"></a></dt>
+<dd><p>ID of beginning-of-sequence token</p>
+<dl class="field-list simple">
+<dt class="field-odd">Type<span class="colon">:</span></dt>
+<dd class="field-odd"><p><a class="reference external" href="https://docs.python.org/3/library/functions.html#int" title="(in Python v3.13)">int</a></p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py attribute">
+<dt class="sig sig-object py" id="jaxgarden.models.Gemma3Config.tie_word_embeddings">
+<span class="sig-name descname"><span class="pre">tie_word_embeddings</span></span><a class="headerlink" href="#jaxgarden.models.Gemma3Config.tie_word_embeddings" title="Link to this definition"></a></dt>
+<dd><p>Whether to tie input and output embeddings</p>
+<dl class="field-list simple">
+<dt class="field-odd">Type<span class="colon">:</span></dt>
+<dd class="field-odd"><p><a class="reference external" href="https://docs.python.org/3/library/functions.html#bool" title="(in Python v3.13)">bool</a></p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py attribute">
+<dt class="sig sig-object py" id="jaxgarden.models.Gemma3Config.rope_scaling">
+<span class="sig-name descname"><span class="pre">rope_scaling</span></span><a class="headerlink" href="#jaxgarden.models.Gemma3Config.rope_scaling" title="Link to this definition"></a></dt>
+<dd><p>Configuration for RoPE scaling</p>
+<dl class="field-list simple">
+<dt class="field-odd">Type<span class="colon">:</span></dt>
+<dd class="field-odd"><p><a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#dict" title="(in Python v3.13)">dict</a>[<a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#str" title="(in Python v3.13)">str</a>, Any] | None</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py attribute">
+<dt class="sig sig-object py" id="jaxgarden.models.Gemma3Config.hidden_activation">
+<span class="sig-name descname"><span class="pre">hidden_activation</span></span><a class="headerlink" href="#jaxgarden.models.Gemma3Config.hidden_activation" title="Link to this definition"></a></dt>
+<dd><p>Activation function in MLP</p>
+<dl class="field-list simple">
+<dt class="field-odd">Type<span class="colon">:</span></dt>
+<dd class="field-odd"><p><a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#str" title="(in Python v3.13)">str</a></p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py attribute">
+<dt class="sig sig-object py" id="jaxgarden.models.Gemma3Config.use_cache">
+<span class="sig-name descname"><span class="pre">use_cache</span></span><a class="headerlink" href="#jaxgarden.models.Gemma3Config.use_cache" title="Link to this definition"></a></dt>
+<dd><p>Whether to use KV cache during generation</p>
+<dl class="field-list simple">
+<dt class="field-odd">Type<span class="colon">:</span></dt>
+<dd class="field-odd"><p><a class="reference external" href="https://docs.python.org/3/library/functions.html#bool" title="(in Python v3.13)">bool</a></p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py attribute">
+<dt class="sig sig-object py" id="id0">
+<span class="sig-name descname"><span class="pre">attention_bias</span></span><em class="property"><span class="p"><span class="pre">:</span></span><span class="w"> </span><a class="reference external" href="https://docs.python.org/3/library/functions.html#bool" title="(in Python v3.13)"><span class="pre">bool</span></a></em><em class="property"><span class="w"> </span><span class="p"><span class="pre">=</span></span><span class="w"> </span><span class="pre">False</span></em><a class="headerlink" href="#id0" title="Link to this definition"></a></dt>
+<dd></dd></dl>
+
+<dl class="py attribute">
+<dt class="sig sig-object py" id="id9">
+<span class="sig-name descname"><span class="pre">attention_dropout</span></span><em class="property"><span class="p"><span class="pre">:</span></span><span class="w"> </span><a class="reference external" href="https://docs.python.org/3/library/functions.html#float" title="(in Python v3.13)"><span class="pre">float</span></a></em><em class="property"><span class="w"> </span><span class="p"><span class="pre">=</span></span><span class="w"> </span><span class="pre">0.0</span></em><a class="headerlink" href="#id9" title="Link to this definition"></a></dt>
+<dd></dd></dl>
+
+<dl class="py attribute">
+<dt class="sig sig-object py" id="id10">
+<span class="sig-name descname"><span class="pre">attn_logit_soft_cap</span></span><em class="property"><span class="p"><span class="pre">:</span></span><span class="w"> </span><a class="reference external" href="https://docs.python.org/3/library/functions.html#float" title="(in Python v3.13)"><span class="pre">float</span></a><span class="w"> </span><span class="p"><span class="pre">|</span></span><span class="w"> </span><a class="reference external" href="https://docs.python.org/3/library/constants.html#None" title="(in Python v3.13)"><span class="pre">None</span></a></em><em class="property"><span class="w"> </span><span class="p"><span class="pre">=</span></span><span class="w"> </span><span class="pre">None</span></em><a class="headerlink" href="#id10" title="Link to this definition"></a></dt>
+<dd></dd></dl>
+
+<dl class="py attribute">
+<dt class="sig sig-object py" id="id11">
+<span class="sig-name descname"><span class="pre">bos_token_id</span></span><em class="property"><span class="p"><span class="pre">:</span></span><span class="w"> </span><a class="reference external" href="https://docs.python.org/3/library/functions.html#int" title="(in Python v3.13)"><span class="pre">int</span></a></em><em class="property"><span class="w"> </span><span class="p"><span class="pre">=</span></span><span class="w"> </span><span class="pre">2</span></em><a class="headerlink" href="#id11" title="Link to this definition"></a></dt>
+<dd></dd></dl>
+
+<dl class="py attribute">
+<dt class="sig sig-object py" id="jaxgarden.models.Gemma3Config.dtype">
+<span class="sig-name descname"><span class="pre">dtype</span></span><a class="headerlink" href="#jaxgarden.models.Gemma3Config.dtype" title="Link to this definition"></a></dt>
+<dd><p>alias of <code class="xref py py-class docutils literal notranslate"><span class="pre">bfloat16</span></code></p>
+</dd></dl>
+
+<dl class="py attribute">
+<dt class="sig sig-object py" id="id12">
+<span class="sig-name descname"><span class="pre">eos_token_id</span></span><em class="property"><span class="p"><span class="pre">:</span></span><span class="w"> </span><a class="reference external" href="https://docs.python.org/3/library/functions.html#int" title="(in Python v3.13)"><span class="pre">int</span></a></em><em class="property"><span class="w"> </span><span class="p"><span class="pre">=</span></span><span class="w"> </span><span class="pre">1</span></em><a class="headerlink" href="#id12" title="Link to this definition"></a></dt>
+<dd></dd></dl>
+
+<dl class="py attribute">
+<dt class="sig sig-object py" id="id13">
+<span class="sig-name descname"><span class="pre">final_logit_soft_cap</span></span><em class="property"><span class="p"><span class="pre">:</span></span><span class="w"> </span><a class="reference external" href="https://docs.python.org/3/library/functions.html#float" title="(in Python v3.13)"><span class="pre">float</span></a><span class="w"> </span><span class="p"><span class="pre">|</span></span><span class="w"> </span><a class="reference external" href="https://docs.python.org/3/library/constants.html#None" title="(in Python v3.13)"><span class="pre">None</span></a></em><em class="property"><span class="w"> </span><span class="p"><span class="pre">=</span></span><span class="w"> </span><span class="pre">None</span></em><a class="headerlink" href="#id13" title="Link to this definition"></a></dt>
+<dd></dd></dl>
+
+<dl class="py attribute">
+<dt class="sig sig-object py" id="id14">
+<span class="sig-name descname"><span class="pre">head_dim</span></span><em class="property"><span class="p"><span class="pre">:</span></span><span class="w"> </span><a class="reference external" href="https://docs.python.org/3/library/functions.html#int" title="(in Python v3.13)"><span class="pre">int</span></a></em><em class="property"><span class="w"> </span><span class="p"><span class="pre">=</span></span><span class="w"> </span><span class="pre">256</span></em><a class="headerlink" href="#id14" title="Link to this definition"></a></dt>
+<dd></dd></dl>
+
+<dl class="py attribute">
+<dt class="sig sig-object py" id="id15">
+<span class="sig-name descname"><span class="pre">hidden_activation</span></span><em class="property"><span class="p"><span class="pre">:</span></span><span class="w"> </span><a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#str" title="(in Python v3.13)"><span class="pre">str</span></a></em><em class="property"><span class="w"> </span><span class="p"><span class="pre">=</span></span><span class="w"> </span><span class="pre">'gelu_pytorch_tanh'</span></em><a class="headerlink" href="#id15" title="Link to this definition"></a></dt>
+<dd></dd></dl>
+
+<dl class="py attribute">
+<dt class="sig sig-object py" id="id16">
+<span class="sig-name descname"><span class="pre">hidden_size</span></span><em class="property"><span class="p"><span class="pre">:</span></span><span class="w"> </span><a class="reference external" href="https://docs.python.org/3/library/functions.html#int" title="(in Python v3.13)"><span class="pre">int</span></a></em><em class="property"><span class="w"> </span><span class="p"><span class="pre">=</span></span><span class="w"> </span><span class="pre">2304</span></em><a class="headerlink" href="#id16" title="Link to this definition"></a></dt>
+<dd></dd></dl>
+
+<dl class="py attribute">
+<dt class="sig sig-object py" id="id17">
+<span class="sig-name descname"><span class="pre">initializer_range</span></span><em class="property"><span class="p"><span class="pre">:</span></span><span class="w"> </span><a class="reference external" href="https://docs.python.org/3/library/functions.html#float" title="(in Python v3.13)"><span class="pre">float</span></a></em><em class="property"><span class="w"> </span><span class="p"><span class="pre">=</span></span><span class="w"> </span><span class="pre">0.02</span></em><a class="headerlink" href="#id17" title="Link to this definition"></a></dt>
+<dd></dd></dl>
+
+<dl class="py attribute">
+<dt class="sig sig-object py" id="id18">
+<span class="sig-name descname"><span class="pre">intermediate_size</span></span><em class="property"><span class="p"><span class="pre">:</span></span><span class="w"> </span><a class="reference external" href="https://docs.python.org/3/library/functions.html#int" title="(in Python v3.13)"><span class="pre">int</span></a></em><em class="property"><span class="w"> </span><span class="p"><span class="pre">=</span></span><span class="w"> </span><span class="pre">9216</span></em><a class="headerlink" href="#id18" title="Link to this definition"></a></dt>
+<dd></dd></dl>
+
+<dl class="py attribute">
+<dt class="sig sig-object py" id="id19">
+<span class="sig-name descname"><span class="pre">max_position_embeddings</span></span><em class="property"><span class="p"><span class="pre">:</span></span><span class="w"> </span><a class="reference external" href="https://docs.python.org/3/library/functions.html#int" title="(in Python v3.13)"><span class="pre">int</span></a></em><em class="property"><span class="w"> </span><span class="p"><span class="pre">=</span></span><span class="w"> </span><span class="pre">131072</span></em><a class="headerlink" href="#id19" title="Link to this definition"></a></dt>
+<dd></dd></dl>
+
+<dl class="py attribute">
+<dt class="sig sig-object py" id="id20">
+<span class="sig-name descname"><span class="pre">num_attention_heads</span></span><em class="property"><span class="p"><span class="pre">:</span></span><span class="w"> </span><a class="reference external" href="https://docs.python.org/3/library/functions.html#int" title="(in Python v3.13)"><span class="pre">int</span></a></em><em class="property"><span class="w"> </span><span class="p"><span class="pre">=</span></span><span class="w"> </span><span class="pre">8</span></em><a class="headerlink" href="#id20" title="Link to this definition"></a></dt>
+<dd></dd></dl>
+
+<dl class="py attribute">
+<dt class="sig sig-object py" id="id21">
+<span class="sig-name descname"><span class="pre">num_hidden_layers</span></span><em class="property"><span class="p"><span class="pre">:</span></span><span class="w"> </span><a class="reference external" href="https://docs.python.org/3/library/functions.html#int" title="(in Python v3.13)"><span class="pre">int</span></a></em><em class="property"><span class="w"> </span><span class="p"><span class="pre">=</span></span><span class="w"> </span><span class="pre">26</span></em><a class="headerlink" href="#id21" title="Link to this definition"></a></dt>
+<dd></dd></dl>
+
+<dl class="py attribute">
+<dt class="sig sig-object py" id="id22">
+<span class="sig-name descname"><span class="pre">num_key_value_heads</span></span><em class="property"><span class="p"><span class="pre">:</span></span><span class="w"> </span><a class="reference external" href="https://docs.python.org/3/library/functions.html#int" title="(in Python v3.13)"><span class="pre">int</span></a></em><em class="property"><span class="w"> </span><span class="p"><span class="pre">=</span></span><span class="w"> </span><span class="pre">4</span></em><a class="headerlink" href="#id22" title="Link to this definition"></a></dt>
+<dd></dd></dl>
+
+<dl class="py attribute">
+<dt class="sig sig-object py" id="id23">
+<span class="sig-name descname"><span class="pre">pad_token_id</span></span><em class="property"><span class="p"><span class="pre">:</span></span><span class="w"> </span><a class="reference external" href="https://docs.python.org/3/library/functions.html#int" title="(in Python v3.13)"><span class="pre">int</span></a></em><em class="property"><span class="w"> </span><span class="p"><span class="pre">=</span></span><span class="w"> </span><span class="pre">0</span></em><a class="headerlink" href="#id23" title="Link to this definition"></a></dt>
+<dd></dd></dl>
+
+<dl class="py attribute">
+<dt class="sig sig-object py" id="jaxgarden.models.Gemma3Config.param_dtype">
+<span class="sig-name descname"><span class="pre">param_dtype</span></span><a class="headerlink" href="#jaxgarden.models.Gemma3Config.param_dtype" title="Link to this definition"></a></dt>
+<dd><p>alias of <code class="xref py py-class docutils literal notranslate"><span class="pre">bfloat16</span></code></p>
+</dd></dl>
+
+<dl class="py attribute">
+<dt class="sig sig-object py" id="id24">
+<span class="sig-name descname"><span class="pre">query_pre_attn_scalar</span></span><em class="property"><span class="p"><span class="pre">:</span></span><span class="w"> </span><a class="reference external" href="https://docs.python.org/3/library/functions.html#float" title="(in Python v3.13)"><span class="pre">float</span></a></em><em class="property"><span class="w"> </span><span class="p"><span class="pre">=</span></span><span class="w"> </span><span class="pre">256.0</span></em><a class="headerlink" href="#id24" title="Link to this definition"></a></dt>
+<dd></dd></dl>
+
+<dl class="py attribute">
+<dt class="sig sig-object py" id="id25">
+<span class="sig-name descname"><span class="pre">rms_norm_eps</span></span><em class="property"><span class="p"><span class="pre">:</span></span><span class="w"> </span><a class="reference external" href="https://docs.python.org/3/library/functions.html#float" title="(in Python v3.13)"><span class="pre">float</span></a></em><em class="property"><span class="w"> </span><span class="p"><span class="pre">=</span></span><span class="w"> </span><span class="pre">1e-06</span></em><a class="headerlink" href="#id25" title="Link to this definition"></a></dt>
+<dd></dd></dl>
+
+<dl class="py attribute">
+<dt class="sig sig-object py" id="id26">
+<span class="sig-name descname"><span class="pre">rope_local_base_freq</span></span><em class="property"><span class="p"><span class="pre">:</span></span><span class="w"> </span><a class="reference external" href="https://docs.python.org/3/library/functions.html#float" title="(in Python v3.13)"><span class="pre">float</span></a></em><em class="property"><span class="w"> </span><span class="p"><span class="pre">=</span></span><span class="w"> </span><span class="pre">10000.0</span></em><a class="headerlink" href="#id26" title="Link to this definition"></a></dt>
+<dd></dd></dl>
+
+<dl class="py attribute">
+<dt class="sig sig-object py" id="id27">
+<span class="sig-name descname"><span class="pre">rope_scaling</span></span><em class="property"><span class="p"><span class="pre">:</span></span><span class="w"> </span><a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#dict" title="(in Python v3.13)"><span class="pre">dict</span></a><span class="p"><span class="pre">[</span></span><a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#str" title="(in Python v3.13)"><span class="pre">str</span></a><span class="p"><span class="pre">,</span></span><span class="w"> </span><a class="reference external" href="https://docs.python.org/3/library/typing.html#typing.Any" title="(in Python v3.13)"><span class="pre">Any</span></a><span class="p"><span class="pre">]</span></span><span class="w"> </span><span class="p"><span class="pre">|</span></span><span class="w"> </span><a class="reference external" href="https://docs.python.org/3/library/constants.html#None" title="(in Python v3.13)"><span class="pre">None</span></a></em><em class="property"><span class="w"> </span><span class="p"><span class="pre">=</span></span><span class="w"> </span><span class="pre">None</span></em><a class="headerlink" href="#id27" title="Link to this definition"></a></dt>
+<dd></dd></dl>
+
+<dl class="py attribute">
+<dt class="sig sig-object py" id="id28">
+<span class="sig-name descname"><span class="pre">rope_theta</span></span><em class="property"><span class="p"><span class="pre">:</span></span><span class="w"> </span><a class="reference external" href="https://docs.python.org/3/library/functions.html#float" title="(in Python v3.13)"><span class="pre">float</span></a></em><em class="property"><span class="w"> </span><span class="p"><span class="pre">=</span></span><span class="w"> </span><span class="pre">1000000.0</span></em><a class="headerlink" href="#id28" title="Link to this definition"></a></dt>
+<dd></dd></dl>
+
+<dl class="py attribute">
+<dt class="sig sig-object py" id="id29">
+<span class="sig-name descname"><span class="pre">sliding_window</span></span><em class="property"><span class="p"><span class="pre">:</span></span><span class="w"> </span><a class="reference external" href="https://docs.python.org/3/library/functions.html#int" title="(in Python v3.13)"><span class="pre">int</span></a></em><em class="property"><span class="w"> </span><span class="p"><span class="pre">=</span></span><span class="w"> </span><span class="pre">4096</span></em><a class="headerlink" href="#id29" title="Link to this definition"></a></dt>
+<dd></dd></dl>
+
+<dl class="py attribute">
+<dt class="sig sig-object py" id="id30">
+<span class="sig-name descname"><span class="pre">sliding_window_pattern</span></span><em class="property"><span class="p"><span class="pre">:</span></span><span class="w"> </span><a class="reference external" href="https://docs.python.org/3/library/functions.html#int" title="(in Python v3.13)"><span class="pre">int</span></a></em><em class="property"><span class="w"> </span><span class="p"><span class="pre">=</span></span><span class="w"> </span><span class="pre">6</span></em><a class="headerlink" href="#id30" title="Link to this definition"></a></dt>
+<dd></dd></dl>
+
+<dl class="py attribute">
+<dt class="sig sig-object py" id="id31">
+<span class="sig-name descname"><span class="pre">tie_word_embeddings</span></span><em class="property"><span class="p"><span class="pre">:</span></span><span class="w"> </span><a class="reference external" href="https://docs.python.org/3/library/functions.html#bool" title="(in Python v3.13)"><span class="pre">bool</span></a></em><em class="property"><span class="w"> </span><span class="p"><span class="pre">=</span></span><span class="w"> </span><span class="pre">True</span></em><a class="headerlink" href="#id31" title="Link to this definition"></a></dt>
+<dd></dd></dl>
+
+<dl class="py attribute">
+<dt class="sig sig-object py" id="id32">
+<span class="sig-name descname"><span class="pre">use_cache</span></span><em class="property"><span class="p"><span class="pre">:</span></span><span class="w"> </span><a class="reference external" href="https://docs.python.org/3/library/functions.html#bool" title="(in Python v3.13)"><span class="pre">bool</span></a></em><em class="property"><span class="w"> </span><span class="p"><span class="pre">=</span></span><span class="w"> </span><span class="pre">True</span></em><a class="headerlink" href="#id32" title="Link to this definition"></a></dt>
+<dd></dd></dl>
+
+<dl class="py attribute">
+<dt class="sig sig-object py" id="id33">
+<span class="sig-name descname"><span class="pre">vocab_size</span></span><em class="property"><span class="p"><span class="pre">:</span></span><span class="w"> </span><a class="reference external" href="https://docs.python.org/3/library/functions.html#int" title="(in Python v3.13)"><span class="pre">int</span></a></em><em class="property"><span class="w"> </span><span class="p"><span class="pre">=</span></span><span class="w"> </span><span class="pre">262208</span></em><a class="headerlink" href="#id33" title="Link to this definition"></a></dt>
+<dd></dd></dl>
+
+</dd></dl>
+
+<dl class="py class">
+<dt class="sig sig-object py" id="jaxgarden.models.Gemma3ForCausalLM">
+<em class="property"><span class="pre">class</span><span class="w"> </span></em><span class="sig-prename descclassname"><span class="pre">jaxgarden.models.</span></span><span class="sig-name descname"><span class="pre">Gemma3ForCausalLM</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="o"><span class="pre">*</span></span><span class="n"><span class="pre">args</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">Any</span></span></em>, <em class="sig-param"><span class="o"><span class="pre">**</span></span><span class="n"><span class="pre">kwargs</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">Any</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/jaxgarden/models/gemma3.html#Gemma3ForCausalLM"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#jaxgarden.models.Gemma3ForCausalLM" title="Link to this definition"></a></dt>
+<dd><p>Bases: <a class="reference internal" href="#jaxgarden.models.GenerationMixin" title="jaxgarden.models.generation_utils.GenerationMixin"><code class="xref py py-class docutils literal notranslate"><span class="pre">GenerationMixin</span></code></a>, <a class="reference internal" href="#jaxgarden.models.BaseModel" title="jaxgarden.models.base.BaseModel"><code class="xref py py-class docutils literal notranslate"><span class="pre">BaseModel</span></code></a></p>
+<p>Gemma3 model for causal language modeling.</p>
+<dl class="py attribute">
+<dt class="sig sig-object py" id="jaxgarden.models.Gemma3ForCausalLM.config">
+<span class="sig-name descname"><span class="pre">config</span></span><em class="property"><span class="p"><span class="pre">:</span></span><span class="w"> </span><a class="reference internal" href="#jaxgarden.models.Gemma3Config" title="jaxgarden.models.gemma3.Gemma3Config"><span class="pre">Gemma3Config</span></a></em><a class="headerlink" href="#jaxgarden.models.Gemma3ForCausalLM.config" title="Link to this definition"></a></dt>
+<dd></dd></dl>
+
+</dd></dl>
+
+<dl class="py class">
+<dt class="sig sig-object py" id="jaxgarden.models.Gemma3MLP">
+<em class="property"><span class="pre">class</span><span class="w"> </span></em><span class="sig-prename descclassname"><span class="pre">jaxgarden.models.</span></span><span class="sig-name descname"><span class="pre">Gemma3MLP</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="o"><span class="pre">*</span></span><span class="n"><span class="pre">args</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">Any</span></span></em>, <em class="sig-param"><span class="o"><span class="pre">**</span></span><span class="n"><span class="pre">kwargs</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">Any</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/jaxgarden/models/gemma3.html#Gemma3MLP"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#jaxgarden.models.Gemma3MLP" title="Link to this definition"></a></dt>
+<dd><p>Bases: <a class="reference external" href="https://flax.readthedocs.io/en/latest/api_reference/flax.nnx/module.html#flax.nnx.Module" title="(in Flax)"><code class="xref py py-class docutils literal notranslate"><span class="pre">Module</span></code></a></p>
+<p>Gemma3 MLP module with GeGLU activation.</p>
+</dd></dl>
+
+<dl class="py class">
+<dt class="sig sig-object py" id="jaxgarden.models.Gemma3RMSNorm">
+<em class="property"><span class="pre">class</span><span class="w"> </span></em><span class="sig-prename descclassname"><span class="pre">jaxgarden.models.</span></span><span class="sig-name descname"><span class="pre">Gemma3RMSNorm</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="o"><span class="pre">*</span></span><span class="n"><span class="pre">args</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">Any</span></span></em>, <em class="sig-param"><span class="o"><span class="pre">**</span></span><span class="n"><span class="pre">kwargs</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">Any</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/jaxgarden/models/gemma3.html#Gemma3RMSNorm"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#jaxgarden.models.Gemma3RMSNorm" title="Link to this definition"></a></dt>
+<dd><p>Bases: <a class="reference external" href="https://flax.readthedocs.io/en/latest/api_reference/flax.nnx/module.html#flax.nnx.Module" title="(in Flax)"><code class="xref py py-class docutils literal notranslate"><span class="pre">Module</span></code></a></p>
+<p>Root Mean Square Layer Normalization.</p>
+<p>This implementation follows the RMSNorm implementation in Transformers.</p>
+</dd></dl>
+
+<dl class="py class">
+<dt class="sig sig-object py" id="jaxgarden.models.Gemma3RotaryEmbedding">
+<em class="property"><span class="pre">class</span><span class="w"> </span></em><span class="sig-prename descclassname"><span class="pre">jaxgarden.models.</span></span><span class="sig-name descname"><span class="pre">Gemma3RotaryEmbedding</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="o"><span class="pre">*</span></span><span class="n"><span class="pre">args</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">Any</span></span></em>, <em class="sig-param"><span class="o"><span class="pre">**</span></span><span class="n"><span class="pre">kwargs</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">Any</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/jaxgarden/models/gemma3.html#Gemma3RotaryEmbedding"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#jaxgarden.models.Gemma3RotaryEmbedding" title="Link to this definition"></a></dt>
+<dd><p>Bases: <a class="reference external" href="https://flax.readthedocs.io/en/latest/api_reference/flax.nnx/module.html#flax.nnx.Module" title="(in Flax)"><code class="xref py py-class docutils literal notranslate"><span class="pre">Module</span></code></a></p>
+<p>Applies Rotary Position Embedding (RoPE) to input tensors.</p>
+<dl class="py method">
+<dt class="sig sig-object py" id="jaxgarden.models.Gemma3RotaryEmbedding.__call__">
+<span class="sig-name descname"><span class="pre">__call__</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">x</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><a class="reference external" href="https://docs.jax.dev/en/latest/_autosummary/jax.Array.html#jax.Array" title="(in JAX)"><span class="pre">Array</span></a></span></em>, <em class="sig-param"><span class="n"><span class="pre">position_ids</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><a class="reference external" href="https://docs.jax.dev/en/latest/_autosummary/jax.Array.html#jax.Array" title="(in JAX)"><span class="pre">Array</span></a></span></em><span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><a class="reference external" href="https://docs.jax.dev/en/latest/_autosummary/jax.Array.html#jax.Array" title="(in JAX)"><span class="pre">Array</span></a></span></span><a class="reference internal" href="../_modules/jaxgarden/models/gemma3.html#Gemma3RotaryEmbedding.__call__"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#jaxgarden.models.Gemma3RotaryEmbedding.__call__" title="Link to this definition"></a></dt>
+<dd><p>Applies RoPE to the input tensor using cached sin/cos values.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>x</strong> – Input tensor of shape [B, L, N, H].</p></li>
+<li><p><strong>position_ids</strong> – Position indices of shape [B, L].</p></li>
+</ul>
+</dd>
+<dt class="field-even">Returns<span class="colon">:</span></dt>
+<dd class="field-even"><p>Rotated tensor of the same shape as x.</p>
+</dd>
+</dl>
+</dd></dl>
+
+</dd></dl>
+
+<dl class="py class">
 <dt class="sig sig-object py" id="jaxgarden.models.GenerationMixin">
 <em class="property"><span class="pre">class</span><span class="w"> </span></em><span class="sig-prename descclassname"><span class="pre">jaxgarden.models.</span></span><span class="sig-name descname"><span class="pre">GenerationMixin</span></span><a class="reference internal" href="../_modules/jaxgarden/models/generation_utils.html#GenerationMixin"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#jaxgarden.models.GenerationMixin" title="Link to this definition"></a></dt>
 <dd><p>Bases: <a class="reference external" href="https://docs.python.org/3/library/functions.html#object" title="(in Python v3.13)"><code class="xref py py-class docutils literal notranslate"><span class="pre">object</span></code></a></p>
@@ -1021,53 +1593,53 @@ attention mechanisms, and other hyperparameters.</p>
 </dd></dl>
 
 <dl class="py attribute">
-<dt class="sig sig-object py" id="id0">
-<span class="sig-name descname"><span class="pre">dim</span></span><em class="property"><span class="p"><span class="pre">:</span></span><span class="w"> </span><a class="reference external" href="https://docs.python.org/3/library/functions.html#int" title="(in Python v3.13)"><span class="pre">int</span></a></em><em class="property"><span class="w"> </span><span class="p"><span class="pre">=</span></span><span class="w"> </span><span class="pre">2048</span></em><a class="headerlink" href="#id0" title="Link to this definition"></a></dt>
+<dt class="sig sig-object py" id="id34">
+<span class="sig-name descname"><span class="pre">dim</span></span><em class="property"><span class="p"><span class="pre">:</span></span><span class="w"> </span><a class="reference external" href="https://docs.python.org/3/library/functions.html#int" title="(in Python v3.13)"><span class="pre">int</span></a></em><em class="property"><span class="w"> </span><span class="p"><span class="pre">=</span></span><span class="w"> </span><span class="pre">2048</span></em><a class="headerlink" href="#id34" title="Link to this definition"></a></dt>
 <dd></dd></dl>
 
 <dl class="py attribute">
-<dt class="sig sig-object py" id="id9">
-<span class="sig-name descname"><span class="pre">head_dim</span></span><em class="property"><span class="p"><span class="pre">:</span></span><span class="w"> </span><a class="reference external" href="https://docs.python.org/3/library/functions.html#int" title="(in Python v3.13)"><span class="pre">int</span></a></em><em class="property"><span class="w"> </span><span class="p"><span class="pre">=</span></span><span class="w"> </span><span class="pre">64</span></em><a class="headerlink" href="#id9" title="Link to this definition"></a></dt>
+<dt class="sig sig-object py" id="id35">
+<span class="sig-name descname"><span class="pre">head_dim</span></span><em class="property"><span class="p"><span class="pre">:</span></span><span class="w"> </span><a class="reference external" href="https://docs.python.org/3/library/functions.html#int" title="(in Python v3.13)"><span class="pre">int</span></a></em><em class="property"><span class="w"> </span><span class="p"><span class="pre">=</span></span><span class="w"> </span><span class="pre">64</span></em><a class="headerlink" href="#id35" title="Link to this definition"></a></dt>
 <dd></dd></dl>
 
 <dl class="py attribute">
-<dt class="sig sig-object py" id="id10">
-<span class="sig-name descname"><span class="pre">intermediate_size</span></span><em class="property"><span class="p"><span class="pre">:</span></span><span class="w"> </span><a class="reference external" href="https://docs.python.org/3/library/functions.html#int" title="(in Python v3.13)"><span class="pre">int</span></a></em><em class="property"><span class="w"> </span><span class="p"><span class="pre">=</span></span><span class="w"> </span><span class="pre">14336</span></em><a class="headerlink" href="#id10" title="Link to this definition"></a></dt>
+<dt class="sig sig-object py" id="id36">
+<span class="sig-name descname"><span class="pre">intermediate_size</span></span><em class="property"><span class="p"><span class="pre">:</span></span><span class="w"> </span><a class="reference external" href="https://docs.python.org/3/library/functions.html#int" title="(in Python v3.13)"><span class="pre">int</span></a></em><em class="property"><span class="w"> </span><span class="p"><span class="pre">=</span></span><span class="w"> </span><span class="pre">14336</span></em><a class="headerlink" href="#id36" title="Link to this definition"></a></dt>
 <dd></dd></dl>
 
 <dl class="py attribute">
-<dt class="sig sig-object py" id="id11">
-<span class="sig-name descname"><span class="pre">multiple_of</span></span><em class="property"><span class="p"><span class="pre">:</span></span><span class="w"> </span><a class="reference external" href="https://docs.python.org/3/library/functions.html#int" title="(in Python v3.13)"><span class="pre">int</span></a></em><em class="property"><span class="w"> </span><span class="p"><span class="pre">=</span></span><span class="w"> </span><span class="pre">256</span></em><a class="headerlink" href="#id11" title="Link to this definition"></a></dt>
+<dt class="sig sig-object py" id="id37">
+<span class="sig-name descname"><span class="pre">multiple_of</span></span><em class="property"><span class="p"><span class="pre">:</span></span><span class="w"> </span><a class="reference external" href="https://docs.python.org/3/library/functions.html#int" title="(in Python v3.13)"><span class="pre">int</span></a></em><em class="property"><span class="w"> </span><span class="p"><span class="pre">=</span></span><span class="w"> </span><span class="pre">256</span></em><a class="headerlink" href="#id37" title="Link to this definition"></a></dt>
 <dd></dd></dl>
 
 <dl class="py attribute">
-<dt class="sig sig-object py" id="id12">
-<span class="sig-name descname"><span class="pre">n_heads</span></span><em class="property"><span class="p"><span class="pre">:</span></span><span class="w"> </span><a class="reference external" href="https://docs.python.org/3/library/functions.html#int" title="(in Python v3.13)"><span class="pre">int</span></a></em><em class="property"><span class="w"> </span><span class="p"><span class="pre">=</span></span><span class="w"> </span><span class="pre">32</span></em><a class="headerlink" href="#id12" title="Link to this definition"></a></dt>
+<dt class="sig sig-object py" id="id38">
+<span class="sig-name descname"><span class="pre">n_heads</span></span><em class="property"><span class="p"><span class="pre">:</span></span><span class="w"> </span><a class="reference external" href="https://docs.python.org/3/library/functions.html#int" title="(in Python v3.13)"><span class="pre">int</span></a></em><em class="property"><span class="w"> </span><span class="p"><span class="pre">=</span></span><span class="w"> </span><span class="pre">32</span></em><a class="headerlink" href="#id38" title="Link to this definition"></a></dt>
 <dd></dd></dl>
 
 <dl class="py attribute">
-<dt class="sig sig-object py" id="id13">
-<span class="sig-name descname"><span class="pre">n_kv_heads</span></span><em class="property"><span class="p"><span class="pre">:</span></span><span class="w"> </span><a class="reference external" href="https://docs.python.org/3/library/functions.html#int" title="(in Python v3.13)"><span class="pre">int</span></a></em><em class="property"><span class="w"> </span><span class="p"><span class="pre">=</span></span><span class="w"> </span><span class="pre">8</span></em><a class="headerlink" href="#id13" title="Link to this definition"></a></dt>
+<dt class="sig sig-object py" id="id39">
+<span class="sig-name descname"><span class="pre">n_kv_heads</span></span><em class="property"><span class="p"><span class="pre">:</span></span><span class="w"> </span><a class="reference external" href="https://docs.python.org/3/library/functions.html#int" title="(in Python v3.13)"><span class="pre">int</span></a></em><em class="property"><span class="w"> </span><span class="p"><span class="pre">=</span></span><span class="w"> </span><span class="pre">8</span></em><a class="headerlink" href="#id39" title="Link to this definition"></a></dt>
 <dd></dd></dl>
 
 <dl class="py attribute">
-<dt class="sig sig-object py" id="id14">
-<span class="sig-name descname"><span class="pre">n_layers</span></span><em class="property"><span class="p"><span class="pre">:</span></span><span class="w"> </span><a class="reference external" href="https://docs.python.org/3/library/functions.html#int" title="(in Python v3.13)"><span class="pre">int</span></a></em><em class="property"><span class="w"> </span><span class="p"><span class="pre">=</span></span><span class="w"> </span><span class="pre">16</span></em><a class="headerlink" href="#id14" title="Link to this definition"></a></dt>
+<dt class="sig sig-object py" id="id40">
+<span class="sig-name descname"><span class="pre">n_layers</span></span><em class="property"><span class="p"><span class="pre">:</span></span><span class="w"> </span><a class="reference external" href="https://docs.python.org/3/library/functions.html#int" title="(in Python v3.13)"><span class="pre">int</span></a></em><em class="property"><span class="w"> </span><span class="p"><span class="pre">=</span></span><span class="w"> </span><span class="pre">16</span></em><a class="headerlink" href="#id40" title="Link to this definition"></a></dt>
 <dd></dd></dl>
 
 <dl class="py attribute">
-<dt class="sig sig-object py" id="id15">
-<span class="sig-name descname"><span class="pre">norm_eps</span></span><em class="property"><span class="p"><span class="pre">:</span></span><span class="w"> </span><a class="reference external" href="https://docs.python.org/3/library/functions.html#float" title="(in Python v3.13)"><span class="pre">float</span></a></em><em class="property"><span class="w"> </span><span class="p"><span class="pre">=</span></span><span class="w"> </span><span class="pre">1e-05</span></em><a class="headerlink" href="#id15" title="Link to this definition"></a></dt>
+<dt class="sig sig-object py" id="id41">
+<span class="sig-name descname"><span class="pre">norm_eps</span></span><em class="property"><span class="p"><span class="pre">:</span></span><span class="w"> </span><a class="reference external" href="https://docs.python.org/3/library/functions.html#float" title="(in Python v3.13)"><span class="pre">float</span></a></em><em class="property"><span class="w"> </span><span class="p"><span class="pre">=</span></span><span class="w"> </span><span class="pre">1e-05</span></em><a class="headerlink" href="#id41" title="Link to this definition"></a></dt>
 <dd></dd></dl>
 
 <dl class="py attribute">
-<dt class="sig sig-object py" id="id16">
-<span class="sig-name descname"><span class="pre">rope_theta</span></span><em class="property"><span class="p"><span class="pre">:</span></span><span class="w"> </span><a class="reference external" href="https://docs.python.org/3/library/functions.html#float" title="(in Python v3.13)"><span class="pre">float</span></a></em><em class="property"><span class="w"> </span><span class="p"><span class="pre">=</span></span><span class="w"> </span><span class="pre">500000.0</span></em><a class="headerlink" href="#id16" title="Link to this definition"></a></dt>
+<dt class="sig sig-object py" id="id42">
+<span class="sig-name descname"><span class="pre">rope_theta</span></span><em class="property"><span class="p"><span class="pre">:</span></span><span class="w"> </span><a class="reference external" href="https://docs.python.org/3/library/functions.html#float" title="(in Python v3.13)"><span class="pre">float</span></a></em><em class="property"><span class="w"> </span><span class="p"><span class="pre">=</span></span><span class="w"> </span><span class="pre">500000.0</span></em><a class="headerlink" href="#id42" title="Link to this definition"></a></dt>
 <dd></dd></dl>
 
 <dl class="py attribute">
-<dt class="sig sig-object py" id="id17">
-<span class="sig-name descname"><span class="pre">vocab_size</span></span><em class="property"><span class="p"><span class="pre">:</span></span><span class="w"> </span><a class="reference external" href="https://docs.python.org/3/library/functions.html#int" title="(in Python v3.13)"><span class="pre">int</span></a></em><em class="property"><span class="w"> </span><span class="p"><span class="pre">=</span></span><span class="w"> </span><span class="pre">128256</span></em><a class="headerlink" href="#id17" title="Link to this definition"></a></dt>
+<dt class="sig sig-object py" id="id43">
+<span class="sig-name descname"><span class="pre">vocab_size</span></span><em class="property"><span class="p"><span class="pre">:</span></span><span class="w"> </span><a class="reference external" href="https://docs.python.org/3/library/functions.html#int" title="(in Python v3.13)"><span class="pre">int</span></a></em><em class="property"><span class="w"> </span><span class="p"><span class="pre">=</span></span><span class="w"> </span><span class="pre">128256</span></em><a class="headerlink" href="#id43" title="Link to this definition"></a></dt>
 <dd></dd></dl>
 
 </dd></dl>

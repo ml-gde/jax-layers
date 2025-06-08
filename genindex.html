@@ -102,6 +102,8 @@
       <li><a href="modules/index.html#jaxgarden.models.Gemma2RotaryEmbedding.__call__">__call__() (jaxgarden.models.Gemma2RotaryEmbedding method)</a>
 
       <ul>
+        <li><a href="modules/index.html#jaxgarden.models.Gemma3RotaryEmbedding.__call__">(jaxgarden.models.Gemma3RotaryEmbedding method)</a>
+</li>
         <li><a href="modules/index.html#jaxgarden.models.LlamaAttention.__call__">(jaxgarden.models.LlamaAttention method)</a>
 </li>
         <li><a href="modules/index.html#jaxgarden.models.LlamaForCausalLM.__call__">(jaxgarden.models.LlamaForCausalLM method)</a>
@@ -168,10 +170,20 @@
       <li><a href="modules/index.html#jaxgarden.models.LlamaAttention.apply_rotary_pos_emb">apply_rotary_pos_emb() (jaxgarden.models.LlamaAttention method)</a>
 </li>
       <li><a href="modules/index.html#jaxgarden.models.Gemma2Attention.apply_soft_cap">apply_soft_cap() (jaxgarden.models.Gemma2Attention static method)</a>
+
+      <ul>
+        <li><a href="modules/index.html#jaxgarden.models.Gemma3Attention.apply_soft_cap">(jaxgarden.models.Gemma3Attention static method)</a>
+</li>
+      </ul></li>
+      <li><a href="modules/index.html#jaxgarden.models.LlamaTransformerBlock.attention">attention (jaxgarden.models.LlamaTransformerBlock attribute)</a>
 </li>
   </ul></td>
   <td style="width: 33%; vertical-align: top;"><ul>
-      <li><a href="modules/index.html#jaxgarden.models.LlamaTransformerBlock.attention">attention (jaxgarden.models.LlamaTransformerBlock attribute)</a>
+      <li><a href="modules/index.html#id0">attention_bias (jaxgarden.models.Gemma3Config attribute)</a>, <a href="modules/index.html#jaxgarden.models.Gemma3Config.attention_bias">[1]</a>
+</li>
+      <li><a href="modules/index.html#id9">attention_dropout (jaxgarden.models.Gemma3Config attribute)</a>, <a href="modules/index.html#jaxgarden.models.Gemma3Config.attention_dropout">[1]</a>
+</li>
+      <li><a href="modules/index.html#id10">attn_logit_soft_cap (jaxgarden.models.Gemma3Config attribute)</a>, <a href="modules/index.html#jaxgarden.models.Gemma3Config.attn_logit_soft_cap">[1]</a>
 </li>
       <li><a href="modules/index.html#jaxgarden.models.Gemma2Config.attn_logits_soft_cap">attn_logits_soft_cap (jaxgarden.models.Gemma2Config attribute)</a>
 </li>
@@ -183,11 +195,13 @@
   <td style="width: 33%; vertical-align: top;"><ul>
       <li><a href="modules/index.html#jaxgarden.models.LlamaRotaryEmbedding.base">base (jaxgarden.models.LlamaRotaryEmbedding attribute)</a>
 </li>
-  </ul></td>
-  <td style="width: 33%; vertical-align: top;"><ul>
       <li><a href="modules/index.html#jaxgarden.models.BaseConfig">BaseConfig (class in jaxgarden.models)</a>
 </li>
+  </ul></td>
+  <td style="width: 33%; vertical-align: top;"><ul>
       <li><a href="modules/index.html#jaxgarden.models.BaseModel">BaseModel (class in jaxgarden.models)</a>
+</li>
+      <li><a href="modules/index.html#id11">bos_token_id (jaxgarden.models.Gemma3Config attribute)</a>, <a href="modules/index.html#jaxgarden.models.Gemma3Config.bos_token_id">[1]</a>
 </li>
   </ul></td>
 </tr></table>
@@ -196,11 +210,15 @@
 <table style="width: 100%" class="indextable genindextable"><tr>
   <td style="width: 33%; vertical-align: top;"><ul>
       <li><a href="modules/index.html#jaxgarden.models.Gemma2ForCausalLM.config">config (jaxgarden.models.Gemma2ForCausalLM attribute)</a>
+
+      <ul>
+        <li><a href="modules/index.html#jaxgarden.models.Gemma3ForCausalLM.config">(jaxgarden.models.Gemma3ForCausalLM attribute)</a>
 </li>
-      <li><a href="modules/index.html#jaxgarden.models.Gemma2Config.context_length">context_length (jaxgarden.models.Gemma2Config attribute)</a>
-</li>
+      </ul></li>
   </ul></td>
   <td style="width: 33%; vertical-align: top;"><ul>
+      <li><a href="modules/index.html#jaxgarden.models.Gemma2Config.context_length">context_length (jaxgarden.models.Gemma2Config attribute)</a>
+</li>
       <li><a href="modules/index.html#jaxgarden.models.BaseModel.convert_weights_from_hf">convert_weights_from_hf() (jaxgarden.models.BaseModel method)</a>
 
       <ul>
@@ -213,7 +231,7 @@
 <h2 id="D">D</h2>
 <table style="width: 100%" class="indextable genindextable"><tr>
   <td style="width: 33%; vertical-align: top;"><ul>
-      <li><a href="modules/index.html#id0">dim (jaxgarden.models.LlamaConfig attribute)</a>, <a href="modules/index.html#jaxgarden.models.LlamaConfig.dim">[1]</a>
+      <li><a href="modules/index.html#id34">dim (jaxgarden.models.LlamaConfig attribute)</a>, <a href="modules/index.html#jaxgarden.models.LlamaConfig.dim">[1]</a>
 
       <ul>
         <li><a href="modules/index.html#jaxgarden.models.LlamaRotaryEmbedding.dim">(jaxgarden.models.LlamaRotaryEmbedding attribute)</a>
@@ -228,7 +246,11 @@
       <li><a href="modules/index.html#jaxgarden.models.BaseModel.download_from_hf">download_from_hf() (jaxgarden.models.BaseModel static method)</a>
 </li>
       <li><a href="modules/index.html#jaxgarden.models.Gemma2Config.dtype">dtype (jaxgarden.models.Gemma2Config attribute)</a>
+
+      <ul>
+        <li><a href="modules/index.html#jaxgarden.models.Gemma3Config.dtype">(jaxgarden.models.Gemma3Config attribute)</a>
 </li>
+      </ul></li>
   </ul></td>
 </tr></table>
 
@@ -236,7 +258,11 @@
 <table style="width: 100%" class="indextable genindextable"><tr>
   <td style="width: 33%; vertical-align: top;"><ul>
       <li><a href="modules/index.html#jaxgarden.models.Gemma2Config.eos_token_id">eos_token_id (jaxgarden.models.Gemma2Config attribute)</a>
+
+      <ul>
+        <li><a href="modules/index.html#id12">(jaxgarden.models.Gemma3Config attribute)</a>, <a href="modules/index.html#jaxgarden.models.Gemma3Config.eos_token_id">[1]</a>
 </li>
+      </ul></li>
   </ul></td>
   <td style="width: 33%; vertical-align: top;"><ul>
       <li><a href="modules/index.html#jaxgarden.models.BaseConfig.extra">extra (jaxgarden.models.BaseConfig attribute)</a>
@@ -248,7 +274,11 @@
 <table style="width: 100%" class="indextable genindextable"><tr>
   <td style="width: 33%; vertical-align: top;"><ul>
       <li><a href="modules/index.html#jaxgarden.models.Gemma2Config.final_logit_soft_cap">final_logit_soft_cap (jaxgarden.models.Gemma2Config attribute)</a>
+
+      <ul>
+        <li><a href="modules/index.html#id13">(jaxgarden.models.Gemma3Config attribute)</a>, <a href="modules/index.html#jaxgarden.models.Gemma3Config.final_logit_soft_cap">[1]</a>
 </li>
+      </ul></li>
   </ul></td>
   <td style="width: 33%; vertical-align: top;"><ul>
       <li><a href="modules/index.html#jaxgarden.models.BaseModel.from_hf">from_hf() (jaxgarden.models.BaseModel method)</a>
@@ -269,13 +299,25 @@
 </li>
       <li><a href="modules/index.html#jaxgarden.models.Gemma2ForCausalLM">Gemma2ForCausalLM (class in jaxgarden.models)</a>
 </li>
-  </ul></td>
-  <td style="width: 33%; vertical-align: top;"><ul>
       <li><a href="modules/index.html#jaxgarden.models.Gemma2MLP">Gemma2MLP (class in jaxgarden.models)</a>
 </li>
       <li><a href="modules/index.html#jaxgarden.models.Gemma2RMSNorm">Gemma2RMSNorm (class in jaxgarden.models)</a>
 </li>
       <li><a href="modules/index.html#jaxgarden.models.Gemma2RotaryEmbedding">Gemma2RotaryEmbedding (class in jaxgarden.models)</a>
+</li>
+  </ul></td>
+  <td style="width: 33%; vertical-align: top;"><ul>
+      <li><a href="modules/index.html#jaxgarden.models.Gemma3Attention">Gemma3Attention (class in jaxgarden.models)</a>
+</li>
+      <li><a href="modules/index.html#jaxgarden.models.Gemma3Config">Gemma3Config (class in jaxgarden.models)</a>
+</li>
+      <li><a href="modules/index.html#jaxgarden.models.Gemma3ForCausalLM">Gemma3ForCausalLM (class in jaxgarden.models)</a>
+</li>
+      <li><a href="modules/index.html#jaxgarden.models.Gemma3MLP">Gemma3MLP (class in jaxgarden.models)</a>
+</li>
+      <li><a href="modules/index.html#jaxgarden.models.Gemma3RMSNorm">Gemma3RMSNorm (class in jaxgarden.models)</a>
+</li>
+      <li><a href="modules/index.html#jaxgarden.models.Gemma3RotaryEmbedding">Gemma3RotaryEmbedding (class in jaxgarden.models)</a>
 </li>
       <li><a href="modules/index.html#jaxgarden.models.GenerationMixin.generate">generate() (jaxgarden.models.GenerationMixin method)</a>
 </li>
@@ -290,27 +332,39 @@
       <li><a href="modules/index.html#jaxgarden.models.Gemma2Config.head_dim">head_dim (jaxgarden.models.Gemma2Config attribute)</a>
 
       <ul>
+        <li><a href="modules/index.html#id14">(jaxgarden.models.Gemma3Config attribute)</a>, <a href="modules/index.html#jaxgarden.models.Gemma3Config.head_dim">[1]</a>
+</li>
         <li><a href="modules/index.html#jaxgarden.models.LlamaAttention.head_dim">(jaxgarden.models.LlamaAttention attribute)</a>
 </li>
-        <li><a href="modules/index.html#id9">(jaxgarden.models.LlamaConfig attribute)</a>, <a href="modules/index.html#jaxgarden.models.LlamaConfig.head_dim">[1]</a>
+        <li><a href="modules/index.html#id35">(jaxgarden.models.LlamaConfig attribute)</a>, <a href="modules/index.html#jaxgarden.models.LlamaConfig.head_dim">[1]</a>
 </li>
       </ul></li>
   </ul></td>
   <td style="width: 33%; vertical-align: top;"><ul>
-      <li><a href="modules/index.html#jaxgarden.models.Gemma2Config.hidden_size">hidden_size (jaxgarden.models.Gemma2Config attribute)</a>
+      <li><a href="modules/index.html#id15">hidden_activation (jaxgarden.models.Gemma3Config attribute)</a>, <a href="modules/index.html#jaxgarden.models.Gemma3Config.hidden_activation">[1]</a>
 </li>
+      <li><a href="modules/index.html#jaxgarden.models.Gemma2Config.hidden_size">hidden_size (jaxgarden.models.Gemma2Config attribute)</a>
+
+      <ul>
+        <li><a href="modules/index.html#id16">(jaxgarden.models.Gemma3Config attribute)</a>, <a href="modules/index.html#jaxgarden.models.Gemma3Config.hidden_size">[1]</a>
+</li>
+      </ul></li>
   </ul></td>
 </tr></table>
 
 <h2 id="I">I</h2>
 <table style="width: 100%" class="indextable genindextable"><tr>
   <td style="width: 33%; vertical-align: top;"><ul>
+      <li><a href="modules/index.html#id17">initializer_range (jaxgarden.models.Gemma3Config attribute)</a>, <a href="modules/index.html#jaxgarden.models.Gemma3Config.initializer_range">[1]</a>
+</li>
       <li><a href="modules/index.html#jaxgarden.models.LlamaTransformerBlock.input_layernorm">input_layernorm (jaxgarden.models.LlamaTransformerBlock attribute)</a>
 </li>
       <li><a href="modules/index.html#jaxgarden.models.Gemma2Config.intermediate_size">intermediate_size (jaxgarden.models.Gemma2Config attribute)</a>
 
       <ul>
-        <li><a href="modules/index.html#id10">(jaxgarden.models.LlamaConfig attribute)</a>, <a href="modules/index.html#jaxgarden.models.LlamaConfig.intermediate_size">[1]</a>
+        <li><a href="modules/index.html#id18">(jaxgarden.models.Gemma3Config attribute)</a>, <a href="modules/index.html#jaxgarden.models.Gemma3Config.intermediate_size">[1]</a>
+</li>
+        <li><a href="modules/index.html#id36">(jaxgarden.models.LlamaConfig attribute)</a>, <a href="modules/index.html#jaxgarden.models.LlamaConfig.intermediate_size">[1]</a>
 </li>
       </ul></li>
   </ul></td>
@@ -390,6 +444,8 @@
 <h2 id="M">M</h2>
 <table style="width: 100%" class="indextable genindextable"><tr>
   <td style="width: 33%; vertical-align: top;"><ul>
+      <li><a href="modules/index.html#id19">max_position_embeddings (jaxgarden.models.Gemma3Config attribute)</a>, <a href="modules/index.html#jaxgarden.models.Gemma3Config.max_position_embeddings">[1]</a>
+</li>
       <li><a href="modules/index.html#jaxgarden.models.LlamaTransformerBlock.mlp">mlp (jaxgarden.models.LlamaTransformerBlock attribute)</a>
 </li>
       <li><a href="modules/index.html#jaxgarden.models.ModernBertAttention">ModernBertAttention (class in jaxgarden.models)</a>
@@ -419,7 +475,7 @@
       </ul></li>
       <li><a href="modules/index.html#jaxgarden.attention.MultiHeadAttention">MultiHeadAttention (class in jaxgarden.attention)</a>
 </li>
-      <li><a href="modules/index.html#id11">multiple_of (jaxgarden.models.LlamaConfig attribute)</a>, <a href="modules/index.html#jaxgarden.models.LlamaConfig.multiple_of">[1]</a>
+      <li><a href="modules/index.html#id37">multiple_of (jaxgarden.models.LlamaConfig attribute)</a>, <a href="modules/index.html#jaxgarden.models.LlamaConfig.multiple_of">[1]</a>
 </li>
   </ul></td>
 </tr></table>
@@ -430,35 +486,47 @@
       <li><a href="modules/index.html#jaxgarden.models.LlamaAttention.n_heads">n_heads (jaxgarden.models.LlamaAttention attribute)</a>
 
       <ul>
-        <li><a href="modules/index.html#id12">(jaxgarden.models.LlamaConfig attribute)</a>, <a href="modules/index.html#jaxgarden.models.LlamaConfig.n_heads">[1]</a>
+        <li><a href="modules/index.html#id38">(jaxgarden.models.LlamaConfig attribute)</a>, <a href="modules/index.html#jaxgarden.models.LlamaConfig.n_heads">[1]</a>
 </li>
       </ul></li>
       <li><a href="modules/index.html#jaxgarden.models.LlamaAttention.n_kv_heads">n_kv_heads (jaxgarden.models.LlamaAttention attribute)</a>
 
       <ul>
-        <li><a href="modules/index.html#id13">(jaxgarden.models.LlamaConfig attribute)</a>, <a href="modules/index.html#jaxgarden.models.LlamaConfig.n_kv_heads">[1]</a>
+        <li><a href="modules/index.html#id39">(jaxgarden.models.LlamaConfig attribute)</a>, <a href="modules/index.html#jaxgarden.models.LlamaConfig.n_kv_heads">[1]</a>
 </li>
       </ul></li>
-      <li><a href="modules/index.html#id14">n_layers (jaxgarden.models.LlamaConfig attribute)</a>, <a href="modules/index.html#jaxgarden.models.LlamaConfig.n_layers">[1]</a>
+      <li><a href="modules/index.html#id40">n_layers (jaxgarden.models.LlamaConfig attribute)</a>, <a href="modules/index.html#jaxgarden.models.LlamaConfig.n_layers">[1]</a>
 </li>
       <li><a href="modules/index.html#jaxgarden.models.LlamaForCausalLM.norm">norm (jaxgarden.models.LlamaForCausalLM attribute)</a>
 </li>
-  </ul></td>
-  <td style="width: 33%; vertical-align: top;"><ul>
-      <li><a href="modules/index.html#id15">norm_eps (jaxgarden.models.LlamaConfig attribute)</a>, <a href="modules/index.html#jaxgarden.models.LlamaConfig.norm_eps">[1]</a>
+      <li><a href="modules/index.html#id41">norm_eps (jaxgarden.models.LlamaConfig attribute)</a>, <a href="modules/index.html#jaxgarden.models.LlamaConfig.norm_eps">[1]</a>
 
       <ul>
         <li><a href="modules/index.html#jaxgarden.models.LlamaRMSNorm.norm_eps">(jaxgarden.models.LlamaRMSNorm attribute)</a>
 </li>
       </ul></li>
+  </ul></td>
+  <td style="width: 33%; vertical-align: top;"><ul>
       <li><a href="modules/index.html#jaxgarden.models.LlamaRMSNorm.norm_weights">norm_weights (jaxgarden.models.LlamaRMSNorm attribute)</a>
 </li>
       <li><a href="modules/index.html#jaxgarden.models.Gemma2Config.num_attention_heads">num_attention_heads (jaxgarden.models.Gemma2Config attribute)</a>
+
+      <ul>
+        <li><a href="modules/index.html#id20">(jaxgarden.models.Gemma3Config attribute)</a>, <a href="modules/index.html#jaxgarden.models.Gemma3Config.num_attention_heads">[1]</a>
 </li>
+      </ul></li>
       <li><a href="modules/index.html#jaxgarden.models.Gemma2Config.num_hidden_layers">num_hidden_layers (jaxgarden.models.Gemma2Config attribute)</a>
+
+      <ul>
+        <li><a href="modules/index.html#id21">(jaxgarden.models.Gemma3Config attribute)</a>, <a href="modules/index.html#jaxgarden.models.Gemma3Config.num_hidden_layers">[1]</a>
 </li>
+      </ul></li>
       <li><a href="modules/index.html#jaxgarden.models.Gemma2Config.num_key_value_heads">num_key_value_heads (jaxgarden.models.Gemma2Config attribute)</a>
+
+      <ul>
+        <li><a href="modules/index.html#id22">(jaxgarden.models.Gemma3Config attribute)</a>, <a href="modules/index.html#jaxgarden.models.Gemma3Config.num_key_value_heads">[1]</a>
 </li>
+      </ul></li>
   </ul></td>
 </tr></table>
 
@@ -474,11 +542,19 @@
 <table style="width: 100%" class="indextable genindextable"><tr>
   <td style="width: 33%; vertical-align: top;"><ul>
       <li><a href="modules/index.html#jaxgarden.models.Gemma2Config.pad_token_id">pad_token_id (jaxgarden.models.Gemma2Config attribute)</a>
+
+      <ul>
+        <li><a href="modules/index.html#id23">(jaxgarden.models.Gemma3Config attribute)</a>, <a href="modules/index.html#jaxgarden.models.Gemma3Config.pad_token_id">[1]</a>
 </li>
+      </ul></li>
   </ul></td>
   <td style="width: 33%; vertical-align: top;"><ul>
       <li><a href="modules/index.html#jaxgarden.models.Gemma2Config.param_dtype">param_dtype (jaxgarden.models.Gemma2Config attribute)</a>
+
+      <ul>
+        <li><a href="modules/index.html#jaxgarden.models.Gemma3Config.param_dtype">(jaxgarden.models.Gemma3Config attribute)</a>
 </li>
+      </ul></li>
       <li><a href="modules/index.html#jaxgarden.models.LlamaTransformerBlock.post_attention_layernorm">post_attention_layernorm (jaxgarden.models.LlamaTransformerBlock attribute)</a>
 </li>
   </ul></td>
@@ -490,6 +566,10 @@
       <li><a href="modules/index.html#jaxgarden.models.LlamaAttention.q_proj">q_proj (jaxgarden.models.LlamaAttention attribute)</a>
 </li>
   </ul></td>
+  <td style="width: 33%; vertical-align: top;"><ul>
+      <li><a href="modules/index.html#id24">query_pre_attn_scalar (jaxgarden.models.Gemma3Config attribute)</a>, <a href="modules/index.html#jaxgarden.models.Gemma3Config.query_pre_attn_scalar">[1]</a>
+</li>
+  </ul></td>
 </tr></table>
 
 <h2 id="R">R</h2>
@@ -498,15 +578,25 @@
       <li><a href="modules/index.html#jaxgarden.models.LlamaAttention.repeat_kv">repeat_kv() (jaxgarden.models.LlamaAttention static method)</a>
 </li>
       <li><a href="modules/index.html#jaxgarden.models.Gemma2Config.rms_norm_eps">rms_norm_eps (jaxgarden.models.Gemma2Config attribute)</a>
+
+      <ul>
+        <li><a href="modules/index.html#id25">(jaxgarden.models.Gemma3Config attribute)</a>, <a href="modules/index.html#jaxgarden.models.Gemma3Config.rms_norm_eps">[1]</a>
 </li>
+      </ul></li>
+      <li><a href="modules/index.html#id26">rope_local_base_freq (jaxgarden.models.Gemma3Config attribute)</a>, <a href="modules/index.html#jaxgarden.models.Gemma3Config.rope_local_base_freq">[1]</a>
+</li>
+      <li><a href="modules/index.html#id27">rope_scaling (jaxgarden.models.Gemma3Config attribute)</a>, <a href="modules/index.html#jaxgarden.models.Gemma3Config.rope_scaling">[1]</a>
+</li>
+  </ul></td>
+  <td style="width: 33%; vertical-align: top;"><ul>
       <li><a href="modules/index.html#jaxgarden.models.Gemma2Config.rope_theta">rope_theta (jaxgarden.models.Gemma2Config attribute)</a>
 
       <ul>
-        <li><a href="modules/index.html#id16">(jaxgarden.models.LlamaConfig attribute)</a>, <a href="modules/index.html#jaxgarden.models.LlamaConfig.rope_theta">[1]</a>
+        <li><a href="modules/index.html#id28">(jaxgarden.models.Gemma3Config attribute)</a>, <a href="modules/index.html#jaxgarden.models.Gemma3Config.rope_theta">[1]</a>
+</li>
+        <li><a href="modules/index.html#id42">(jaxgarden.models.LlamaConfig attribute)</a>, <a href="modules/index.html#jaxgarden.models.LlamaConfig.rope_theta">[1]</a>
 </li>
       </ul></li>
-  </ul></td>
-  <td style="width: 33%; vertical-align: top;"><ul>
       <li><a href="modules/index.html#jaxgarden.models.LlamaAttention.rotary_emb">rotary_emb (jaxgarden.models.LlamaAttention attribute)</a>
 </li>
       <li><a href="modules/index.html#jaxgarden.models.Gemma2Attention.rotate_half">rotate_half() (jaxgarden.models.Gemma2Attention static method)</a>
@@ -525,8 +615,12 @@
 </li>
       <li><a href="modules/index.html#jaxgarden.models.BaseConfig.seed">seed (jaxgarden.models.BaseConfig attribute)</a>
 </li>
+      <li><a href="modules/index.html#id29">sliding_window (jaxgarden.models.Gemma3Config attribute)</a>, <a href="modules/index.html#jaxgarden.models.Gemma3Config.sliding_window">[1]</a>
+</li>
   </ul></td>
   <td style="width: 33%; vertical-align: top;"><ul>
+      <li><a href="modules/index.html#id30">sliding_window_pattern (jaxgarden.models.Gemma3Config attribute)</a>, <a href="modules/index.html#jaxgarden.models.Gemma3Config.sliding_window_pattern">[1]</a>
+</li>
       <li><a href="modules/index.html#jaxgarden.models.Gemma2Config.sliding_window_size">sliding_window_size (jaxgarden.models.Gemma2Config attribute)</a>
 </li>
       <li><a href="modules/index.html#jaxgarden.models.BaseModel.state">state (jaxgarden.models.BaseModel property)</a>
@@ -540,7 +634,11 @@
 <table style="width: 100%" class="indextable genindextable"><tr>
   <td style="width: 33%; vertical-align: top;"><ul>
       <li><a href="modules/index.html#jaxgarden.models.Gemma2Config.tie_word_embeddings">tie_word_embeddings (jaxgarden.models.Gemma2Config attribute)</a>
+
+      <ul>
+        <li><a href="modules/index.html#id31">(jaxgarden.models.Gemma3Config attribute)</a>, <a href="modules/index.html#jaxgarden.models.Gemma3Config.tie_word_embeddings">[1]</a>
 </li>
+      </ul></li>
   </ul></td>
   <td style="width: 33%; vertical-align: top;"><ul>
       <li><a href="modules/index.html#jaxgarden.models.BaseConfig.to_dict">to_dict() (jaxgarden.models.BaseConfig method)</a>
@@ -559,6 +657,8 @@
   <td style="width: 33%; vertical-align: top;"><ul>
       <li><a href="modules/index.html#jaxgarden.models.BaseConfig.update">update() (jaxgarden.models.BaseConfig method)</a>
 </li>
+      <li><a href="modules/index.html#id32">use_cache (jaxgarden.models.Gemma3Config attribute)</a>, <a href="modules/index.html#jaxgarden.models.Gemma3Config.use_cache">[1]</a>
+</li>
   </ul></td>
 </tr></table>
 
@@ -567,12 +667,12 @@
   <td style="width: 33%; vertical-align: top;"><ul>
       <li><a href="modules/index.html#jaxgarden.models.LlamaAttention.v_proj">v_proj (jaxgarden.models.LlamaAttention attribute)</a>
 </li>
-  </ul></td>
-  <td style="width: 33%; vertical-align: top;"><ul>
       <li><a href="modules/index.html#jaxgarden.models.Gemma2Config.vocab_size">vocab_size (jaxgarden.models.Gemma2Config attribute)</a>
 
       <ul>
-        <li><a href="modules/index.html#id17">(jaxgarden.models.LlamaConfig attribute)</a>, <a href="modules/index.html#jaxgarden.models.LlamaConfig.vocab_size">[1]</a>
+        <li><a href="modules/index.html#id33">(jaxgarden.models.Gemma3Config attribute)</a>, <a href="modules/index.html#jaxgarden.models.Gemma3Config.vocab_size">[1]</a>
+</li>
+        <li><a href="modules/index.html#id43">(jaxgarden.models.LlamaConfig attribute)</a>, <a href="modules/index.html#jaxgarden.models.LlamaConfig.vocab_size">[1]</a>
 </li>
       </ul></li>
   </ul></td>
