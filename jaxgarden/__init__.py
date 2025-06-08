@@ -11,6 +11,14 @@ from jaxgarden.models.gemma2 import (
     Gemma2RMSNorm,
     Gemma2RotaryEmbedding,
 )
+from jaxgarden.models.gemma3 import (
+    Gemma3Attention,
+    Gemma3Config,
+    Gemma3ForCausalLM,
+    Gemma3MLP,
+    Gemma3RMSNorm,
+    Gemma3RotaryEmbedding,
+)
 from jaxgarden.models.generation_utils import GenerationMixin
 from jaxgarden.models.llama import (
     LlamaAttention,
@@ -54,6 +62,13 @@ __all__ = [
     "Gemma2MLP",
     "Gemma2RMSNorm",
     "Gemma2RotaryEmbedding",
+    # Gemma3 Models
+    "Gemma3Attention",
+    "Gemma3Config",
+    "Gemma3ForCausalLM",
+    "Gemma3MLP",
+    "Gemma3RMSNorm",
+    "Gemma3RotaryEmbedding",
     # Mixins
     "GenerationMixin",
     # Llama Models

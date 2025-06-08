@@ -10,7 +10,7 @@ import jax
 import jax.numpy as jnp
 import orbax.checkpoint as ocp  # type: ignore
 from flax import nnx
-from huggingface_hub import snapshot_download
+from huggingface_hub import snapshot_download  # type: ignore
 from safetensors import safe_open
 
 # Set up logging
